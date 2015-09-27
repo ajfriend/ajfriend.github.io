@@ -7,8 +7,8 @@ permalink:        pretty
 relative_permalinks: true
 
 # Setup
-title:            AJ Friend
-description:      ICME PhD Student
+title:            CME 252
+description:      Introduction to Optimization
 url:              http://ajfriend.github.io/
 baseurl:          /
 
