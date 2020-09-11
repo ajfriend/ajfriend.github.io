@@ -245,6 +245,28 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#config" class="md-nav__link">
+    Config
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#helpful-sites" class="md-nav__link">
+    Helpful sites
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -264,7 +286,42 @@
                 
                 
                 <h1 id="setting-up-a-personal-site-with-mkdocs">Setting up a personal site with MkDocs</h1>
-<p>boom!</p>
+<p>I&rsquo;m serving this site via a <a href="https://pages.github.com/">Github Pages</a>.</p>
+<p>There are two ways to do this:</p>
+<ol>
+<li>
+<p>As a <strong>&ldquo;user or organization site&rdquo;</strong>, which means it is published from
+the <code>master</code> branch of of a repo named like <code>&lt;username&gt;.github.io</code>, and is
+published at <code>http://username.github.io/</code>.</p>
+</li>
+<li>
+<p>As a <strong>&ldquo;project site&rdquo;</strong>, which is served from a specific branch (like <code>gh-pages</code>)
+of an existing project&rsquo;s repo, and is&mdash;published at
+<code>http://username.github.io/repository</code>.</p>
+</li>
+</ol>
+<p>This site uses the first approach,
+to get the fancy-schmancy <a href="http://ajfriend.github.io/">http://ajfriend.github.io/</a> URL.</p>
+<pre><code class="python">import tensorflow as tf
+
+def foo():
+    print('hello')
+</code></pre>
+
+<h2 id="config">Config</h2>
+<p><a href="https://python-markdown.github.io/extensions/">https://python-markdown.github.io/extensions/</a> for em-dash and ellipsis&hellip;</p>
+<p>enabled with</p>
+<pre><code class="yml">markdown_extensions:
+  - smarty
+</code></pre>
+
+<h2 id="helpful-sites">Helpful sites</h2>
+<ul>
+<li><a href="https://python-markdown.github.io/extensions/">https://python-markdown.github.io/extensions/</a></li>
+<li><a href="http://madrus4u.com/mdocs/engine/styling/">http://madrus4u.com/mdocs/engine/styling/</a></li>
+<li><a href="https://code.kx.com/q/about/sg/">https://code.kx.com/q/about/sg/</a> </li>
+<li><a href="https://facelessuser.github.io/pymdown-extensions/">https://facelessuser.github.io/pymdown-extensions/</a></li>
+</ul>
                 
                   
                     

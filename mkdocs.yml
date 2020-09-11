@@ -23,3 +23,13 @@ nav:
   - Blog: 'blog.md'
   - Notes: 'notes.md'
   - Contact: 'contact.md'
+
+markdown_extensions:
+  - smarty
+  - pymdownx.magiclink
+  - pymdownx.inlinehilite
+  - pymdownx.highlight:
+      use_pygments: true
+  - pymdownx.smartsymbols
+  - pymdownx.betterem:
+      smart_enable: all
