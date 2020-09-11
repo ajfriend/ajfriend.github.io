@@ -15,7 +15,7 @@
     
     
       
-        <title>Setting up a personal site with MkDocs - AJ Friend</title>
+        <title>Configuration for MkDocs with the Material theme - AJ Friend</title>
       
     
     
@@ -58,7 +58,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#setting-up-a-personal-site-with-mkdocs" class="md-skip">
+        <a href="#configuration-for-mkdocs-with-the-material-theme" class="md-skip">
           Skip to content
         </a>
       
@@ -86,7 +86,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              Setting up a personal site with MkDocs
+              Configuration for MkDocs with the Material theme
             
           </span>
         </div>
@@ -198,7 +198,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../blog/" title="Blog" class="md-nav__link">
+    <a href="../../blog" title="Blog" class="md-nav__link">
       Blog
     </a>
   </li>
@@ -210,7 +210,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../" title="Notes" class="md-nav__link">
+    <a href=".." title="Notes" class="md-nav__link">
       Notes
     </a>
   </li>
@@ -252,8 +252,15 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#config" class="md-nav__link">
-    Config
+  <a href="#smartypants-punctuation" class="md-nav__link">
+    SmartyPants punctuation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#math" class="md-nav__link">
+    Math
   </a>
   
 </li>
@@ -277,7 +284,7 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/ajfriend/ajfriend.github.io/blob/master/src/notes/mkdocs.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/ajfriend/ajfriend.github.io/blob/master/src/notes/mkdocs_material_config.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
@@ -285,35 +292,40 @@
                   
                 
                 
-                <h1 id="setting-up-a-personal-site-with-mkdocs">Setting up a personal site with MkDocs</h1>
-<p>I&rsquo;m serving this site via a <a href="https://pages.github.com/">Github Pages</a>.</p>
-<p>There are two ways to do this:</p>
-<ol>
-<li>
-<p>As a <strong>&ldquo;user or organization site&rdquo;</strong>, which means it is published from
-the <code>master</code> branch of of a repo named like <code>&lt;username&gt;.github.io</code>, and is
-published at <code>http://username.github.io/</code>.</p>
-</li>
-<li>
-<p>As a <strong>&ldquo;project site&rdquo;</strong>, which is served from a specific branch (like <code>gh-pages</code>)
-of an existing project&rsquo;s repo, and is&mdash;published at
-<code>http://username.github.io/repository</code>.</p>
-</li>
-</ol>
-<p>This site uses the first approach,
-to get the fancy-schmancy <a href="http://ajfriend.github.io/">http://ajfriend.github.io/</a> URL.</p>
-<pre><code class="python">import tensorflow as tf
+                <h1 id="configuration-for-mkdocs-with-the-material-theme">Configuration for MkDocs with the Material theme</h1>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
-def foo():
-    print('hello')
-</code></pre>
+<span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;hello&#39;</span><span class="p">)</span>
+</code></pre></div>
 
-<h2 id="config">Config</h2>
-<p><a href="https://python-markdown.github.io/extensions/">https://python-markdown.github.io/extensions/</a> for em-dash and ellipsis&hellip;</p>
-<p>enabled with</p>
-<pre><code class="yml">markdown_extensions:
-  - smarty
-</code></pre>
+
+<h2 id="smartypants-punctuation">SmartyPants punctuation</h2>
+<ul>
+<li><a href="https://python-markdown.github.io/extensions/">https://python-markdown.github.io/extensions/</a></li>
+<li><a href="https://python-markdown.github.io/extensions/smarty/">https://python-markdown.github.io/extensions/smarty/</a></li>
+</ul>
+<p>For en-dash, (&ndash;), em-dash (&mdash;), and ellipsis (&hellip;).</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">markdown_extensions</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">smarty</span>
+</code></pre></div>
+
+
+<h2 id="math">Math</h2>
+<p>Inline and block math: <span class="arithmatex">\(\sum_{i=1}^N x^i\)</span></p>
+<div class="arithmatex">\[
+\sum_{i=1}^N x^i
+\]</div>
+<div class="codehilite"><pre><span></span><code><span class="nt">markdown_extensions</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">pymdownx.arithmatex</span><span class="p">:</span>
+      <span class="nt">generic</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+
+<span class="nt">extra_javascript</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">javascripts/config.js</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">https://polyfill.io/v3/polyfill.min.js?features=es6</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js</span>
+</code></pre></div>
+
 
 <h2 id="helpful-sites">Helpful sites</h2>
 <ul>
@@ -378,6 +390,12 @@ def foo():
           }, typeof search !== "undefined" && search)
         })
       </script>
+      
+        <script src="../../javascripts/config.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       
     
   </body>

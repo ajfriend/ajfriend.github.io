@@ -1,4 +1,4 @@
-# Setting up a personal site with MkDocs
+# MkDocs on Github Pages
 
 I'm serving this site via a [Github Pages](https://pages.github.com/).
 
@@ -15,28 +15,6 @@ of an existing project's repo, and is---published at
 This site uses the first approach,
 to get the fancy-schmancy http://ajfriend.github.io/ URL.
 
-```python
-import tensorflow as tf
 
-def foo():
-    print('hello')
-```
-
-
-## Config
-
-https://python-markdown.github.io/extensions/ for em-dash and ellipsis...
-
-enabled with
-
-```yml
-markdown_extensions:
-  - smarty
-```
-
-## Helpful sites
-
-- https://python-markdown.github.io/extensions/
-- http://madrus4u.com/mdocs/engine/styling/
-- https://code.kx.com/q/about/sg/ 
-- https://facelessuser.github.io/pymdown-extensions/
+means we have to run `mkdocs build` manually before pushing.
+can't do the fancy things that people do to automatically push.

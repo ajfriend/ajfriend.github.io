@@ -5,6 +5,13 @@ repo_url: https://github.com/ajfriend/ajfriend.github.io
 repo_name: ajfriend.github.io
 edit_uri: blob/master/src/
 
+nav:
+  - About: index.md
+  - Blog: blog
+  - Notes: notes
+  - Contact: contact.md
+
+
 theme:
   name: material
   palette:
@@ -18,18 +25,19 @@ plugins:
       type: date
   - search
 
-nav:
-  - About: 'index.md'
-  - Blog: 'blog.md'
-  - Notes: 'notes.md'
-  - Contact: 'contact.md'
-
 markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
   - smarty
   - pymdownx.magiclink
   - pymdownx.inlinehilite
-  - pymdownx.highlight:
-      use_pygments: true
+  - codehilite
   - pymdownx.smartsymbols
   - pymdownx.betterem:
       smart_enable: all
+
+
+extra_javascript:
+  - javascripts/config.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
