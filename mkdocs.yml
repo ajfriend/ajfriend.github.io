@@ -1,13 +1,19 @@
 site_name: My Docs
 docs_dir: src
 site_dir: docs
+repo_url: https://github.com/ajfriend/ajfriend.github.io
+repo_name: ajfriend.github.io
 
 theme:
   name: material
   palette:
     primary: white
     accent: red
+  icon:
+    repo: fontawesome/brands/github
 
 plugins:
   - git-revision-date-localized:
       type: date
+  - search
+
