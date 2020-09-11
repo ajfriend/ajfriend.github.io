@@ -1,1 +1,1 @@
-Repo for [ajfriend.github.io](ajfriend.github.io).
+Repo for [ajfriend.github.io](http://ajfriend.github.io/).
