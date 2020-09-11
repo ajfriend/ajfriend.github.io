@@ -1,4 +1,4 @@
-site_name: My Docs
+site_name: AJ Friend
 docs_dir: src
 site_dir: docs
 repo_url: https://github.com/ajfriend/ajfriend.github.io
@@ -18,3 +18,8 @@ plugins:
       type: date
   - search
 
+nav:
+  - About: 'index.md'
+  - Blog: 'blog.md'
+  - Notes: 'notes.md'
+  - Contact: 'contact.md'
