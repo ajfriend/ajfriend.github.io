@@ -8,6 +8,9 @@ env:
 purge:
 	-@rm -rf env
 
+build:
+	env/bin/mkdocs build
+
 serve:
 	open http://127.0.0.1:8000
 	env/bin/mkdocs serve
