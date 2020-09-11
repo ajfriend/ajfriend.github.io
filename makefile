@@ -6,7 +6,7 @@ env:
 	env/bin/pip install -r requirements.txt
 
 purge:
-	-@rm -rf env
+	-@rm -rf env docs
 
 build:
 	env/bin/mkdocs build
