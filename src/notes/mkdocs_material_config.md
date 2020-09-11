@@ -18,6 +18,23 @@ https://squidfunk.github.io/mkdocs-material/reference/admonitions/
       - pymdownx.superfences
     ```
 
+??? example "Code"
+    ```md
+    !!! note
+        You can make admonition blocks!
+
+    !!! warning
+        They're super fun.
+
+    ??? tldr "Config"
+        ```yaml
+        markdown_extensions:
+          - admonition
+          - pymdownx.details
+          - pymdownx.superfences
+        ```
+    ```
+
 ## Content tabs
 
 https://squidfunk.github.io/mkdocs-material/reference/content-tabs/
@@ -36,6 +53,23 @@ https://squidfunk.github.io/mkdocs-material/reference/content-tabs/
         print x
     ```
 
+
+??? example "Code"
+    ```md
+    === "Python 3"
+
+        ```python
+        for i in range(10):
+            print(x)
+        ```
+
+    === "Python 2"
+
+        ```python
+        for i in xrange(10):
+            print x
+        ```
+    ```
 
 ??? tldr "Config"
     ```yaml
@@ -65,6 +99,11 @@ def foo():
 - https://python-markdown.github.io/extensions/smarty/
 
 For en-dash, (--), em-dash (---), and ellipsis (...).
+
+??? example "Code"
+    ```md
+    For en-dash, (--), em-dash (---), and ellipsis (...).
+    ```
 
 ??? tldr "Config"
     ```yaml
@@ -115,8 +154,78 @@ https://squidfunk.github.io/mkdocs-material/reference/data-tables/
 | `DELETE` | Delete resource |
 
 
+??? example "Code"
+    ```md
+    |  Method  |   Description   |
+    |----------|-----------------|
+    | `GET`    | Fetch resource  |
+    | `PUT`    | Update resource |
+    | `DELETE` | Delete resource |
+    ```
+
 ??? tldr "Config"
     None!
+
+## Definition list
+
+`Lorem ipsum dolor sit amet`
+:   Sed sagittis eleifend rutrum. Donec vitae suscipit est. Nullam tempus
+    tellus non sem sollicitudin, quis rutrum leo facilisis.
+
+`Cras arcu libero`
+:   Aliquam metus eros, pretium sed nulla venenatis, faucibus auctor ex. Proin
+    ut eros sed sapien ullamcorper consequat. Nunc ligula ante.
+
+    Duis mollis est eget nibh volutpat, fermentum aliquet dui mollis.
+    Nam vulputate tincidunt fringilla.
+    Nullam dignissim ultrices urna non auctor.
+
+??? example "Code"
+    ```md
+    `Lorem ipsum dolor sit amet`
+    :   Sed sagittis eleifend rutrum. Donec vitae suscipit est. Nullam tempus
+        tellus non sem sollicitudin, quis rutrum leo facilisis.
+
+    `Cras arcu libero`
+    :   Aliquam metus eros, pretium sed nulla venenatis, faucibus auctor ex. Proin
+        ut eros sed sapien ullamcorper consequat. Nunc ligula ante.
+
+        Duis mollis est eget nibh volutpat, fermentum aliquet dui mollis.
+        Nam vulputate tincidunt fringilla.
+        Nullam dignissim ultrices urna non auctor.
+    ```
+
+??? tldr "Config"
+    ```yaml
+    markdown_extensions:
+      - def_list
+    ```
+
+## Task list
+
+* [x] Lorem ipsum dolor sit amet, consectetur adipiscing elit
+* [ ] Vestibulum convallis sit amet nisi a tincidunt
+    * [x] In hac habitasse platea dictumst
+    * [x] In scelerisque nibh non dolor mollis congue sed et metus
+    * [ ] Praesent sed risus massa
+* [ ] Aenean pretium efficitur erat, donec pharetra, ligula non scelerisque
+
+??? example "Code"
+    ```md
+    * [x] Lorem ipsum dolor sit amet, consectetur adipiscing elit
+    * [ ] Vestibulum convallis sit amet nisi a tincidunt
+        * [x] In hac habitasse platea dictumst
+        * [x] In scelerisque nibh non dolor mollis congue sed et metus
+        * [ ] Praesent sed risus massa
+    * [ ] Aenean pretium efficitur erat, donec pharetra, ligula non scelerisque
+    ```
+
+??? tldr "Config"
+    ```yaml
+    markdown_extensions:
+      - pymdownx.tasklist:
+          custom_checkbox: true
+    ```
 
 ## References
 

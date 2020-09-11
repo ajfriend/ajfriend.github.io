@@ -39,6 +39,9 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.superfences
   - pymdownx.tabbed
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
 
 
 extra_javascript:

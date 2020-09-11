@@ -301,6 +301,20 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#definition-list" class="md-nav__link">
+    Definition list
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-list" class="md-nav__link">
+    Task list
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#references" class="md-nav__link">
     References
   </a>
@@ -345,6 +359,22 @@
 </code></pre></div>
 
 </details>
+<details class="example"><summary>Code</summary><div class="highlight"><pre><span></span><code>!!! note
+    You can make admonition blocks!
+
+!!! warning
+    They&#39;re super fun.
+
+??? tldr &quot;Config&quot;
+    ```yaml
+    markdown_extensions:
+      <span class="k">-</span> admonition
+      <span class="k">-</span> pymdownx.details
+      <span class="k">-</span> pymdownx.superfences
+    ```
+</code></pre></div>
+
+</details>
 <h2 id="content-tabs">Content tabs</h2>
 <p><a href="https://squidfunk.github.io/mkdocs-material/reference/content-tabs/">https://squidfunk.github.io/mkdocs-material/reference/content-tabs/</a></p>
 <div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Python 3</label><div class="tabbed-content">
@@ -360,6 +390,22 @@
 
 </div>
 </div>
+<details class="example"><summary>Code</summary><div class="highlight"><pre><span></span><code>=== &quot;Python 3&quot;
+
+    ```python
+    for i in range(10):
+        print(x)
+    ```
+
+=== &quot;Python 2&quot;
+
+    ```python
+    for i in xrange(10):
+        print x
+    ```
+</code></pre></div>
+
+</details>
 <details class="tldr"><summary>Config</summary><div class="highlight"><pre><span></span><code><span class="nt">markdown_extensions</span><span class="p">:</span>
   <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">pymdownx.tabbed</span>
   <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">pymdownx.superfences</span>
@@ -384,6 +430,10 @@
 <li><a href="https://python-markdown.github.io/extensions/smarty/">https://python-markdown.github.io/extensions/smarty/</a></li>
 </ul>
 <p>For en-dash, (&ndash;), em-dash (&mdash;), and ellipsis (&hellip;).</p>
+<details class="example"><summary>Code</summary><div class="highlight"><pre><span></span><code>For en-dash, (--), em-dash (---), and ellipsis (...).
+</code></pre></div>
+
+</details>
 <details class="tldr"><summary>Config</summary><div class="highlight"><pre><span></span><code><span class="nt">markdown_extensions</span><span class="p">:</span>
   <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">smarty</span>
 </code></pre></div>
@@ -437,7 +487,74 @@
 </tr>
 </tbody>
 </table>
+<details class="example"><summary>Code</summary><div class="highlight"><pre><span></span><code>|  Method  |   Description   |
+|----------|-----------------|
+| <span class="sb">`GET`</span>    | Fetch resource  |
+| <span class="sb">`PUT`</span>    | Update resource |
+| <span class="sb">`DELETE`</span> | Delete resource |
+</code></pre></div>
+
+</details>
 <details class="tldr"><summary>Config</summary><p>None!</p>
+</details>
+<h2 id="definition-list">Definition list</h2>
+<dl>
+<dt><code>Lorem ipsum dolor sit amet</code></dt>
+<dd>Sed sagittis eleifend rutrum. Donec vitae suscipit est. Nullam tempus
+tellus non sem sollicitudin, quis rutrum leo facilisis.</dd>
+<dt><code>Cras arcu libero</code></dt>
+<dd>
+<p>Aliquam metus eros, pretium sed nulla venenatis, faucibus auctor ex. Proin
+ut eros sed sapien ullamcorper consequat. Nunc ligula ante.</p>
+<p>Duis mollis est eget nibh volutpat, fermentum aliquet dui mollis.
+Nam vulputate tincidunt fringilla.
+Nullam dignissim ultrices urna non auctor.</p>
+</dd>
+</dl>
+<details class="example"><summary>Code</summary><div class="highlight"><pre><span></span><code><span class="sb">`Lorem ipsum dolor sit amet`</span>
+:   Sed sagittis eleifend rutrum. Donec vitae suscipit est. Nullam tempus
+    tellus non sem sollicitudin, quis rutrum leo facilisis.
+
+<span class="sb">`Cras arcu libero`</span>
+:   Aliquam metus eros, pretium sed nulla venenatis, faucibus auctor ex. Proin
+    ut eros sed sapien ullamcorper consequat. Nunc ligula ante.
+
+    Duis mollis est eget nibh volutpat, fermentum aliquet dui mollis.
+    Nam vulputate tincidunt fringilla.
+    Nullam dignissim ultrices urna non auctor.
+</code></pre></div>
+
+</details>
+<details class="tldr"><summary>Config</summary><div class="highlight"><pre><span></span><code><span class="nt">markdown_extensions</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">def_list</span>
+</code></pre></div>
+
+</details>
+<h2 id="task-list">Task list</h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Lorem ipsum dolor sit amet, consectetur adipiscing elit</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Vestibulum convallis sit amet nisi a tincidunt<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> In hac habitasse platea dictumst</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> In scelerisque nibh non dolor mollis congue sed et metus</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Praesent sed risus massa</li>
+</ul>
+</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Aenean pretium efficitur erat, donec pharetra, ligula non scelerisque</li>
+</ul>
+<details class="example"><summary>Code</summary><div class="highlight"><pre><span></span><code><span class="k">* [x]</span> Lorem ipsum dolor sit amet, consectetur adipiscing elit
+<span class="k">* [ ]</span> Vestibulum convallis sit amet nisi a tincidunt
+    <span class="k">* [x]</span> In hac habitasse platea dictumst
+    <span class="k">* [x]</span> In scelerisque nibh non dolor mollis congue sed et metus
+    <span class="k">* [ ]</span> Praesent sed risus massa
+<span class="k">* [ ]</span> Aenean pretium efficitur erat, donec pharetra, ligula non scelerisque
+</code></pre></div>
+
+</details>
+<details class="tldr"><summary>Config</summary><div class="highlight"><pre><span></span><code><span class="nt">markdown_extensions</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">pymdownx.tasklist</span><span class="p">:</span>
+      <span class="nt">custom_checkbox</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div>
+
 </details>
 <h2 id="references">References</h2>
 <ul>
