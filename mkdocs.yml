@@ -35,6 +35,10 @@ markdown_extensions:
   - pymdownx.smartsymbols
   - pymdownx.betterem:
       smart_enable: all
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed
 
 
 extra_javascript:
