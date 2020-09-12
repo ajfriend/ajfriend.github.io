@@ -63,4 +63,5 @@ A few different ways using the `gh-pages` approach:
 
 - https://squidfunk.github.io/mkdocs-material/publishing-your-site/
 - https://github.com/marketplace/actions/github-pages-action
+- https://github.com/peaceiris/actions-gh-pages
 - https://bluegenes.github.io/mkdocs-github-actions/
