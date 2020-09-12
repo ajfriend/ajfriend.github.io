@@ -25,7 +25,7 @@ git, which is not ideal because:
 1. the process is a manual, and
 2. we're adding output files to version control.
 
-![Screenshot](img/github_settings.png)
+![Screenshot](github_settings.png)
 
 We also need to configure the `mkdocs.yml` file with
 ```yaml
