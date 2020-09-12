@@ -245,6 +245,41 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#publishing-from-master" class="md-nav__link">
+    Publishing from master
+  </a>
+  
+    <nav class="md-nav" aria-label="Publishing from master">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#workflow" class="md-nav__link">
+    Workflow
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#publishing-from-gh-pages" class="md-nav__link">
+    Publishing from gh-pages
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -269,7 +304,7 @@
 <ol>
 <li>
 <p>As a <strong>&ldquo;user or organization site&rdquo;</strong>, which means it is published from
-the <code>master</code> branch of of a repo named like <code>&lt;username&gt;.github.io</code>, and is
+the <code>master</code> branch (necessarily?) of of a repo named like <code>&lt;username&gt;.github.io</code>, and is
 published at <code>http://username.github.io/</code>.</p>
 </li>
 <li>
@@ -280,16 +315,41 @@ of an existing project&rsquo;s repo, and is&mdash;published at
 </ol>
 <p>This site uses the first approach,
 to get the fancy-schmancy <a href="http://ajfriend.github.io/">http://ajfriend.github.io/</a> URL.</p>
-<p>means we have to run <code>mkdocs build</code> manually before pushing.
-can&rsquo;t do the fancy things that people do to automatically push.</p>
-<p><a href="https://github.com/ajfriend/ajfriend.github.io/settings">https://github.com/ajfriend/ajfriend.github.io/settings</a></p>
+<h2 id="publishing-from-master">Publishing from <code>master</code></h2>
+<p>We <a href="https://github.com/ajfriend/ajfriend.github.io/settings">configure the repo</a>
+to serve the website from the <code>docs</code> folder on the
+<code>master</code> branch. This means we need to commit all the built website files to
+git, which is not ideal because:</p>
+<ol>
+<li>the process is a manual, and</li>
+<li>we&rsquo;re adding output files to version control.</li>
+</ol>
 <p><img alt="Screenshot" src="../img/github_settings.png" /></p>
-<p>have to reset from defaults, because it is usually&hellip;</p>
+<p>We also need to configure the <code>mkdocs.yml</code> file with
 <div class="highlight"><pre><span></span><code><span class="nt">docs_dir</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">src</span>
 <span class="nt">site_dir</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docs</span>
 </code></pre></div>
-
-<p>a few different ways using the <code>gh-pages</code> approach:</p>
+so that it knows our markdown source is in <code>src</code>, and that it should build
+the output website to <code>docs</code>.</p>
+<h3 id="workflow">Workflow</h3>
+<ol>
+<li>Make changes to the markdown files.</li>
+<li>View changes locally with <code>mkdocs serve</code>.</li>
+<li>Build the website to <code>docs</code> with <code>mkdocs build</code>.</li>
+<li>Commit the changes, especially the entire output folder <code>docs</code>, and push
+to the upstream <code>origin</code> remote on Github.</li>
+</ol>
+<p>Github will serve whatever website files are in the <code>docs</code> folder after uploading
+to Github.</p>
+<h2 id="publishing-from-gh-pages">Publishing from <code>gh-pages</code></h2>
+<p><strong>TODO</strong></p>
+<p>Is there an alternative approach that avoid having to build manually and commit
+the website files to git?</p>
+<p>For example, could I keep only the <code>src</code> files on the <code>master</code> branch of the
+repo, and build the website <code>docs</code> to the <code>gh-pages</code> branch? I might be able to
+setup a hook or GithubAction to do that when I push to the master branch.</p>
+<p>That might be what the links below are trying to suggest..</p>
+<p>A few different ways using the <code>gh-pages</code> approach:</p>
 <ul>
 <li><a href="https://squidfunk.github.io/mkdocs-material/publishing-your-site/">https://squidfunk.github.io/mkdocs-material/publishing-your-site/</a></li>
 <li><a href="https://github.com/marketplace/actions/github-pages-action">https://github.com/marketplace/actions/github-pages-action</a></li>
@@ -303,7 +363,7 @@ can&rsquo;t do the fancy things that people do to automatically push.</p>
 <div class="md-source-date">
   <small>
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 11, 2020</span>
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 12, 2020</span>
     
   </small>
 </div>
