@@ -1,15 +1,15 @@
-.PHONY: env serve purge
+.PHONY: build init purge serve
 
-env:
+build:
+	env/bin/mkdocs build
+
+init:
 	virtualenv -p python3 env
 	env/bin/pip install --upgrade pip
 	env/bin/pip install -r requirements.txt
 
 purge:
 	-@rm -rf env docs
-
-build:
-	env/bin/mkdocs build
 
 serve:
 	open http://127.0.0.1:8000
