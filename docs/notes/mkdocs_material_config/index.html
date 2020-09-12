@@ -440,10 +440,32 @@
 
 </details>
 <h2 id="math">Math</h2>
-<p>Inline and block math: <span class="arithmatex">\(\sum_{i=1}^N x^i\)</span></p>
+<p>In-line and block math to find an
+<span class="arithmatex">\(x \in \lbrace y \mid 0 \preceq y \preceq \mathbf{1} \rbrace\)</span>:</p>
 <div class="arithmatex">\[
-\sum_{i=1}^N x^i
+\begin{array}{ll}
+\mbox{minimize}
+&amp; (1/2)\|Ax-b\|_2^2 + \lambda \|x\|_1 \\
+\mbox{subject to}
+&amp; 0 \preceq x \preceq \mathbf{1} \\
+&amp; \|x\|_2 \leq 1,
+\end{array}
 \]</div>
+<details class="example"><summary>Code</summary><div class="highlight"><pre><span></span><code>In-line and block math to find an
+$x \in \lbrace y \mid 0 \preceq y \preceq \mathbf{1} \rbrace$:
+
+$$
+\begin{array}{ll}
+\mbox{minimize}
+&amp; (1/2)\|Ax-b\|_2^2 + \lambda \|x\|_1 \\
+\mbox{subject to}
+&amp; 0 \preceq x \preceq \mathbf{1} \\
+&amp; \|x\|_2 \leq 1,
+\end{array}
+$$
+</code></pre></div>
+
+</details>
 <details class="tldr"><summary>Config</summary><div class="highlight"><pre><span></span><code><span class="nt">markdown_extensions</span><span class="p">:</span>
   <span class="p p-Indicator">-</span> <span class="nt">pymdownx.arithmatex</span><span class="p">:</span>
       <span class="nt">generic</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>

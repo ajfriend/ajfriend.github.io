@@ -113,11 +113,34 @@ For en-dash, (--), em-dash (---), and ellipsis (...).
 
 ## Math
 
-Inline and block math: $\sum_{i=1}^N x^i$
+In-line and block math to find an
+$x \in \lbrace y \mid 0 \preceq y \preceq \mathbf{1} \rbrace$:
 
 $$
-\sum_{i=1}^N x^i
+\begin{array}{ll}
+\mbox{minimize}
+& (1/2)\|Ax-b\|_2^2 + \lambda \|x\|_1 \\
+\mbox{subject to}
+& 0 \preceq x \preceq \mathbf{1} \\
+& \|x\|_2 \leq 1,
+\end{array}
 $$
+
+??? example "Code"
+    ```md
+    In-line and block math to find an
+    $x \in \lbrace y \mid 0 \preceq y \preceq \mathbf{1} \rbrace$:
+
+    $$
+    \begin{array}{ll}
+    \mbox{minimize}
+    & (1/2)\|Ax-b\|_2^2 + \lambda \|x\|_1 \\
+    \mbox{subject to}
+    & 0 \preceq x \preceq \mathbf{1} \\
+    & \|x\|_2 \leq 1,
+    \end{array}
+    $$
+    ```
 
 ??? tldr "Config"
     ```yaml
