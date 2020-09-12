@@ -18,3 +18,20 @@ to get the fancy-schmancy http://ajfriend.github.io/ URL.
 
 means we have to run `mkdocs build` manually before pushing.
 can't do the fancy things that people do to automatically push.
+
+https://github.com/ajfriend/ajfriend.github.io/settings
+
+![Screenshot](img/github_settings.png)
+
+have to reset from defaults, because it is usually...
+
+```yaml
+docs_dir: src
+site_dir: docs
+```
+
+a few different ways using the `gh-pages` approach:
+
+- https://squidfunk.github.io/mkdocs-material/publishing-your-site/
+- https://github.com/marketplace/actions/github-pages-action
+- https://bluegenes.github.io/mkdocs-github-actions/
