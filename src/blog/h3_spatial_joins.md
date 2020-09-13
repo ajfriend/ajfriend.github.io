@@ -80,3 +80,4 @@ what about a mermaid flow LR flowchart?
 
 - does it make sense to do the big cells first (instead of alternating left-to-right) because the big cells have a better chance of gobbling up smaller cells.
 - doing the small cells can't gobble, but they can cut off things we don't need to inspect
+- https://cs.stackexchange.com/questions/37073/first-intersection-of-two-arrays-of-integers-double-binary-search-feasible

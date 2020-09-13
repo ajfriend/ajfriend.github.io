@@ -3,3 +3,4 @@ mkdocs-git-revision-date-localized-plugin
 jupyterlab
 numpy
 h3
+matplotlib

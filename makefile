@@ -14,3 +14,6 @@ purge:
 serve:
 	open http://127.0.0.1:8000
 	env/bin/mkdocs serve
+
+lab:
+	env/bin/jupyter lab
