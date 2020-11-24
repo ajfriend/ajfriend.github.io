@@ -15,7 +15,27 @@ of an existing project's repo, and is---published at
 This site uses the first approach,
 to get the fancy-schmancy http://ajfriend.github.io/ URL.
 
-## Publishing from `master`
+## Update: New flow
+
+Forget all the stuff below. Everything is much cleaner using
+[peaceiris/actions-gh-pages@v3](https://github.com/marketplace/actions/github-pages-action#%EF%B8%8F-static-site-generators-with-python).
+
+This allows us to keep the built website files out of the repo.
+This flow let's us publish just the source files to the `master` branch,
+at which point the action is triggered, which builds the `mkdocs` site
+and pushes the result to the root directory of the `gh-pages` branch (or whatever other name we'd like).
+We use the GitHub UI to select that we'd like to serve our site from the root
+of the `gh-pages` branch, and everything works great!
+
+### Workflow
+
+1. Make changes and merge to `master`.
+2. Push `master` to GitHub.
+3. Site gets build by the GH Action, and pushed/published from the `gh-pages` branch.
+
+## Old flow
+
+### Publishing from `master`
 
 We [configure the repo](https://github.com/ajfriend/ajfriend.github.io/settings)
 to serve the website from the `docs` folder on the
@@ -35,7 +55,7 @@ site_dir: docs
 so that it knows our markdown source is in `src`, and that it should build
 the output website to `docs`.
 
-### Workflow
+#### Workflow
 
 1. Make changes to the markdown files.
 2. View changes locally with `mkdocs serve`.
@@ -46,7 +66,7 @@ to the upstream `origin` remote on Github.
 Github will serve whatever website files are in the `docs` folder after uploading
 to Github.
 
-## Publishing from `gh-pages`
+### Publishing from `gh-pages`
 
 **TODO**
 
