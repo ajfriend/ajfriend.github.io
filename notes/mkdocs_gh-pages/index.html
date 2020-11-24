@@ -257,11 +257,11 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#publishing-from-master" class="md-nav__link">
-    Publishing from master
+  <a href="#update-new-flow" class="md-nav__link">
+    Update: New flow
   </a>
   
-    <nav class="md-nav" aria-label="Publishing from master">
+    <nav class="md-nav" aria-label="Update: New flow">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -277,9 +277,42 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#old-flow" class="md-nav__link">
+    Old flow
+  </a>
+  
+    <nav class="md-nav" aria-label="Old flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#publishing-from-master" class="md-nav__link">
+    Publishing from master
+  </a>
+  
+    <nav class="md-nav" aria-label="Publishing from master">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#workflow_1" class="md-nav__link">
+    Workflow
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#publishing-from-gh-pages" class="md-nav__link">
     Publishing from gh-pages
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -317,7 +350,23 @@ of an existing project&rsquo;s repo, and is&mdash;published at
 </ol>
 <p>This site uses the first approach,
 to get the fancy-schmancy <a href="http://ajfriend.github.io/">http://ajfriend.github.io/</a> URL.</p>
-<h2 id="publishing-from-master">Publishing from <code>master</code></h2>
+<h2 id="update-new-flow">Update: New flow</h2>
+<p>Forget all the stuff below. Everything is much cleaner using
+<a href="https://github.com/marketplace/actions/github-pages-action#%EF%B8%8F-static-site-generators-with-python">peaceiris/actions-gh-pages@v3</a>.</p>
+<p>This allows us to keep the built website files out of the repo.
+This flow let&rsquo;s us publish just the source files to the <code>master</code> branch,
+at which point the action is triggered, which builds the <code>mkdocs</code> site
+and pushes the result to the root directory of the <code>gh-pages</code> branch (or whatever other name we&rsquo;d like).
+We use the GitHub UI to select that we&rsquo;d like to serve our site from the root
+of the <code>gh-pages</code> branch, and everything works great!</p>
+<h3 id="workflow">Workflow</h3>
+<ol>
+<li>Make changes and merge to <code>master</code>.</li>
+<li>Push <code>master</code> to GitHub.</li>
+<li>Site gets build by the GH Action, and pushed/published from the <code>gh-pages</code> branch.</li>
+</ol>
+<h2 id="old-flow">Old flow</h2>
+<h3 id="publishing-from-master">Publishing from <code>master</code></h3>
 <p>We <a href="https://github.com/ajfriend/ajfriend.github.io/settings">configure the repo</a>
 to serve the website from the <code>docs</code> folder on the
 <code>master</code> branch. This means we need to commit all the built website files to
@@ -333,7 +382,7 @@ git, which is not ideal because:</p>
 </code></pre></div>
 so that it knows our markdown source is in <code>src</code>, and that it should build
 the output website to <code>docs</code>.</p>
-<h3 id="workflow">Workflow</h3>
+<h4 id="workflow_1">Workflow</h4>
 <ol>
 <li>Make changes to the markdown files.</li>
 <li>View changes locally with <code>mkdocs serve</code>.</li>
@@ -343,7 +392,7 @@ to the upstream <code>origin</code> remote on Github.</li>
 </ol>
 <p>Github will serve whatever website files are in the <code>docs</code> folder after uploading
 to Github.</p>
-<h2 id="publishing-from-gh-pages">Publishing from <code>gh-pages</code></h2>
+<h3 id="publishing-from-gh-pages">Publishing from <code>gh-pages</code></h3>
 <p><strong>TODO</strong></p>
 <p>Is there an alternative approach that avoid having to build manually and commit
 the website files to git?</p>
