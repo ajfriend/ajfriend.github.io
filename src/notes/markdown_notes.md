@@ -1,17 +1,29 @@
 # Markdown notes
 
-## gotta use this link syntax
-
-I won't describe how to set up a Haskell programming environment, show you how
-to write and run complete Haskell programs, or dive deeply into every language
-construct we'll see. If you are interested in going further and actually
-learning Haskell (and I hope you are!), then I recommend following Chris Allen's
-great [learning path][learnhaskell].
+## Nice link syntax
 
 [learnhaskell]: https://github.com/bitemyapp/learnhaskell
-
-Functions can take and return other functions. These are known as
-[higher-order][] functions. In type signatures, any function arguments or return
-values must be surrounded by parentheses:
-
 [higher-order]: http://learnyouahaskell.com/higher-order-functions
+[you can use any bit of text]: https://ajfriend.github.io/
+
+I forget where I first saw this, but they were recommending 
+Chris Allen's [learning path][learnhaskell].
+Elsewhere, they spoke about [higher-order][] functions.
+
+I guess [you can use any bit of text][] for the second kind of link.
+
+The above text is generated with this Markdown:
+
+```md
+[learnhaskell]: https://github.com/bitemyapp/learnhaskell
+[higher-order]: http://learnyouahaskell.com/higher-order-functions
+[you can use any bit of text]: https://ajfriend.github.io/
+
+I forget where I first saw this, but they were recommending 
+Chris Allen's [learning path][learnhaskell].
+Elsewhere, they spoke about [higher-order][] functions.
+
+I guess [you can use any bit of text][] for the second kind of link.
+```
+
+The definitions can go before or after their uses. 
