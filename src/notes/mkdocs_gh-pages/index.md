@@ -33,6 +33,9 @@ of the `gh-pages` branch, and everything works great!
 2. Push `master` to GitHub.
 3. Site gets build by the GH Action, and pushed/published from the `gh-pages` branch.
 
+Also, you should probably delete the `gh-pages` branch locally, since you'll
+never write to it directly.
+
 ## Old flow
 
 ### Publishing from `master`
