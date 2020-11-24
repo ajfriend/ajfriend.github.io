@@ -1,0 +1,4 @@
+jupyterlab
+numpy
+h3
+matplotlib

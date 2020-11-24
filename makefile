@@ -6,7 +6,8 @@ build:
 init:
 	virtualenv -p python3 env
 	env/bin/pip install --upgrade pip
-	env/bin/pip install -r requirements.txt
+	env/bin/pip install -r requirements-docs.txt
+	env/bin/pip install -r requirements-play.txt
 
 purge:
 	-@rm -rf env docs
