@@ -10,6 +10,7 @@ init:
 
 purge:
 	-@rm -rf env docs
+	-@rm -rf .DS_Store
 
 serve:
 	open http://127.0.0.1:8000
