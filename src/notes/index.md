@@ -5,3 +5,4 @@
 - [MkDocs/Material Configuration](mkdocs_material_config)
 - [Markdown notes](markdown_notes)
 - [(Technical) Writing links](tech_writing.md)
+- [Programming Talks I Like](coding_talks.md)

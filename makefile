@@ -1,13 +1,12 @@
-.PHONY: build init purge serve
+.PHONY: init build purge serve lab
 
-build:
-	env/bin/mkdocs build
-
-init:
+init: purge
 	virtualenv -p python3 env
 	env/bin/pip install --upgrade pip
 	env/bin/pip install -r requirements-docs.txt
-	env/bin/pip install -r requirements-play.txt
+
+build:
+	env/bin/mkdocs build
 
 purge:
 	-@rm -rf env docs
@@ -18,4 +17,5 @@ serve:
 	env/bin/mkdocs serve
 
 lab:
+	env/bin/pip install -r requirements-play.txt
 	env/bin/jupyter lab
