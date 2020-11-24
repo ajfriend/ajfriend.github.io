@@ -250,6 +250,62 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#parentchild-partial-ordering" class="md-nav__link">
+    Parent/child partial ordering
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#total-ordering-of-h3-cells" class="md-nav__link">
+    Total ordering of H3 cells
+  </a>
+  
+    <nav class="md-nav" aria-label="Total ordering of H3 cells">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#which-way-to-order" class="md-nav__link">
+    Which way to order?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plotting" class="md-nav__link">
+    Plotting
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compact-algo" class="md-nav__link">
+    compact algo
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#intersection-algo" class="md-nav__link">
+    intersection algo
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -260,13 +316,78 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/ajfriend/ajfriend.github.io/blob/master/src/blog/h3_spatial_joins.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/ajfriend/ajfriend.github.io/blob/master/src/blog/h3_spatial_joins/index.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
                 <h1 id="wicked-fast-spatial-joins-with-h3">Wicked Fast Spatial Joins with H3</h1>
-<p>todo</p>
+<h2 id="parentchild-partial-ordering">Parent/child partial ordering</h2>
+<p>We can define a <strong>partial ordering</strong> on H3 cells according to the parent/child
+relationships/containments between cells.</p>
+<p>Let <span class="arithmatex">\(a\)</span> and <span class="arithmatex">\(b\)</span> be H3 cells. If they are the <strong>same cell</strong>, we&rsquo;ll say <span class="arithmatex">\(a = b\)</span>.</p>
+<p>If <span class="arithmatex">\(a\)</span> is a <strong>child cell</strong> of&mdash;or equal to&mdash;<span class="arithmatex">\(b\)</span>, we&rsquo;ll say</p>
+<div class="arithmatex">\[
+a \preceq b.
+\]</div>
+<p>If <span class="arithmatex">\(a\)</span> is <strong>strictly a child cell</strong> of <span class="arithmatex">\(b\)</span>, we&rsquo;ll say</p>
+<div class="arithmatex">\[
+a \prec b.
+\]</div>
+<p>If either <span class="arithmatex">\(a \preceq b\)</span> or <span class="arithmatex">\(a \succeq b\)</span>, we&rsquo;ll say that <span class="arithmatex">\(a\)</span> and <span class="arithmatex">\(b\)</span> are <strong>comparable</strong> and write
+$$
+a \sim b.
+$$</p>
+<p>If <span class="arithmatex">\(a \npreceq b\)</span> and <span class="arithmatex">\(a \nsucceq b\)</span>, we&rsquo;ll say that <span class="arithmatex">\(a\)</span> and <span class="arithmatex">\(b\)</span> are <strong>incomparable</strong> and write
+$$
+a \nsim b.
+$$</p>
+<h2 id="total-ordering-of-h3-cells">Total ordering of H3 cells</h2>
+<p>As integers, consider the lower 52 bit mask of cells.
+Cells can be ordered in this way.
+We&rsquo;ll call this the &ldquo;lower 52 ordering&rdquo;.</p>
+<p>We&rsquo;ll use the normal inequality symbols when referring to this ordering;
+<span class="arithmatex">\(a &lt; b\)</span> if <span class="arithmatex">\(a\)</span> comes before <span class="arithmatex">\(b\)</span> in the lower 52 ordering.</p>
+<p>Note that:</p>
+<ul>
+<li><span class="arithmatex">\(a \prec b \implies a &lt; b\)</span> </li>
+<li><span class="arithmatex">\(a \preceq b \implies a \leq b\)</span></li>
+</ul>
+<p>However, the converse does not hold.
+If <span class="arithmatex">\(a &lt; b\)</span> but <span class="arithmatex">\(a \nprec b\)</span>, we&rsquo;ll use the symbol <span class="arithmatex">\(a \ll b\)</span>.</p>
+<p>Thus</p>
+<ul>
+<li>symbol &ldquo;<span class="arithmatex">\(&lt;\)</span>&rdquo; defines a <strong>total order</strong> on cells</li>
+<li>symbol &ldquo;<span class="arithmatex">\(\prec\)</span>&rdquo; defines a <strong>partial order</strong> on cells</li>
+</ul>
+<h3 id="which-way-to-order">Which way to order?</h3>
+<p>Is it better to do natural (ascending) order, or descending order
+for the algorithms?</p>
+<ul>
+<li>ascending: children to the left, parents to the right</li>
+<li>descending: parents to the left, children to the right</li>
+</ul>
+<p>For the fast compact algo, we want to make sure the process
+ends with the elements packed to the left, so that we can
+realloc the memory (without having to move all the elements to the front of the array).</p>
+<h3 id="plotting">Plotting</h3>
+<p>would a gantt chart almost be better for plotting parent/child
+relationships?</p>
+<p>what about a mermaid flow LR flowchart?</p>
+<h3 id="compact-algo">compact algo</h3>
+<ul>
+<li>first sort</li>
+<li>in python, first do a iterator to pass through to remove duplicates and children?<ul>
+<li>iterator might be nice, because it focuses us on the algo instead of the indices (at least figure it out in python first)</li>
+</ul>
+</li>
+</ul>
+<h3 id="intersection-algo">intersection algo</h3>
+<ul>
+<li>does it make sense to do the big cells first (instead of alternating left-to-right) because the big cells have a better chance of gobbling up smaller cells.</li>
+<li>doing the small cells can&rsquo;t gobble, but they can cut off things we don&rsquo;t need to inspect</li>
+<li><a href="https://cs.stackexchange.com/questions/37073/first-intersection-of-two-arrays-of-integers-double-binary-search-feasible">https://cs.stackexchange.com/questions/37073/first-intersection-of-two-arrays-of-integers-double-binary-search-feasible</a></li>
+</ul>
                 
                   
                     
