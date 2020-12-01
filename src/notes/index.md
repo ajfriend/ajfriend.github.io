@@ -1,6 +1,6 @@
 # Rough Notes
 
-- [My Python Setup on Mac](python_on_mac)
+- [Mac Setup](mac_setup)
 - [MkDocs on Github Pages](mkdocs_gh-pages)
 - [MkDocs/Material Configuration](mkdocs_material_config)
 - [Markdown notes](markdown_notes)

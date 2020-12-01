@@ -1,7 +1,8 @@
 .PHONY: init build purge serve lab
 
+# use pyenv to set the python version before running this
 init: purge
-	virtualenv -p python3 env
+	python -m venv env
 	env/bin/pip install --upgrade pip
 	env/bin/pip install -r requirements-docs.txt
 
