@@ -16,3 +16,9 @@ or `pandoc pandoc.md -o test.pdf` for PDF.
 ## References
 
 - [TUG 2020 — John MacFarlane — Pandoc for TeXnicians](https://www.youtube.com/watch?v=T9uZJFO54iM)
+- Tikz
+    + https://www.overleaf.com/learn/latex/TikZ_package#Diagrams
+    + <https://www.overleaf.com/learn/latex/LaTeX_Graphics_using_TikZ:_A_Tutorial_for_Beginners_(Part_1)%E2%80%94Basic_Drawing>
+    + http://cremeronline.com/LaTeX/minimaltikz.pdf
+    + https://tex.stackexchange.com/questions/61429/how-to-draw-a-hexagonal-grid-with-numbers-in-the-cells
+    + https://tikzit.github.io/
