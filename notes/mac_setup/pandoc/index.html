@@ -14,7 +14,7 @@
     
     
       
-        <title>oh-my-zsh - AJ Friend</title>
+        <title>Pandoc/Markdown/LaTeX - AJ Friend</title>
       
     
     
@@ -61,7 +61,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#oh-my-zsh" class="md-skip">
+        <a href="#pandocmarkdownlatex" class="md-skip">
           Skip to content
         </a>
       
@@ -91,7 +91,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              oh-my-zsh
+              Pandoc/Markdown/LaTeX
             
           </span>
         </div>
@@ -250,6 +250,21 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    References
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -260,23 +275,35 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/ajfriend/ajfriend.github.io/blob/master/src/notes/mac_setup/shell.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/ajfriend/ajfriend.github.io/blob/master/src/notes/mac_setup/pandoc.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                <h1 id="oh-my-zsh">oh-my-zsh</h1>
-<p>Install <a href="https://ohmyz.sh/">Oh My Zsh</a> and then
-the <a href="https://github.com/romkatv/powerlevel10k">Powerlevel10k theme</a>.</p>
-<p>With this setup, you&rsquo;ll add customizations to as <code>.zsh</code> files
-under the directory <code>~/.oh-my-zsh/custom</code>.</p>
-<p>For example, you might add an <code>aliases.zsh</code> like</p>
-<div class="admonition example">
-<p class="admonition-title"><code>~/.oh-my-zsh/custom/aliases.zsh</code></p>
-<div class="highlight"><pre><span></span><code><span class="nb">alias</span> <span class="nv">la</span><span class="o">=</span><span class="s2">&quot;ls -altrh&quot;</span>
-<span class="nb">export</span> <span class="nv">EDITOR</span><span class="o">=</span><span class="s1">&#39;emacs&#39;</span>
-</code></pre></div>
-</div>
+                <h1 id="pandocmarkdownlatex">Pandoc/Markdown/LaTeX</h1>
+<ul>
+<li><code>brew install pandoc</code></li>
+<li><code>brew install --cask mactex</code> </li>
+</ul>
+<p>The latest version of <code>pandoc</code> actually translates
+math to Word <code>.docx</code> files pretty well.</p>
+<div class="arithmatex">\[
+\sum_{i=1}^n (x + 1)^i
+\]</div>
+<p>Use <code>pandoc pandoc.md -o test.docx</code> for Word
+or <code>pandoc pandoc.md -o test.pdf</code> for PDF.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=T9uZJFO54iM">TUG 2020 — John MacFarlane — Pandoc for TeXnicians</a></li>
+<li>Tikz<ul>
+<li><a href="https://www.overleaf.com/learn/latex/TikZ_package#Diagrams">https://www.overleaf.com/learn/latex/TikZ_package#Diagrams</a></li>
+<li><a href="https://www.overleaf.com/learn/latex/LaTeX_Graphics_using_TikZ:_A_Tutorial_for_Beginners_(Part_1)%E2%80%94Basic_Drawing">https://www.overleaf.com/learn/latex/LaTeX_Graphics_using_TikZ:_A_Tutorial_for_Beginners_(Part_1)%E2%80%94Basic_Drawing</a></li>
+<li><a href="http://cremeronline.com/LaTeX/minimaltikz.pdf">http://cremeronline.com/LaTeX/minimaltikz.pdf</a></li>
+<li><a href="https://tex.stackexchange.com/questions/61429/how-to-draw-a-hexagonal-grid-with-numbers-in-the-cells">https://tex.stackexchange.com/questions/61429/how-to-draw-a-hexagonal-grid-with-numbers-in-the-cells</a></li>
+<li><a href="https://tikzit.github.io/">https://tikzit.github.io/</a></li>
+</ul>
+</li>
+</ul>
                 
                   
                     
