@@ -101,6 +101,20 @@ but this was [fixed by running](https://github.com/Homebrew/brew/issues/1457) `p
     pyenv install 3.9.0
     ```
 
+??? caution "`numpy` issues with Python 3.9"
+
+    I was seeing an error like `RuntimeError: Polyfit sanity test emitted a warning...`
+
+    This was fixed with (and potentially in addition to the fixes above):
+
+    ```sh
+    export OPENBLAS="$(brew --prefix openblas)"
+    pyenv install 3.9.0
+    ```
+
+    A `pip cache remove numpy` may or may not have helped, too.
+
+
 ## `pyenv` commands
 
 - `pyenv versions`
