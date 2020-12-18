@@ -10,7 +10,7 @@
       
       
       <link rel="shortcut icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-6.1.6">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-6.1.7">
     
     
       
@@ -18,7 +18,7 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.6910b76c.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.19753c6b.min.css">
       
         
         <link rel="stylesheet" href="../../../assets/stylesheets/palette.196e0c26.min.css">
@@ -395,6 +395,13 @@ concatenate the flags like</p>
 pyenv install <span class="m">3</span>.9.0
 </code></pre></div>
 </details>
+<details class="caution"><summary><code>numpy</code> issues with Python 3.9</summary><p>I was seeing an error like <code>RuntimeError: Polyfit sanity test emitted a warning...</code></p>
+<p>This was fixed with (and potentially in addition to the fixes above):</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span> <span class="nv">OPENBLAS</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>brew --prefix openblas<span class="k">)</span><span class="s2">&quot;</span>
+pyenv install <span class="m">3</span>.9.0
+</code></pre></div>
+<p>A <code>pip cache remove numpy</code> may or may not have helped, too.</p>
+</details>
 <h2 id="pyenv-commands"><code>pyenv</code> commands</h2>
 <ul>
 <li>
@@ -477,7 +484,7 @@ just remove the <code>pyenv init</code> code that we added above to our shell co
 <div class="md-source-date">
   <small>
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 6, 2020</span>
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 18, 2020</span>
     
   </small>
 </div>
@@ -513,8 +520,8 @@ just remove the <code>pyenv init</code> code that we added above to our shell co
       
     </div>
     
-      <script src="../../../assets/javascripts/vendor.fd16492e.min.js"></script>
-      <script src="../../../assets/javascripts/bundle.7836ba4d.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
+      <script src="../../../assets/javascripts/vendor.0ac82a11.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.f81dfb4d.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
       
       <script>
         app = initialize({
