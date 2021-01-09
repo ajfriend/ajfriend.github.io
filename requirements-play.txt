@@ -1,3 +1,4 @@
+tornado>6
 jupyterlab
 numpy
 h3
