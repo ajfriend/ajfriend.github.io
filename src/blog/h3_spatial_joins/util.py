@@ -147,4 +147,4 @@ def compact(arr):
     except:
         pass
     
-    return arr[:state.j]
+    return state.arr[:state.j]
