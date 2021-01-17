@@ -10,7 +10,7 @@
       
       
       <link rel="shortcut icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-6.1.7">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-6.2.5">
     
     
       
@@ -18,10 +18,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.19753c6b.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.15aa0b43.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.196e0c26.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.75751829.min.css">
         
           
           
@@ -33,7 +33,7 @@
     
       
         
-        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
         <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
       
@@ -55,6 +55,7 @@
     <body dir="ltr" data-md-color-scheme="" data-md-color-primary="white" data-md-color-accent="red">
       
   
+    
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" for="__drawer"></label>
@@ -84,18 +85,20 @@
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
     </label>
     <div class="md-header-nav__title" data-md-component="header-title">
-      
-        <div class="md-header-nav__ellipsis">
-          <span class="md-header-nav__topic md-ellipsis">
+      <div class="md-header-nav__ellipsis">
+        <div class="md-header-nav__topic">
+          <span class="md-ellipsis">
             AJ Friend
           </span>
-          <span class="md-header-nav__topic md-ellipsis">
+        </div>
+        <div class="md-header-nav__topic">
+          <span class="md-ellipsis">
             
               MkDocs/Material config
             
           </span>
         </div>
-      
+      </div>
     </div>
     
       <label class="md-header-nav__button md-icon" for="__search">
@@ -154,10 +157,14 @@
         <div class="md-main__inner md-grid">
           
             
-              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation" >
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
+
+
+
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
@@ -190,11 +197,15 @@
       
 
 
-  <li class="md-nav__item">
-    <a href="../.." class="md-nav__link">
-      About
-    </a>
-  </li>
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        About
+      </a>
+    </li>
+  
 
     
       
@@ -202,11 +213,15 @@
       
 
 
-  <li class="md-nav__item">
-    <a href="../../blog" class="md-nav__link">
-      Blog
-    </a>
-  </li>
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../blog" class="md-nav__link">
+        Blog
+      </a>
+    </li>
+  
 
     
       
@@ -214,11 +229,15 @@
       
 
 
-  <li class="md-nav__item">
-    <a href=".." class="md-nav__link">
-      Notes
-    </a>
-  </li>
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Notes
+      </a>
+    </li>
+  
 
     
       
@@ -226,11 +245,15 @@
       
 
 
-  <li class="md-nav__item">
-    <a href="../../contact/" class="md-nav__link">
-      Contact
-    </a>
-  </li>
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contact/" class="md-nav__link">
+        Contact
+      </a>
+    </li>
+  
 
     
   </ul>
@@ -240,7 +263,8 @@
               </div>
             
             
-              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc" >
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -391,15 +415,15 @@
 <details class="example"><summary>Code</summary><div class="highlight"><pre><span></span><code>=== &quot;Python 3&quot;
 
 <span class="sb">    ```python</span>
-<span class="sb">    for i in range(10):</span>
-<span class="sb">        print(x)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 <span class="sb">    ```</span>
 
 === &quot;Python 2&quot;
 
 <span class="sb">    ```python</span>
-<span class="sb">    for i in xrange(10):</span>
-<span class="sb">        print x</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+        <span class="nb">print</span> <span class="n">x</span>
 <span class="sb">    ```</span>
 </code></pre></div>
 </details>
@@ -521,7 +545,7 @@ Nam vulputate tincidunt fringilla.
 Nullam dignissim ultrices urna non auctor.</p>
 </dd>
 </dl>
-<details class="example"><summary>Code</summary><div class="highlight"><pre><span></span><code>`Lorem ipsum dolor sit amet`
+<details class="example"><summary>Code</summary><div class="highlight"><pre><span></span><code><span class="sb">`Lorem ipsum dolor sit amet`</span>
 :   Sed sagittis eleifend rutrum. Donec vitae suscipit est. Nullam tempus
     tellus non sem sollicitudin, quis rutrum leo facilisis.
 
@@ -529,9 +553,9 @@ Nullam dignissim ultrices urna non auctor.</p>
 :   Aliquam metus eros, pretium sed nulla venenatis, faucibus auctor ex. Proin
     ut eros sed sapien ullamcorper consequat. Nunc ligula ante.
 
-<span class="sb">    Duis mollis est eget nibh volutpat, fermentum aliquet dui mollis.</span>
-<span class="sb">    Nam vulputate tincidunt fringilla.</span>
-<span class="sb">    Nullam dignissim ultrices urna non auctor.</span>
+    Duis mollis est eget nibh volutpat, fermentum aliquet dui mollis.
+    Nam vulputate tincidunt fringilla.
+    Nullam dignissim ultrices urna non auctor.
 </code></pre></div>
 </details>
 <details class="tldr"><summary>Config</summary><div class="highlight"><pre><span></span><code><span class="nt">markdown_extensions</span><span class="p">:</span>
@@ -577,7 +601,7 @@ Nullam dignissim ultrices urna non auctor.</p>
 <div class="md-source-date">
   <small>
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 18, 2020</span>
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 17, 2021</span>
     
   </small>
 </div>
@@ -613,15 +637,15 @@ Nullam dignissim ultrices urna non auctor.</p>
       
     </div>
     
-      <script src="../../assets/javascripts/vendor.0ac82a11.min.js"></script>
-      <script src="../../assets/javascripts/bundle.f81dfb4d.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
+      <script src="../../assets/javascripts/vendor.93c04032.min.js"></script>
+      <script src="../../assets/javascripts/bundle.83e5331e.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
       
       <script>
         app = initialize({
           base: "../..",
           features: [],
           search: Object.assign({
-            worker: "../../assets/javascripts/worker/search.4ac00218.min.js"
+            worker: "../../assets/javascripts/worker/search.8c7e0a7e.min.js"
           }, typeof search !== "undefined" && search)
         })
       </script>
