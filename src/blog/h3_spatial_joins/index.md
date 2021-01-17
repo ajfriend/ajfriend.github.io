@@ -51,6 +51,29 @@ Thus
 - symbol "$<$" defines a **total order** on cells
 - symbol "$\prec$" defines a **partial order** on cells
 
+## Order possibilities
+
+Thus, for any two cells $a$ and $b$ we have the following comparison options
+
+|     notes      | partial order | total order |
+|----------------|---------------|-------------|
+| equality       | $a = b$       | $a=b$       |
+| parent/child   | $a \prec b$   | $a < b$     |
+| parent/child   | $a \succ b$   | $a > b$     |
+| not comparable | $a \ll b$     | $a < b$     |
+| not comparable | $a \gg b$     | $a > b$     |
+
+
+- $a = b$
+- $a \prec b$ or $a \succ b$ (parent-child relationship)
+- $a \ll b$ or $a \gg b$
+
+Alternatively,
+
+- $a < b$ implies either
+    + $a \prec b$, or ($a$ is a child of $b$, or $a \sim b$)
+    + $a \ll b$. ($a \nsim b$)
+
 ### Which way to order?
 
 Is it better to do natural (ascending) order, or descending order

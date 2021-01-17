@@ -27,3 +27,11 @@ I guess [you can use any bit of text][] for the second kind of link.
 ```
 
 The definitions can go before or after their uses. 
+
+## markdown comments
+
+make comments like this
+
+```md
+<!-- - [[WIP] Wicked Fast Spatial Joins with Uber's H3](h3_spatial_joins) -- 2020-09-11 -->
+```

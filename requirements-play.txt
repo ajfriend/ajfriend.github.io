@@ -1,4 +1,6 @@
+tornado>6
 jupyterlab
 numpy
 h3
 matplotlib
+pytest

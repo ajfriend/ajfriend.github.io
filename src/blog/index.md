@@ -2,4 +2,4 @@
 
 yeah yeah yeah
 
-<!-- - [[WIP] Wicked Fast Spatial Joins with Uber's H3](h3_spatial_joins) -- 2020-09-11 -->
+- [[WIP] Wicked Fast Spatial Joins with Uber's H3](h3_spatial_joins) -- 2020-09-11
