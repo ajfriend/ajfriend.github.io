@@ -7,3 +7,4 @@
 - [(Technical) Writing links](tech_writing.md)
 - [Programming Talks I Like](coding_talks.md)
 - [h3 notes](h3)
+- [Language notes](language_notes)
