@@ -1,4 +1,4 @@
 # Programming Language Notes
 
-- [C](C)
+- [C](c.md)
 - Python
