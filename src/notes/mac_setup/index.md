@@ -15,3 +15,10 @@
     + https://osxdaily.com/2010/08/05/mds-mac/
     + https://www.technipages.com/macos-sierra-enable-disable-spotlight
 - Disable siri
+
+## Using a Microsoft Keyboard
+
+Set up [Karabiner](https://karabiner-elements.pqrs.org/).
+Can set it up to **only** modify the keys on a specific device.
+
+![Screenshot](keyboard_settings.png)
