@@ -205,6 +205,7 @@ For more details, see https://github.com/pyenv/pyenv#uninstalling-pyenv.
 
 ## `pyenv` references
 
+- [Stop Homebrew Version-Jacking Your Python All The Time](https://matt.sh/unify-python)
 - https://opensource.com/article/19/5/python-3-default-mac
 - https://realpython.com/intro-to-pyenv/
 - https://github.com/pyenv/pyenv
