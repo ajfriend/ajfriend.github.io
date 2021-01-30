@@ -9,3 +9,4 @@
 ## Articles
 
 - [Beating Up on Qsort](https://travisdowns.github.io/blog/2019/05/22/sorting.html)
+- [https://realpython.com/c-for-python-programmers/](https://realpython.com/c-for-python-programmers/)
