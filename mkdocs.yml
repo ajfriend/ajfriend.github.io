@@ -11,7 +11,6 @@ nav:
   - Notes: notes
   - Contact: contact.md
 
-
 theme:
   name: material
   palette:
@@ -24,6 +23,7 @@ plugins:
   - git-revision-date-localized:
       type: date
   - search
+  - mkdocs-jupyter
 
 markdown_extensions:
   - pymdownx.arithmatex:

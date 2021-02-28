@@ -256,3 +256,4 @@ https://squidfunk.github.io/mkdocs-material/reference/data-tables/
 - http://madrus4u.com/mdocs/engine/styling/
 - https://code.kx.com/q/about/sg/ 
 - https://facelessuser.github.io/pymdown-extensions/
+- https://www.timvink.nl/mkdocs-for-tech-doc/

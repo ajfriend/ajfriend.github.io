@@ -3,7 +3,7 @@
 # use pyenv to set the python version before running this
 init: purge
 	python -m venv env
-	env/bin/pip install --upgrade pip
+	env/bin/pip install --upgrade pip setuptools wheel
 	env/bin/pip install -r requirements-docs.txt
 
 build:
