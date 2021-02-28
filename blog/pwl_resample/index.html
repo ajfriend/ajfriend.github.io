@@ -15007,7 +15007,7 @@ denser around $0$.</p>
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>&lt;matplotlib.legend.Legend at 0x1199aec70&gt;</pre>
+<pre>&lt;matplotlib.legend.Legend at 0x118626370&gt;</pre>
 </div>
 
 </div>
@@ -15320,6 +15320,11 @@ denser around $0$.</p>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Interestingly, step 1 seems to be the best (to my eye) approximation of
+the function, but our iteration sails right past it.
+This is probably a good point at which you might re-examine 
+your definition of "best" approximation, and evaluate whether
+this iterative algorithm does a good job of acheiving it.</p>
 <h2 id="conclusion">Conclusion<a class="anchor-link" href="#Conclusion">&#182;</a></h2><p>It probably isn't hard to come up with pathological examples of functions
 where this iteration fails to converge and gives garbage output,
 but for simple, well-behaved functions like the ones above, it seems
