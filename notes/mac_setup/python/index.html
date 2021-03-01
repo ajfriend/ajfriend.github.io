@@ -364,17 +364,32 @@ install on your system, since it is just a collection of shell scripts.</p>
 <h2 id="set-up-pyenv">Set up <code>pyenv</code></h2>
 <div class="highlight"><pre><span></span><code>brew install pyenv
 </code></pre></div>
+<p>After this, the <code>pyenv</code> command will work, but we don&rsquo;t have the shims
+set up yet.</p>
 <p>Following the <a href="https://github.com/pyenv/pyenv"><code>pyenv</code> instructions</a>, we need
-to make sure the following is at the end of the shell configuration:</p>
+to make sure the following is at the end of the shell configuration file:</p>
 <div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="nb">command</span> -v pyenv <span class="m">1</span>&gt;/dev/null <span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="p">;</span> <span class="k">then</span>
   <span class="nb">eval</span> <span class="s2">&quot;</span><span class="k">$(</span>pyenv init -<span class="k">)</span><span class="s2">&quot;</span>
 <span class="k">fi</span>
 </code></pre></div>
-<p>Since <a href="../shell">we&rsquo;re using Oh My Zsh</a>, we can put it into a file like
-<code>~/.oh-my-zsh/custom/for_pyenv.zsh</code> using the command</p>
-<div class="highlight"><pre><span></span><code><span class="nb">echo</span> -e <span class="s1">&#39;if command -v pyenv 1&gt;/dev/null 2&gt;&amp;1; then\n  eval &quot;$(pyenv init -)&quot;\nfi&#39;</span> &gt;&gt; ~/.oh-my-zsh/custom/for_pyenv.zsh
-</code></pre></div>
+<p>The file will depend on which shell you are using:</p>
+<ul>
+<li>bash: <code>~/.bash_profile</code> or <code>~/.bashrc</code></li>
+<li>regular zsh: <code>~/.zshrc</code></li>
+<li>Oh My Zsh: <code>~/.oh-my-zsh/custom/for_pyenv.zsh</code></li>
+</ul>
 <p>Make sure to restart the shell to activate the changes.</p>
+<p>You can check that the shims are set up properly by typing
+<code>which python</code>, which should give you something like</p>
+<div class="highlight"><pre><span></span><code>/Users/ajfriend/.pyenv/shims/python
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Note that for some reason, the shim redirection doesn&rsquo;t work
+if you only have system Python. So you may not see
+the expected <code>which python</code> output until you&rsquo;ve installed
+at least one python version with <code>pyenv</code>.</p>
+</div>
 <h2 id="preparing-for-installing-new-pythons">Preparing for installing new Pythons</h2>
 <p>We then need to install any <a href="https://github.com/pyenv/pyenv/wiki#suggested-build-environment">Python build dependencies</a>
 before trying to add a new version of Python. Use the following:</p>
@@ -383,7 +398,20 @@ before trying to add a new version of Python. Use the following:</p>
 <p>New versions of Python can then be installed with a command like</p>
 <div class="highlight"><pre><span></span><code>pyenv install <span class="m">2</span>.7.8
 </code></pre></div>
+<p>It is also good practice to follow that command with a </p>
+<div class="highlight"><pre><span></span><code>pip install --upgrade pip setuptools wheel
+</code></pre></div>
+<p>after you&rsquo;ve selected the new python to be <code>global</code>.</p>
 <h3 id="debugging">Debugging</h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you have any issues with the command above, you might make sure that you
+have dependencies installed:</p>
+<div class="highlight"><pre><span></span><code>xcode-select --install
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>brew install autoconf bzip2 libffi ncurses openssl pkg-config readline sqlite3 xz zlib
+</code></pre></div>
+</div>
 <p>This page is pretty good: <a href="https://github.com/pyenv/pyenv/wiki/Common-build-problems">https://github.com/pyenv/pyenv/wiki/Common-build-problems</a></p>
 <p>I was seeing this issue:</p>
 <div class="highlight"><pre><span></span><code>&gt; virtualenv
@@ -508,7 +536,7 @@ just remove the <code>pyenv init</code> code that we added above to our shell co
 <div class="md-source-date">
   <small>
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 28, 2021</span>
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">March 1, 2021</span>
     
   </small>
 </div>
