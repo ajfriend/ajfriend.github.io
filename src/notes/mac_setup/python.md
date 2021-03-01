@@ -11,14 +11,18 @@ for each project.
 One nice thing about `pyenv` is that it is **independent** of any Python
 install on your system, since it is just a collection of shell scripts.
 
+
 ## Set up `pyenv`
 
 ```sh
 brew install pyenv
 ```
 
+After this, the `pyenv` command will work, but we don't have the shims
+set up yet.
+
 Following the [`pyenv` instructions](https://github.com/pyenv/pyenv), we need
-to make sure the following is at the end of the shell configuration:
+to make sure the following is at the end of the shell configuration file:
 
 ```sh
 if command -v pyenv 1>/dev/null 2>&1; then
@@ -26,14 +30,26 @@ if command -v pyenv 1>/dev/null 2>&1; then
 fi
 ```
 
-Since [we're using Oh My Zsh](../shell), we can put it into a file like
-`~/.oh-my-zsh/custom/for_pyenv.zsh` using the command
+The file will depend on which shell you are using:
 
-```sh
-echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.oh-my-zsh/custom/for_pyenv.zsh
-```
+- bash: `~/.bash_profile` or `~/.bashrc`
+- regular zsh: `~/.zshrc`
+- Oh My Zsh: `~/.oh-my-zsh/custom/for_pyenv.zsh`
 
 Make sure to restart the shell to activate the changes.
+
+You can check that the shims are set up properly by typing
+`which python`, which should give you something like
+
+```
+/Users/ajfriend/.pyenv/shims/python
+```
+
+!!! warning
+    Note that for some reason, the shim redirection doesn't work
+    if you only have system Python. So you may not see
+    the expected `which python` output until you've installed
+    at least one python version with `pyenv`.
 
 ## Preparing for installing new Pythons
 
@@ -50,7 +66,28 @@ New versions of Python can then be installed with a command like
 pyenv install 2.7.8
 ```
 
+It is also good practice to follow that command with a 
+
+```sh
+pip install --upgrade pip setuptools wheel
+```
+
+after you've selected the new python to be `global`.
+
 ### Debugging
+
+
+!!! note
+    If you have any issues with the command above, you might make sure that you
+    have dependencies installed:
+
+    ```sh
+    xcode-select --install
+    ```    
+
+    ```sh
+    brew install autoconf bzip2 libffi ncurses openssl pkg-config readline sqlite3 xz zlib
+    ```
 
 This page is pretty good: https://github.com/pyenv/pyenv/wiki/Common-build-problems
 
