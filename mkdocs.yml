@@ -16,6 +16,8 @@ theme:
     accent: red
   icon:
     repo: fontawesome/brands/github
+  features:
+    - navigation.tabs
 
 plugins:
   - git-revision-date-localized:
