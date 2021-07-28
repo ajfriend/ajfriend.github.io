@@ -1,9 +1,7 @@
 site_name: AJ Friend
-docs_dir: src
-site_dir: docs
 repo_url: https://github.com/ajfriend/ajfriend.github.io
 repo_name: ajfriend.github.io
-edit_uri: blob/master/src/
+edit_uri: blob/master/docs/
 
 nav:
   - About: index.md
