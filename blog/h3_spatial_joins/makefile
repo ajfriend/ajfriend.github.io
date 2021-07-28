@@ -1,2 +1,0 @@
-test:
-	../../../env/bin/pytest
