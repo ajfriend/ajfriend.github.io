@@ -1,3 +1,3 @@
 # About
 
-Personal website for AJ Friend.
+Hi. This is the personal website for AJ Friend.
