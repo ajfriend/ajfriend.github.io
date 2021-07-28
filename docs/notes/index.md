@@ -1,4 +1,6 @@
-# Rough Notes
+---
+title: Rough Notes
+---
 
 - [Mac Setup](mac_setup)
 - [MkDocs on Github Pages](mkdocs_gh-pages)

@@ -4,10 +4,10 @@ repo_name: ajfriend.github.io
 edit_uri: blob/master/docs/
 
 nav:
-  - About: index.md
+  - index.md
   - Blog: blog
   - Notes: notes
-  - Contact: contact.md
+  - contact.md
 
 theme:
   name: material
