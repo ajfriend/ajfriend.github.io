@@ -10,7 +10,7 @@ build:
 	env/bin/mkdocs build
 
 purge:
-	-@rm -rf env
+	-@rm -rf env site
 	-@rm -rf .DS_Store .pytest_cache
 
 serve:
