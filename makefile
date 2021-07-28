@@ -10,8 +10,8 @@ build:
 	env/bin/mkdocs build
 
 purge:
-	-@rm -rf env docs
-	-@rm -rf .DS_Store
+	-@rm -rf env site
+	-@rm -rf .DS_Store .pytest_cache
 
 serve:
 	open http://127.0.0.1:8000

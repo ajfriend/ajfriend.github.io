@@ -1,4 +1,4 @@
 env/
+site/
 .DS_Store
 .ipynb_checkpoints/
-docs/
