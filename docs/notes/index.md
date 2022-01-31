@@ -11,3 +11,4 @@ title: Rough Notes
 - [Programming Talks I Like](coding_talks.md)
 - [h3 notes](h3)
 - [Language notes](language_notes)
+- [Note on `matplotlib` plotting](matplotlib)
