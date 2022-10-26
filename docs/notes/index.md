@@ -12,3 +12,4 @@ title: Rough Notes
 - [h3 notes](h3)
 - [Language notes](language_notes)
 - [Note on `matplotlib` plotting](matplotlib)
+- [Presto and Trino](presto_trino)
