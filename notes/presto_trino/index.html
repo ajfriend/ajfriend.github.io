@@ -363,13 +363,17 @@
 <ul>
 <li><a href="https://trino.io/docs/current/functions/datetime.html">https://trino.io/docs/current/functions/datetime.html</a></li>
 </ul>
+<div class="highlight"><pre><span></span><code><span class="err">{</span><span class="o">%</span><span class="w"> </span><span class="n">macro</span><span class="w"> </span><span class="n">ts_to_local</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="w"> </span><span class="n">tz</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="err">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">cast</span><span class="p">(</span><span class="n">from_iso8601_timestamp</span><span class="p">(</span><span class="n">date_format</span><span class="p">(</span><span class="n">AT_TIMEZONE</span><span class="p">(</span><span class="n">FROM_UNIXTIME</span><span class="p">(</span><span class="err">{{</span><span class="w"> </span><span class="n">ts</span><span class="w"> </span><span class="err">}}</span><span class="p">),</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="n">tz</span><span class="w"> </span><span class="err">}}</span><span class="p">),</span><span class="w"> </span><span class="s1">&#39;%Y-%m-%dT%H:%i:%s&#39;</span><span class="p">))</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="k">timestamp</span><span class="p">))</span><span class="w"></span>
+<span class="err">{</span><span class="o">%</span><span class="w"> </span><span class="n">endmacro</span><span class="w"> </span><span class="o">%</span><span class="err">}</span><span class="w"></span>
+</code></pre></div>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 26, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 27, 2022</span>
       
     
   </small>
