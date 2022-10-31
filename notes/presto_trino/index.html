@@ -367,13 +367,24 @@
 <span class="w">    </span><span class="p">(</span><span class="k">cast</span><span class="p">(</span><span class="n">from_iso8601_timestamp</span><span class="p">(</span><span class="n">date_format</span><span class="p">(</span><span class="n">AT_TIMEZONE</span><span class="p">(</span><span class="n">FROM_UNIXTIME</span><span class="p">(</span><span class="err">{{</span><span class="w"> </span><span class="n">ts</span><span class="w"> </span><span class="err">}}</span><span class="p">),</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="n">tz</span><span class="w"> </span><span class="err">}}</span><span class="p">),</span><span class="w"> </span><span class="s1">&#39;%Y-%m-%dT%H:%i:%s&#39;</span><span class="p">))</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="k">timestamp</span><span class="p">))</span><span class="w"></span>
 <span class="err">{</span><span class="o">%</span><span class="w"> </span><span class="n">endmacro</span><span class="w"> </span><span class="o">%</span><span class="err">}</span><span class="w"></span>
 </code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="p">,</span><span class="w"> </span><span class="n">tbl3</span><span class="w"> </span><span class="k">as</span><span class="w"></span>
+<span class="p">(</span><span class="w"></span>
+<span class="k">select</span><span class="w"></span>
+<span class="w">    </span><span class="o">*</span><span class="w"></span>
+<span class="w">      </span><span class="c1">-- this crazy thing is just to export a local-tz-aware timestamp properly (unfortunately, this needs to be done by casting it as a tz-non-aware timestamp)</span>
+<span class="w">    </span><span class="p">,</span><span class="w"> </span><span class="n">from_unixtime</span><span class="p">(</span><span class="n">to_unixtime</span><span class="p">(</span><span class="n">from_iso8601_timestamp</span><span class="p">(</span><span class="n">date_format</span><span class="p">(</span><span class="n">at_timezone</span><span class="p">(</span><span class="n">ts_utc</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="k">select</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="n">tbl_tz</span><span class="p">)),</span><span class="w"> </span><span class="s1">&#39;%Y-%m-%dT%H:%i:%s&#39;</span><span class="p">))))</span><span class="w"></span>
+<span class="w">        </span><span class="k">as</span><span class="w"> </span><span class="n">ts_local</span><span class="w"></span>
+<span class="k">from</span><span class="w"></span>
+<span class="w">    </span><span class="n">tbl2</span><span class="w"></span>
+<span class="p">)</span><span class="w"></span>
+</code></pre></div>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 27, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 31, 2022</span>
       
     
   </small>
