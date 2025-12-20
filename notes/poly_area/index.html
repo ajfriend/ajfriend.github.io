@@ -28,7 +28,7 @@ A=α+β+γ−πThis beautiful result shows that spherical triangles always have 
 <span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:.4306em></span><span class="mord mathnormal" style=margin-right:.0037em>α</span></span></span></span>,
 <span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:.8889em;vertical-align:-.1944em></span><span class="mord mathnormal" style=margin-right:.05278em>β</span></span></span></span>, and
 <span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:.625em;vertical-align:-.1944em></span><span class="mord mathnormal" style=margin-right:.05556em>γ</span></span></span></span>:</p><span class=katex-display><span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:.6833em></span><span class="mord mathnormal">A</span><span class=mspace style=margin-right:.2778em></span><span class=mrel>=</span><span class=mspace style=margin-right:.2778em></span></span><span class=base><span class=strut style=height:.6667em;vertical-align:-.0833em></span><span class="mord mathnormal" style=margin-right:.0037em>α</span><span class=mspace style=margin-right:.2222em></span><span class=mbin>+</span><span class=mspace style=margin-right:.2222em></span></span><span class=base><span class=strut style=height:.8889em;vertical-align:-.1944em></span><span class="mord mathnormal" style=margin-right:.05278em>β</span><span class=mspace style=margin-right:.2222em></span><span class=mbin>+</span><span class=mspace style=margin-right:.2222em></span></span><span class=base><span class=strut style=height:.7778em;vertical-align:-.1944em></span><span class="mord mathnormal" style=margin-right:.05556em>γ</span><span class=mspace style=margin-right:.2222em></span><span class=mbin>−</span><span class=mspace style=margin-right:.2222em></span></span><span class=base><span class=strut style=height:.4306em></span><span class="mord mathnormal" style=margin-right:.03588em>π</span></span></span></span></span><p>This beautiful result shows that spherical triangles always have angle sums greater than
-<span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:.4306em></span><span class="mord mathnormal" style=margin-right:.03588em>π</span></span></span></span> radians, unlike their planar counterparts.</p><h2 id=interactive-examples>Interactive Examples</h2><p>Here&rsquo;s a twisted polygon on the globe (drag to rotate, double-click to reset):</p><div class=globe-container id=globe-twist style="width:600px;height:600px;margin:2em auto"></div><script type=module>
+<span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:.4306em></span><span class="mord mathnormal" style=margin-right:.03588em>π</span></span></span></span> radians, unlike their planar counterparts.</p><h2 id=interactive-examples>Interactive Examples</h2><p>Here&rsquo;s a twisted polygon on the globe (drag to rotate, double-click to reset):</p><div class=globe-container id=globe-twist style="max-width:600px;width:100%;aspect-ratio:1;margin:2em auto"></div><script type=module>
   import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
   import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
 
@@ -40,7 +40,12 @@ A=α+β+γ−πThis beautiful result shows that spherical triangles always have 
       geometry: { type: 'MultiPolygon', coordinates: coords }
     };
 
-    const state = { rotate: [100, -40, 0], width: 600, height: 600 };
+    const container = document.getElementById('globe-twist');
+    const getSize = () => {
+      const width = container.offsetWidth || container.clientWidth;
+      return width > 0 ? Math.min(600, width) : 600;
+    };
+    const state = { rotate: [100, -40, 0], width: getSize(), height: getSize() };
 
     if (!window.globeLandData) {
       const landTopo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
@@ -62,19 +67,22 @@ A=α+β+γ−πThis beautiful result shows that spherical triangles always have 
       });
     }
 
-    const container = document.getElementById('globe-twist');
     let frame = null;
 
     function render() {
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = null;
+        state.width = getSize();
+        state.height = getSize();
         container.innerHTML = '';
         const svg = preview(poly, state.rotate);
         container.appendChild(svg);
         attachDrag(svg);
       });
     }
+
+    window.addEventListener('resize', render);
 
     function attachDrag(svg) {
       const drag = d3.drag()
@@ -103,7 +111,7 @@ A=α+β+γ−πThis beautiful result shows that spherical triangles always have 
 
     render();
   })();
-</script><p>More of this good stuff:</p><div class=globe-container id=globe-twist_meridian style="width:600px;height:600px;margin:2em auto"></div><script type=module>
+</script><p>More of this good stuff:</p><div class=globe-container id=globe-twist_meridian style="max-width:600px;width:100%;aspect-ratio:1;margin:2em auto"></div><script type=module>
   import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
   import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
 
@@ -115,7 +123,12 @@ A=α+β+γ−πThis beautiful result shows that spherical triangles always have 
       geometry: { type: 'MultiPolygon', coordinates: coords }
     };
 
-    const state = { rotate: [100, -40, 0], width: 600, height: 600 };
+    const container = document.getElementById('globe-twist_meridian');
+    const getSize = () => {
+      const width = container.offsetWidth || container.clientWidth;
+      return width > 0 ? Math.min(600, width) : 600;
+    };
+    const state = { rotate: [100, -40, 0], width: getSize(), height: getSize() };
 
     if (!window.globeLandData) {
       const landTopo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
@@ -137,19 +150,22 @@ A=α+β+γ−πThis beautiful result shows that spherical triangles always have 
       });
     }
 
-    const container = document.getElementById('globe-twist_meridian');
     let frame = null;
 
     function render() {
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = null;
+        state.width = getSize();
+        state.height = getSize();
         container.innerHTML = '';
         const svg = preview(poly, state.rotate);
         container.appendChild(svg);
         attachDrag(svg);
       });
     }
+
+    window.addEventListener('resize', render);
 
     function attachDrag(svg) {
       const drag = d3.drag()
@@ -178,7 +194,7 @@ A=α+β+γ−πThis beautiful result shows that spherical triangles always have 
 
     render();
   })();
-</script><p>A belt around the earth:</p><div class=globe-container id=globe-equator style="width:600px;height:600px;margin:2em auto"></div><script type=module>
+</script><p>A belt around the earth:</p><div class=globe-container id=globe-equator style="max-width:600px;width:100%;aspect-ratio:1;margin:2em auto"></div><script type=module>
   import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
   import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
 
@@ -190,7 +206,12 @@ A=α+β+γ−πThis beautiful result shows that spherical triangles always have 
       geometry: { type: 'MultiPolygon', coordinates: coords }
     };
 
-    const state = { rotate: [100, -40, 0], width: 600, height: 600 };
+    const container = document.getElementById('globe-equator');
+    const getSize = () => {
+      const width = container.offsetWidth || container.clientWidth;
+      return width > 0 ? Math.min(600, width) : 600;
+    };
+    const state = { rotate: [100, -40, 0], width: getSize(), height: getSize() };
 
     if (!window.globeLandData) {
       const landTopo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
@@ -212,19 +233,22 @@ A=α+β+γ−πThis beautiful result shows that spherical triangles always have 
       });
     }
 
-    const container = document.getElementById('globe-equator');
     let frame = null;
 
     function render() {
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = null;
+        state.width = getSize();
+        state.height = getSize();
         container.innerHTML = '';
         const svg = preview(poly, state.rotate);
         container.appendChild(svg);
         attachDrag(svg);
       });
     }
+
+    window.addEventListener('resize', render);
 
     function attachDrag(svg) {
       const drag = d3.drag()
@@ -253,7 +277,7 @@ A=α+β+γ−πThis beautiful result shows that spherical triangles always have 
 
     render();
   })();
-</script><p>A belt and a tie:</p><div class=globe-container id=globe-equator_meridian style="width:600px;height:600px;margin:2em auto"></div><script type=module>
+</script><p>A belt and a tie:</p><div class=globe-container id=globe-equator_meridian style="max-width:600px;width:100%;aspect-ratio:1;margin:2em auto"></div><script type=module>
   import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
   import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
 
@@ -265,7 +289,12 @@ A=α+β+γ−πThis beautiful result shows that spherical triangles always have 
       geometry: { type: 'MultiPolygon', coordinates: coords }
     };
 
-    const state = { rotate: [100, -40, 0], width: 600, height: 600 };
+    const container = document.getElementById('globe-equator_meridian');
+    const getSize = () => {
+      const width = container.offsetWidth || container.clientWidth;
+      return width > 0 ? Math.min(600, width) : 600;
+    };
+    const state = { rotate: [100, -40, 0], width: getSize(), height: getSize() };
 
     if (!window.globeLandData) {
       const landTopo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
@@ -287,19 +316,22 @@ A=α+β+γ−πThis beautiful result shows that spherical triangles always have 
       });
     }
 
-    const container = document.getElementById('globe-equator_meridian');
     let frame = null;
 
     function render() {
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = null;
+        state.width = getSize();
+        state.height = getSize();
         container.innerHTML = '';
         const svg = preview(poly, state.rotate);
         container.appendChild(svg);
         attachDrag(svg);
       });
     }
+
+    window.addEventListener('resize', render);
 
     function attachDrag(svg) {
       const drag = d3.drag()
