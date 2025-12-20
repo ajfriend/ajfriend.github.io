@@ -1,0 +1,5 @@
+{{- $src := .Get "src" -}}
+{{- $alt := .Get "alt" | default "" -}}
+<a href="{{ $src }}" target="_blank" rel="noopener noreferrer">
+  <img src="{{ $src }}" alt="{{ $alt }}" style="cursor: zoom-in;" loading="lazy">
+</a>

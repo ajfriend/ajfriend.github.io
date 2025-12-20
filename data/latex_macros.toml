@@ -1,0 +1,13 @@
+# Global LaTeX macros available across all pages
+# Format: "command" = "replacement"
+
+# Common number sets
+"\\R" = "\\mathbb{R}"
+"\\N" = "\\mathbb{N}"
+"\\Z" = "\\mathbb{Z}"
+"\\Q" = "\\mathbb{Q}"
+"\\C" = "\\mathbb{C}"
+
+# Add your custom macros below
+# "\\dd" = "\\mathrm{d}#1"
+# "\\norm" = "\\lVert #1 \\rVert"

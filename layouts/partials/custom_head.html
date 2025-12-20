@@ -1,0 +1,22 @@
+{{ $noop := .WordCount }}
+{{ if .Page.Store.Get "hasMath" }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
+{{ end }}
+<style>
+  /* Adjust content width (default is 720px) */
+  :root {
+    --width: 900px;
+  }
+
+  /* Force light mode, disable automatic dark mode */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background-color: #fff;
+      --heading-color: #222;
+      --text-color: #444;
+      --link-color: #3273dc;
+      --visited-color: #8b6fcb;
+      --blockquote-color: #222;
+    }
+  }
+</style>

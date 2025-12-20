@@ -1,0 +1,10 @@
+{{- $ctx := . -}}
+{{- $opts := dict
+  "displayMode" (eq .Type "block")
+  "output" "html"
+  "macros" site.Data.latex_macros
+-}}
+{{- with transform.ToMath .Inner $opts }}
+  {{ . }}
+  {{- $ctx.Page.Store.Set "hasMath" true }}
+{{- end -}}

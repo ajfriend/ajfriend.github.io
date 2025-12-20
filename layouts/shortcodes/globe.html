@@ -1,0 +1,93 @@
+{{- $id := .Get "id" -}}
+{{- $dataFile := .Get "data" -}}
+{{- $coords := .Get "coords" -}}
+{{- $rotate := .Get "rotate" | default "[100, -40, 0]" -}}
+
+{{- if $dataFile -}}
+  {{- /* Try to load from page bundle first, fall back to global data */ -}}
+  {{- $resource := .Page.Resources.GetMatch (printf "data/%s.json" $dataFile) -}}
+  {{- if $resource -}}
+    {{- $coords = transform.Unmarshal $resource -}}
+  {{- else -}}
+    {{- $coords = index .Site.Data.globe_coords $dataFile -}}
+  {{- end -}}
+{{- end -}}
+
+<div class="globe-container" id="globe-{{ $id }}" style="width: 600px; height: 600px; margin: 2em auto;"></div>
+
+<script type="module">
+  import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
+  import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
+
+  (async function() {
+    const coords = {{ $coords }};
+    const poly = {
+      type: 'Feature',
+      properties: { name: 'Polygon' },
+      geometry: { type: 'MultiPolygon', coordinates: coords }
+    };
+
+    const state = { rotate: {{ $rotate | safeJS }}, width: 600, height: 600 };
+
+    if (!window.globeLandData) {
+      const landTopo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
+      window.globeLandData = feature(landTopo, landTopo.objects.land);
+    }
+    const land = window.globeLandData;
+
+    function preview(geometryOrFeature, rotate) {
+      return Plot.plot({
+        width: state.width,
+        height: state.height,
+        projection: { type: 'orthographic', rotate, inset: 1 },
+        marks: [
+          Plot.geo(land, { stroke: '#88b', fill: 'none', strokeWidth: 0.8, strokeOpacity: 0.8 }),
+          Plot.geo(geometryOrFeature, { fill: 'red', fillOpacity: 0.45, stroke: 'red', strokeOpacity: 0.7 }),
+          Plot.graticule({ strokeOpacity: 0.06 }),
+          Plot.sphere({ strokeWidth: 2 })
+        ]
+      });
+    }
+
+    const container = document.getElementById('globe-{{ $id }}');
+    let frame = null;
+
+    function render() {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = null;
+        container.innerHTML = '';
+        const svg = preview(poly, state.rotate);
+        container.appendChild(svg);
+        attachDrag(svg);
+      });
+    }
+
+    function attachDrag(svg) {
+      const drag = d3.drag()
+        .on('start', (event) => {
+          drag.startX = event.x;
+          drag.startY = event.y;
+          drag.startRotate = state.rotate.slice();
+        })
+        .on('drag', (event) => {
+          const dx = event.x - drag.startX;
+          const dy = event.y - drag.startY;
+          const k = 0.25;
+          state.rotate = [
+            drag.startRotate[0] + dx * k,
+            drag.startRotate[1] - dy * k,
+            0
+          ];
+          render();
+        });
+      d3.select(svg).call(drag);
+      d3.select(svg).on('dblclick', () => {
+        state.rotate = {{ $rotate | safeJS }};
+        render();
+      });
+    }
+
+    render();
+  })();
+</script>

@@ -1,0 +1,60 @@
+baseURL = 'https://ajfriend.com/'
+languageCode = 'en-us'
+title = 'AJ Friend'
+theme = 'hugo-bearblog'
+
+# Generate a nice robots.txt for SEO
+enableRobotsTXT = true
+
+# Bearblog-like URLs
+disableKinds = ["taxonomy"]
+ignoreErrors = ["error-disable-taxonomy"]
+
+[permalinks]
+  blog = "/:contentbasename/"
+  notes = "/notes/:contentbasename/"
+
+[params]
+  description = 'Personal website'
+  author = 'AJ Friend'
+  dateFormat = "2006-01-02"  # ISO 8601 format (YYYY-MM-DD)
+
+# Site navigation menu
+[[menu.main]]
+  name = "Home"
+  url = "/"
+  weight = 1
+
+[[menu.main]]
+  name = "Blog"
+  url = "/blog"
+  weight = 2
+
+[[menu.main]]
+  name = "Software"
+  url = "/software"
+  weight = 3
+
+[[menu.main]]
+  name = "Notes"
+  url = "/notes"
+  weight = 4
+
+# Configure markup
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true  # Allow raw HTML in markdown
+  [markup.highlight]
+    style = 'friendly'
+    lineNos = true
+    lineNumbersInTable = false
+    codeFences = true
+
+  # Enable passthrough for KaTeX server-side rendering
+  [markup.goldmark.extensions.passthrough]
+    enable = true
+
+    [markup.goldmark.extensions.passthrough.delimiters]
+      block = [['\[', '\]'], ['$$', '$$']]
+      inline = [['\(', '\)'], ['$', '$']]

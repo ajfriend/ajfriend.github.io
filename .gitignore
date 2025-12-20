@@ -1,4 +1,22 @@
-env/
-site/
+# Hugo build output
+/public/
+/resources/_gen/
+/assets/jsconfig.json
+
+# Hugo cache
+.hugo_build.lock
+
+# OS files
 .DS_Store
-.ipynb_checkpoints/
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Temporary files
+*.log
+*.tmp
