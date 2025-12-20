@@ -1,0 +1,20 @@
+# Generate all figures for this post
+
+# Generate all images
+generate:
+	mkdir -p images
+	uv run code/trig_functions.py
+	uv run code/random_walk.py
+	@echo "All figures generated in images/"
+
+# Generate individual figures
+trig:
+	uv run code/trig_functions.py
+
+walk:
+	uv run code/random_walk.py
+
+# Clean generated images
+clean:
+	rm -f images/*.png
+	@echo "Cleaned images/"

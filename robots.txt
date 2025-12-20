@@ -1,0 +1,2 @@
+User-Agent: *
+Sitemap: https://ajfriend.com/sitemap.xml

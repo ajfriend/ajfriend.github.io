@@ -1,0 +1,5 @@
+build:
+    pdflatex triangle.tex
+    pdf2svg triangle.pdf figs/triangle.svg
+    pdftoppm -png -r 300 -singlefile triangle.pdf figs/triangle
+    rm -f *.aux *.log *.pdf
