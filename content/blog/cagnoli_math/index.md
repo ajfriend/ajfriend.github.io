@@ -53,7 +53,7 @@ $$
 $$
 
 <p style="text-align: center;">
-  <img src="code/figs/triangle.png" alt="Spherical triangle" width="400">
+  <img src="code/figs/triangle.png" alt="Spherical triangle" style="max-width: 400px; width: 100%; height: auto;">
 </p>
 
 Here, $a$ and $b$ are the arc lengths of two sides of the spherical triangle (measured in radians on the unit sphere), and $C$ is the angle between them. $E$ is the spherical excess, which is equal to the surface area of the triangle on the unit sphere.

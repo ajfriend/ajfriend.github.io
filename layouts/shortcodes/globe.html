@@ -13,7 +13,7 @@
   {{- end -}}
 {{- end -}}
 
-<div class="globe-container" id="globe-{{ $id }}" style="width: 600px; height: 600px; margin: 2em auto;"></div>
+<div class="globe-container" id="globe-{{ $id }}" style="max-width: 600px; width: 100%; aspect-ratio: 1; margin: 2em auto;"></div>
 
 <script type="module">
   import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
@@ -27,7 +27,12 @@
       geometry: { type: 'MultiPolygon', coordinates: coords }
     };
 
-    const state = { rotate: {{ $rotate | safeJS }}, width: 600, height: 600 };
+    const container = document.getElementById('globe-{{ $id }}');
+    const getSize = () => {
+      const width = container.offsetWidth || container.clientWidth;
+      return width > 0 ? Math.min(600, width) : 600;
+    };
+    const state = { rotate: {{ $rotate | safeJS }}, width: getSize(), height: getSize() };
 
     if (!window.globeLandData) {
       const landTopo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
@@ -49,19 +54,22 @@
       });
     }
 
-    const container = document.getElementById('globe-{{ $id }}');
     let frame = null;
 
     function render() {
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = null;
+        state.width = getSize();
+        state.height = getSize();
         container.innerHTML = '';
         const svg = preview(poly, state.rotate);
         container.appendChild(svg);
         attachDrag(svg);
       });
     }
+
+    window.addEventListener('resize', render);
 
     function attachDrag(svg) {
       const drag = d3.drag()
