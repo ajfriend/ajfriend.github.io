@@ -47,3 +47,26 @@ test: install
 	uv sync
 	uv pip install .
 ```
+
+# list commands and groups
+
+A default rule for listing the recipes:
+
+```justfile
+_:
+	just --list
+```
+
+Can control that output by defining groups. Comments immediately before show
+up in `just --list` output.
+
+```justfile
+[group('extra')]
+lab:
+	uv run jupyter lab
+
+# remove env and lockfile
+[group('clean')]
+purge: clean
+	-rm uv.lock
+```
