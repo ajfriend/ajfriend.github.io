@@ -20,6 +20,8 @@ _rm pattern:
     -@find . -name "{{pattern}}" -prune -exec rm -rf {} +
 ```
 
+Alternatively, there's `git clean -fdx`, but I don't use that often.
+
 
 # UV
 
@@ -27,7 +29,7 @@ _rm pattern:
 for retreiving packages, so that I can work seamlessly when my laptop
 doesn't have an internet connection.
 
-As a workaround---since I often run commands through `just`---I can set an
+As a workaround---since I run most commands through `just`---I can set an
 environment variable at the `justfile` level and edit the file when
 necessary.
 
