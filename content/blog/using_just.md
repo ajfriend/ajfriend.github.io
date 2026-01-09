@@ -26,7 +26,7 @@ Alternatively, there's `git clean -fdx`, but I don't use that often.
 # UV
 
 [`uv`](https://docs.astral.sh/uv/) is great, but I really wish it had an "online, but best effort when offline"
-for retreiving packages, so that I can work seamlessly when my laptop
+for retrieving packages, so that I can work seamlessly when my laptop
 doesn't have an internet connection.
 
 As a workaround---since I run most commands through `just`---I can set an
