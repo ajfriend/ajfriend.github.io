@@ -17,7 +17,7 @@ clean:
     just _rm .DS_Store
 
 _rm pattern:
-    @find . -name "{{pattern}}" -prune -exec rm -rf {} + 2>/dev/null || true
+    -@find . -name "{{pattern}}" -prune -exec rm -rf {} +
 ```
 
 
