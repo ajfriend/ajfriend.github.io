@@ -20,3 +20,5 @@ Thumbs.db
 # Temporary files
 *.log
 *.tmp
+*.egg-info
+*.venv
