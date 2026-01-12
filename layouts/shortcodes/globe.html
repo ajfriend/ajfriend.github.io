@@ -2,6 +2,7 @@
 {{- $dataFile := .Get "data" -}}
 {{- $coords := .Get "coords" -}}
 {{- $rotate := .Get "rotate" | default "[100, -40, 0]" -}}
+{{- $arrowStep := .Get "arrowStep" | default "0" | int -}}
 
 {{- if $dataFile -}}
   {{- /* Try to load from page bundle first, fall back to global data */ -}}
@@ -17,15 +18,33 @@
 
 <script type="module">
   import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
+  import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
   import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
 
   (async function() {
     const coords = {{ $coords }};
+    const arrowStep = {{ $arrowStep }};
     const poly = {
       type: 'Feature',
       properties: { name: 'Polygon' },
       geometry: { type: 'MultiPolygon', coordinates: coords }
     };
+
+    // Extract edge midpoint segments for arrow markers using great circle interpolation
+    function getEdgeArrows(ring, step = 10) {
+      const arrows = [];
+      for (let i = 0; i < ring.length - 1; i += step) {
+        const p1 = ring[i];
+        const p2 = ring[i + 1];
+        const interpolate = d3.geoInterpolate(p1, p2);
+        // Create a short segment around the midpoint (40% to 60% along edge)
+        arrows.push([interpolate(0.6), interpolate(0.4)]);
+      }
+      return arrows;
+    }
+    const edgeArrows = coords.flatMap(polygon =>
+      polygon.flatMap(ring => getEdgeArrows(ring, arrowStep))
+    );
 
     const container = document.getElementById('globe-{{ $id }}');
     const getSize = () => {
@@ -41,16 +60,30 @@
     const land = window.globeLandData;
 
     function preview(geometryOrFeature, rotate) {
+      const marks = [
+        Plot.geo(land, { stroke: '#88b', fill: 'none', strokeWidth: 0.8, strokeOpacity: 0.8 }),
+        Plot.geo(geometryOrFeature, { fill: 'red', fillOpacity: 0.45, stroke: 'red', strokeOpacity: 0.7 }),
+        Plot.graticule({ strokeOpacity: 0.06 }),
+        Plot.sphere({ strokeWidth: 2 })
+      ];
+
+      if (arrowStep > 0) {
+        edgeArrows.forEach(segment => {
+          marks.push(Plot.line(segment, {
+            x: d => d[0],
+            y: d => d[1],
+            markerEnd: 'arrow',
+            stroke: 'darkred',
+            strokeWidth: 1.5
+          }));
+        });
+      }
+
       return Plot.plot({
         width: state.width,
         height: state.height,
         projection: { type: 'orthographic', rotate, inset: 1 },
-        marks: [
-          Plot.geo(land, { stroke: '#88b', fill: 'none', strokeWidth: 0.8, strokeOpacity: 0.8 }),
-          Plot.geo(geometryOrFeature, { fill: 'red', fillOpacity: 0.45, stroke: 'red', strokeOpacity: 0.7 }),
-          Plot.graticule({ strokeOpacity: 0.06 }),
-          Plot.sphere({ strokeWidth: 2 })
-        ]
+        marks
       });
     }
 

@@ -3,8 +3,6 @@ title: "Areas of Spherical Polygons"
 date: 2025-12-15
 ---
 
-<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-
 The area of a spherical polygon on a unit sphere is given by the **spherical excess formula**:
 
 $$A = E - (n-2)\pi$$

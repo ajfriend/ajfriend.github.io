@@ -14,3 +14,6 @@ What you'll learn:
 - how to surround most of the world in a meter of rope. -- tag
 - nothing about any specific format, but what you learn here should generalize.
 
+Here's a twisted polygon on the globe (drag to rotate, double-click to reset):
+
+{{< globe id="twist" data="twist" rotate="[100, -40, 0]" arrowStep="3" >}}
