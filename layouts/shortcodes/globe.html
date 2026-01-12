@@ -13,8 +13,8 @@ Data format (GeoJSON MultiPolygon coordinates):
   - Winding: counterclockwise for outer rings, clockwise for holes (GeoJSON RFC 7946)
 
 Usage:
-  {{</* globe id="myglobe" data="polygon" */>}}
-  {{</* globe id="arrows" data="polygon" arrowStep="5" rotate="[0, 0, 0]" */>}}
+  { {< globe id="myglobe" data="polygon" >} }
+  { {< globe id="arrows" data="polygon" arrowStep="5" rotate="[0, 0, 0]" >} }
 */}}
 {{- $id := .Get "id" -}}
 {{- $dataFile := .Get "data" -}}
