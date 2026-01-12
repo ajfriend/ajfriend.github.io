@@ -1,3 +1,21 @@
+{{/*
+Globe Shortcode - Interactive orthographic globe with polygon overlay
+
+Parameters:
+  - id: Unique identifier for the globe (required)
+  - data: Name of JSON file to load from page bundle data/ or site data/globe_coords/
+  - rotate: Initial rotation [lng, lat, tilt] (default: "[100, -40, 0]")
+  - arrowStep: Show direction arrows every N edges; 0 = no arrows (default: 0)
+
+Data format (GeoJSON MultiPolygon coordinates):
+  - Structure: [[[[lng, lat], [lng, lat], ...]]]  (array of polygons, each with rings)
+  - Coordinate order: [longitude, latitude]
+  - Winding: counterclockwise for outer rings, clockwise for holes (GeoJSON RFC 7946)
+
+Usage:
+  {{</* globe id="myglobe" data="polygon" */>}}
+  {{</* globe id="arrows" data="polygon" arrowStep="5" rotate="[0, 0, 0]" */>}}
+*/}}
 {{- $id := .Get "id" -}}
 {{- $dataFile := .Get "data" -}}
 {{- $coords := .Get "coords" -}}
@@ -22,7 +40,10 @@
   import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
 
   (async function() {
-    const coords = {{ $coords }};
+    // Input coords are GeoJSON format (CCW outer, CW holes)
+    // D3 expects opposite winding, so reverse each ring
+    const geoJsonCoords = {{ $coords }};
+    const coords = geoJsonCoords.map(polygon => polygon.map(ring => ring.slice().reverse()));
     const arrowStep = {{ $arrowStep }};
     const poly = {
       type: 'Feature',
@@ -38,13 +59,13 @@
         const p2 = ring[i + 1];
         const interpolate = d3.geoInterpolate(p1, p2);
         // Create a short segment around the midpoint (40% to 60% along edge)
-        arrows.push([interpolate(0.6), interpolate(0.4)]);
+        arrows.push([interpolate(0.4), interpolate(0.6)]);
       }
       return arrows;
     }
-    const edgeArrows = coords.flatMap(polygon =>
-      polygon.flatMap(ring => getEdgeArrows(ring, arrowStep))
-    );
+    const edgeArrows = arrowStep > 0
+      ? geoJsonCoords.flatMap(polygon => polygon.flatMap(ring => getEdgeArrows(ring, arrowStep)))
+      : [];
 
     const container = document.getElementById('globe-{{ $id }}');
     const getSize = () => {
