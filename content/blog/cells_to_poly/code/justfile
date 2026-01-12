@@ -1,5 +1,5 @@
 export UV_NO_EDITABLE := "1"
-export UV_OFFLINE := "0"  # toggle on when offline to avoid failures
+export UV_OFFLINE := "1"  # toggle on when offline to avoid failures
 
 _:
 	just --list
@@ -12,6 +12,9 @@ setup:
 lab:
 	@[ -d .venv ] || just setup
 	uv run jupyter lab
+
+plot:
+	uv run python notebooks/figs.py
 
 clean:
 	just _rm .venv
