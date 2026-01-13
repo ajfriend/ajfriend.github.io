@@ -4,7 +4,7 @@ Globe Shortcode - Interactive orthographic globe with polygon overlay
 Parameters:
   - id: Unique identifier for the globe (required)
   - data: Name of JSON file to load from page bundle data/ or site data/globe_coords/
-  - rotate: Initial rotation [lng, lat, tilt] (default: "[100, -40, 0]")
+  - rotate: Center point [lng, lat, tilt] - globe centers on this location (default: polygon centroid)
   - arrowStep: Show direction arrows every N edges; 0 = no arrows (default: 0)
 
 Data format (GeoJSON MultiPolygon coordinates):
@@ -19,7 +19,7 @@ Usage:
 {{- $id := .Get "id" -}}
 {{- $dataFile := .Get "data" -}}
 {{- $coords := .Get "coords" -}}
-{{- $rotate := .Get "rotate" | default "[100, -40, 0]" -}}
+{{- $rotate := .Get "rotate" -}}
 {{- $arrowStep := .Get "arrowStep" | default "0" | int -}}
 
 {{- if $dataFile -}}
@@ -72,7 +72,15 @@ Usage:
       const width = container.offsetWidth || container.clientWidth;
       return width > 0 ? Math.min(600, width) : 600;
     };
-    const state = { rotate: {{ $rotate | safeJS }}, width: getSize(), height: getSize() };
+    // Negate lng/lat so rotate="[x,y,0]" centers on point (x,y)
+    // Default to centroid of all vertices if no rotate specified
+    const inputRotate = {{ if $rotate }}{{ $rotate | safeJS }}{{ else }}null{{ end }};
+    const allPoints = coords.flatMap(polygon => polygon.flatMap(ring => ring));
+    const centroid = d3.geoCentroid({ type: 'MultiPoint', coordinates: allPoints });
+    const centerRotate = inputRotate
+      ? [-inputRotate[0], -inputRotate[1], inputRotate[2] ?? 0]
+      : [-centroid[0], -centroid[1], 0];
+    const state = { rotate: centerRotate, width: getSize(), height: getSize() };
 
     if (!window.globeLandData) {
       const landTopo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
@@ -145,7 +153,7 @@ Usage:
         });
       d3.select(svg).call(drag);
       d3.select(svg).on('dblclick', () => {
-        state.rotate = {{ $rotate | safeJS }};
+        state.rotate = centerRotate.slice();
         render();
       });
     }
