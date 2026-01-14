@@ -115,7 +115,7 @@ don't be exactly 180 degrees.
 shortest path.
 show sweeping a triangle out to 180, and it switches.
 
-{{< globe_poly points="[(90, 0), (0, 0), (0, 90)]" arrowStep="1" rotate="[90, 0, 0]"  >}}
+{{< globe_poly points="[(90, 0), (0, 0), (0, 90)]" arrowStep="1"  >}}
 
 we can still acheive this, but we need to add an arc.
 
@@ -147,7 +147,7 @@ What you won't learn:
 
 Here's a twisted polygon on the globe (drag to rotate, double-click to reset):
 
-{{< globe id="twist" data="twist" rotate="[100, -40, 0]" arrowStep="3" >}}
+{{< globe data="twist" rotate="[40, 50, 0]" arrowStep="3" >}}
 
 
 {{< globe data="ring" arrowStep="1" >}}

@@ -3,7 +3,7 @@ Globe Poly Shortcode - Simple polygon on an interactive globe
 
 Parameters:
   - points: List of (lat, lng) tuples like [(90, 0), (20, 10), ...]
-  - rotate: Center point [lng, lat, tilt] (default: polygon centroid)
+  - rotate: Center point [lat, lng, tilt] (default: polygon centroid)
   - arrowStep: Show direction arrows every N edges; 0 = no arrows (default: 0)
 
 Usage:
@@ -59,10 +59,11 @@ Usage:
       return width > 0 ? Math.min(600, width) : 600;
     };
 
+    // inputRotate is [lat, lng, tilt], centroid is [lng, lat]
     const inputRotate = {{ if $rotate }}{{ $rotate | safeJS }}{{ else }}null{{ end }};
     const centroid = d3.geoCentroid({ type: 'MultiPoint', coordinates: ring });
     const centerRotate = inputRotate
-      ? [-inputRotate[0], -inputRotate[1], inputRotate[2] ?? 0]
+      ? [-inputRotate[1], -inputRotate[0], inputRotate[2] ?? 0]  // swap lat/lng to lng/lat, then negate
       : [-centroid[0], -centroid[1], 0];
     const state = { rotate: centerRotate, width: getSize(), height: getSize() };
 
