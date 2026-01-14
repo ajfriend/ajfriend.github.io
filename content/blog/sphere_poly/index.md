@@ -119,13 +119,37 @@ no matter what representation you give them.
 
 # Great circle arcs
 
+(
+TODO: color the lune in light grey. draw the arc on the orthographic.
+The ortho and mercator should match exactly.
+color the points red and green. color the lune lines accordingly.
+)
 
-{{< globe_arc points="[(0, 0), (0, 179)]" strokeWidth="5" >}}
+The great circle arc between `(0, -150)` and `(0,0)` goes east:
 
 {{< globe_arc points="[(0, -150), (0, 0)]" strokeWidth="5" projection="equirectangular"  width="1000" >}}
 
-{{< globe_arc points="[(0, -150), (0, 40)]" strokeWidth="5" projection="equirectangular"  width="1000" >}}
+This is because its the shortest path, look at this lune:
 
+{{< globe_poly points="[(90, 0), (0, -150), (-90, 0), (0, 0)]" rotate="[90, 0, 180]" >}}
+
+Now, if we extend the endpoint further east to `(0, 60)`, we see that the arc takes the opposite path around the globe:
+
+{{< globe_arc points="[(0, -150), (0, 60)]" strokeWidth="5" projection="equirectangular"  width="1000" >}}
+
+Checking the lune confirms it is the shortest path:
+
+{{< globe_poly points="[(90, 0), (0, 60), (-90, 0), (0, -150)]" rotate="[90, 0, 180]" >}}
+
+Alternatively, if we had continued in the other direction, the path would have been
+more than 180 degrees:
+
+{{< globe_poly points="[(90, 0), (0, -150), (-90, 0), (0, 60)]" rotate="[90, 0, 180]" >}}
+
+But it is possible to represent that path, we just need to add an intermediate
+point to break up the any arcs that would otherwise be $\geq 180$ degrees:
+
+{{< globe_arc points="[(0, -150), (0, 0), (0, 60)]" strokeWidth="5" projection="equirectangular"  width="1000" >}}
 
 
 {{< globe_arc points="[(0, 0), (0, 120), (0, 270)]" strokeWidth="10" >}}
@@ -140,7 +164,7 @@ show sweeping a triangle out to 180, and it switches.
 
 we can still acheive this, but we need to add an arc.
 
-{{< globe_poly points="[(90, 0), (0, 0), (0, 90), (0, 241)]" arrowStep="1" >}}
+
 
 
 # Rings

@@ -129,10 +129,16 @@ Usage:
           const dx = event.x - drag.startX;
           const dy = event.y - drag.startY;
           const k = 0.25;
+          // Account for tilt when computing drag direction
+          const tilt = drag.startRotate[2] * Math.PI / 180;
+          const cos_t = Math.cos(tilt);
+          const sin_t = Math.sin(tilt);
+          const rotatedDx = -(dx * cos_t + dy * sin_t);
+          const rotatedDy = -dx * sin_t + dy * cos_t;
           state.rotate = [
-            drag.startRotate[0] + dx * k,
-            drag.startRotate[1] - dy * k,
-            0
+            drag.startRotate[0] + rotatedDx * k,
+            drag.startRotate[1] - rotatedDy * k,
+            drag.startRotate[2]
           ];
           render();
         });
