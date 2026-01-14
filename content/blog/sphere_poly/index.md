@@ -122,7 +122,11 @@ no matter what representation you give them.
 
 {{< globe_arc points="[(0, 0), (0, 179)]" strokeWidth="5" >}}
 
-{{< globe_arc points="[(0, 0), (0, 181)]" strokeWidth="5" >}}
+{{< globe_arc points="[(0, -150), (0, 0)]" strokeWidth="5" projection="equirectangular"  width="1000" >}}
+
+{{< globe_arc points="[(0, -150), (0, 40)]" strokeWidth="5" projection="equirectangular"  width="1000" >}}
+
+
 
 {{< globe_arc points="[(0, 0), (0, 120), (0, 270)]" strokeWidth="10" >}}
 

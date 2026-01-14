@@ -1,21 +1,28 @@
 {{/*
-Globe Arc Shortcode - Draw great circle arcs through points on an interactive globe
+Globe Arc Shortcode - Draw great circle arcs through points on a globe or map
 
 Parameters:
   - points: List of (lat, lng) tuples like [(40, -74), (51, 0), (48, 2)]
   - rotate: Center point [lat, lng, tilt] (default: centroid of points)
   - strokeWidth: Line thickness (default: 2.5)
+  - projection: Map projection type (default: "orthographic")
+      Common options: orthographic, mercator, equirectangular, equal-earth
+      Other D3 projections are also available.
+  - width: Max width in pixels (default: 600)
 
 Usage:
   { {< globe_arc points="[(40, -74), (51, 0)]" >} }
-  { {< globe_arc points="[(0, 0), (45, 90), (30, 120)]" rotate="[20, 45, 0]" strokeWidth="8" >} }
+  { {< globe_arc points="[(0, 0), (45, 90), (30, 120)]" projection="equal-earth" width="400" >} }
 */}}
 {{- $id := .Get "id" | default (printf "ga%x" .Ordinal) -}}
 {{- $pointsStr := .Get "points" -}}
 {{- $rotate := .Get "rotate" -}}
 {{- $strokeWidth := .Get "strokeWidth" | default "2.5" | float -}}
+{{- $projection := .Get "projection" | default "orthographic" -}}
+{{- $width := .Get "width" | default "600" | int -}}
 
-<div class="globe-container" id="globe-{{ $id }}" style="max-width: 600px; width: 100%; aspect-ratio: 1; margin: 2em auto;"></div>
+{{- $isGlobe := eq $projection "orthographic" -}}
+<div class="globe-container" id="globe-{{ $id }}" style="max-width: {{ $width }}px; width: 100%; aspect-ratio: {{ if $isGlobe }}1{{ else }}2{{ end }}; margin: 2em auto;"></div>
 
 <script type="module">
   import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
@@ -59,9 +66,14 @@ Usage:
     };
 
     const container = document.getElementById('globe-{{ $id }}');
+    const projection = "{{ $projection }}";
+    const isGlobe = projection === "orthographic";
+    const maxWidth = {{ $width }};
+
     const getSize = () => {
       const width = container.offsetWidth || container.clientWidth;
-      return width > 0 ? Math.min(600, width) : 600;
+      const w = width > 0 ? Math.min(maxWidth, width) : maxWidth;
+      return { width: w, height: isGlobe ? w : w / 2 };
     };
 
     // inputRotate is [lat, lng, tilt], centroid is [lng, lat]
@@ -70,7 +82,8 @@ Usage:
     const centerRotate = inputRotate
       ? [-inputRotate[1], -inputRotate[0], inputRotate[2] ?? 0]  // swap lat/lng to lng/lat, then negate
       : [-centroid[0], -centroid[1], 0];
-    const state = { rotate: centerRotate, width: getSize(), height: getSize() };
+    const size = getSize();
+    const state = { rotate: centerRotate, width: size.width, height: size.height };
 
     if (!window.globeLandData) {
       const landTopo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
@@ -79,16 +92,22 @@ Usage:
     const land = window.globeLandData;
 
     function render() {
-      state.width = getSize();
-      state.height = getSize();
+      const size = getSize();
+      state.width = size.width;
+      state.height = size.height;
 
       const marks = [
         Plot.geo(land, { stroke: '#88b', fill: 'none', strokeWidth: 0.8, strokeOpacity: 0.8 }),
         Plot.graticule({ strokeOpacity: 0.06 }),
-        Plot.sphere({ strokeWidth: 2 }),
         // Endpoint dots
         Plot.geo(endpoints, { fill: 'red', stroke: 'darkred', strokeWidth: 1, r: 5 })
       ];
+
+      if (isGlobe) {
+        marks.push(Plot.sphere({ strokeWidth: 2 }));
+      } else {
+        marks.push(Plot.frame({ strokeWidth: 1 }));
+      }
 
       const strokeWidth = {{ $strokeWidth }};
 
@@ -108,16 +127,22 @@ Usage:
         }));
       });
 
+      const projectionConfig = isGlobe
+        ? { type: projection, rotate: state.rotate, inset: 1 }
+        : { type: projection };
+
       const svg = Plot.plot({
         width: state.width,
         height: state.height,
-        projection: { type: 'orthographic', rotate: state.rotate, inset: 1 },
+        projection: projectionConfig,
         marks
       });
 
       container.innerHTML = '';
       container.appendChild(svg);
-      attachDrag(svg);
+      if (isGlobe) {
+        attachDrag(svg);
+      }
     }
 
     window.addEventListener('resize', render);
