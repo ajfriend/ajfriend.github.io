@@ -40,13 +40,17 @@ sphere by $R^2$, where $R \approx 6{,}371\ \text{km}$.
 # Points
 
 We'll describe points on the sphere as the latitude–longitude pair
-$(\theta, \phi)$, in units of degrees. Typically,
+$(\theta, \phi)$, in units of degrees. Typically, you'll see the values
+normalized like
 \[
 \begin{aligned}
 -90   &\le \theta \le +90, \\
--180  &<  \phi   \le +180.
+-180  &<  \phi   \le +180,
 \end{aligned}
+\tag{1}
 \]
+
+but this shouldn't be strictly necessary, as I'll argue below.
 
 ## What doesn't matter
 
@@ -60,19 +64,45 @@ I might say either 180 degrees or $\frac{\pi}{2}$, meaning the same thing.
 
 ## What *does* matter
 
+"one approach is to try and make it unique, like..." but even that doesn't work!
 Note that the representation above is not unique; a single point can correspond
 to many different $(\theta, \phi)$ pairs.
-You'll often see mention of bounds like (TODO: refer to equation above.)
+You'll often see mention of bounds like in Eq. (1) to make the representation
+unique, but event that doesn't quite do it:
+the north pole can be represented equivalently as
+$(90, 0)$ or $(90, 10)$ or $(90, 123456789)$, since the longitude value can
+be anything.
+
+So, instead of trying to make things unique, let's allow it to be anything.
+That is, our algorithms should be equivalent for any representations of the same
+points, and shouldn't depend on antyhing from the representation outside
+of which point on the sphere it represents.
 
 
-Another way to say this is an equivalance class.
+Another way to say this is via an equivalance class.
+We consider all $(\theta, \phi)$ points the same if they map to the same point
+on the sphere in 3D, that is:
 
-Note that this definition is nice because it handles all cases: (list all three, with the last one being less common, notably.)
+\[
+f(\theta, \phi) =
+\begin{bmatrix}
+\cos\theta \cos\phi \\
+\cos\theta \sin\phi \\
+\sin\theta
+\end{bmatrix}.
+\]
 
-Latitude/longitude coordinates are treated as elements of an equivalence class induced by the standard spherical embedding into the unit sphere. Two coordinate pairs are equivalent if they map to the same point on the sphere. Canonicalization selects a unique representative within standard bounds.
 
-note this is usually taken care of automatically when you're plugging quantities into
-trig functions. but note that if you're testing $x < y$, you're probably doing it wrong. "won't be robust to..."
+Note that this definition is nice because it handles all cases:
+
+- $f(90, x) = f(90, y)$ for any $x, y$
+- $f(\theta, \phi) = f(\theta, \phi + 360)$
+
+And we can even extend $\theta$ outside its normal bounds. For example
+$(80, 0)$ can also be written $(110, 180)$. (Does this need an image?)
+
+
+Note that, luckily, this is usually taken care of automatically when you're plugging quantities into trig functions. but note that if you're testing $x < y$, you're probably doing it wrong. "won't be robust to..."
 
 non-uniqueness can be a feature. if you're exporting to a system that doesn't handle
 the sphere natively, you might want to choose representatives that make it easier.
@@ -85,6 +115,9 @@ shortest path.
 show sweeping a triangle out to 180, and it switches.
 
 we can still acheive this, but we need to add an arc.
+
+TODO: allow inline set of points. do a poly with points [(90,0), (0,0), (0, 90), (0,241)]
+{{< globe id="ring" data="ring" rotate="[100, -40, 0]" arrowStep="1" >}}
 
 # Rings
 
