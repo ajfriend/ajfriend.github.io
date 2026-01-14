@@ -20,9 +20,8 @@ Of course, there's more detail that we'll go into below.
 
 {{< globe id="three_holes" data="three_holes" arrowStep="3" >}}
 
-You can drag and click to reset it to whatever I was trying to get you to look at.
-
-We'll go into more detail below.
+You can drag this image (and the others in this post) to see the whole globe.
+Click to reset it to whatever I was trying to get you to look at.
 
 # Points
 

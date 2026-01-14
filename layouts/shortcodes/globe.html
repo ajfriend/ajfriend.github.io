@@ -8,7 +8,8 @@ Parameters:
   - arrowStep: Show direction arrows every N edges; 0 = no arrows (default: 0)
 
 Data format (GeoJSON MultiPolygon coordinates):
-  - Structure: [[[[lng, lat], [lng, lat], ...]]]  (array of polygons, each with rings)
+  - Structure: { "coordinates": [[[[lng, lat], ...]]], "_comment": "optional" }
+  - Or legacy: [[[[lng, lat], [lng, lat], ...]]]  (array of polygons, each with rings)
   - Coordinate order: [longitude, latitude]
   - Winding: counterclockwise for outer rings, clockwise for holes (GeoJSON RFC 7946)
 
@@ -25,10 +26,17 @@ Usage:
 {{- if $dataFile -}}
   {{- /* Try to load from page bundle first, fall back to global data */ -}}
   {{- $resource := .Page.Resources.GetMatch (printf "data/%s.json" $dataFile) -}}
+  {{- $data := "" -}}
   {{- if $resource -}}
-    {{- $coords = transform.Unmarshal $resource -}}
+    {{- $data = transform.Unmarshal $resource -}}
   {{- else -}}
-    {{- $coords = index .Site.Data.globe_coords $dataFile -}}
+    {{- $data = index .Site.Data.globe_coords $dataFile -}}
+  {{- end -}}
+  {{- /* Support both { "coordinates": [...] } and raw [...] formats */ -}}
+  {{- if isset $data "coordinates" -}}
+    {{- $coords = $data.coordinates -}}
+  {{- else -}}
+    {{- $coords = $data -}}
   {{- end -}}
 {{- end -}}
 
