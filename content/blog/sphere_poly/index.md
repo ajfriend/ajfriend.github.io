@@ -20,7 +20,8 @@ Of course, there's more detail that we'll go into below.
 
 (Nod to other formats? GeoJSON. State that this will be agnostic.) List some other formats. Maybe.
 
-{{< globe id="three_holes" data="three_holes" arrowStep="3" >}}
+{{< globe data="ring" arrowStep="1" >}}
+{{< globe data="three_holes" arrowStep="3" >}}
 
 A polygon with one outer ring (counter-clockwise) and three holes (clockwise).
 
@@ -114,14 +115,14 @@ don't be exactly 180 degrees.
 shortest path.
 show sweeping a triangle out to 180, and it switches.
 
+{{< globe_poly points="[(90, 0), (0, 0), (0, 90)]" arrowStep="1" rotate="[90, 0, 0]"  >}}
+
 we can still acheive this, but we need to add an arc.
 
-TODO: allow inline set of points. do a poly with points [(90,0), (0,0), (0, 90), (0,241)]
-{{< globe id="ring" data="ring" rotate="[100, -40, 0]" arrowStep="1" >}}
+{{< globe_poly points="[(90, 0), (0, 0), (0, 90), (0, 241)]" arrowStep="1" >}}
+
 
 # Rings
-
-
 
 
 TODO: good digrammatic polygon with winding order, holes, polys inside polys
@@ -149,7 +150,7 @@ Here's a twisted polygon on the globe (drag to rotate, double-click to reset):
 {{< globe id="twist" data="twist" rotate="[100, -40, 0]" arrowStep="3" >}}
 
 
-{{< globe id="ring" data="ring" rotate="[100, -40, 0]" arrowStep="1" >}}
+{{< globe data="ring" arrowStep="1" >}}
 
 
 exercise: if i were to give you the equator belt, which one of the two rings is

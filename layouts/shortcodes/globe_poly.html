@@ -1,37 +1,19 @@
 {{/*
-Globe Shortcode - Interactive orthographic globe with polygon overlay
+Globe Poly Shortcode - Simple polygon on an interactive globe
 
 Parameters:
-  - data: Name of JSON file to load from page bundle data/ or site data/globe_coords/
-  - rotate: Center point [lng, lat, tilt] - globe centers on this location (default: polygon centroid)
+  - points: List of (lat, lng) tuples like [(90, 0), (20, 10), ...]
+  - rotate: Center point [lng, lat, tilt] (default: polygon centroid)
   - arrowStep: Show direction arrows every N edges; 0 = no arrows (default: 0)
 
-Data format (GeoJSON MultiPolygon coordinates):
-  - Structure: { "coordinates": [[[[lng, lat], ...]]], "_comment": "optional" }
-  - Coordinate order: [longitude, latitude]
-  - Winding: counterclockwise for outer rings, clockwise for holes (GeoJSON RFC 7946)
-
 Usage:
-  { {< globe data="polygon" >} }
-  { {< globe data="polygon" arrowStep="5" rotate="[0, 0, 0]" >} }
+  { {< globe_poly points="[(90, 0), (0, 0), (0, 90)]" >} }
+  { {< globe_poly points="[(0, 0), (0, 10), (10, 10), (10, 0)]" arrowStep="1" >} }
 */}}
-{{- $id := .Get "id" | default (printf "g%x" .Ordinal) -}}
-{{- $dataFile := .Get "data" -}}
-{{- $coords := .Get "coords" -}}
+{{- $id := .Get "id" | default (printf "gp%x" .Ordinal) -}}
+{{- $pointsStr := .Get "points" -}}
 {{- $rotate := .Get "rotate" -}}
 {{- $arrowStep := .Get "arrowStep" | default "0" | int -}}
-
-{{- if $dataFile -}}
-  {{- /* Try to load from page bundle first, fall back to global data */ -}}
-  {{- $resource := .Page.Resources.GetMatch (printf "data/%s.json" $dataFile) -}}
-  {{- $data := "" -}}
-  {{- if $resource -}}
-    {{- $data = transform.Unmarshal $resource -}}
-  {{- else -}}
-    {{- $data = index .Site.Data.globe_coords $dataFile -}}
-  {{- end -}}
-  {{- $coords = $data.coordinates -}}
-{{- end -}}
 
 <div class="globe-container" id="globe-{{ $id }}" style="max-width: 600px; width: 100%; aspect-ratio: 1; margin: 2em auto;"></div>
 
@@ -41,43 +23,44 @@ Usage:
   import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
 
   (async function() {
-    // Input coords are GeoJSON format (CCW outer, CW holes)
-    // D3 expects opposite winding, so reverse each ring
-    const geoJsonCoords = {{ $coords }};
-    const coords = geoJsonCoords.map(polygon => polygon.map(ring => ring.slice().reverse()));
+    // Parse points from "[(lat, lng), (lat, lng), ...]" format, convert to [lng, lat] for GeoJSON
+    const pointsStr = "{{ $pointsStr }}";
+    const ring = [...pointsStr.matchAll(/\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)/g)]
+      .map(m => [parseFloat(m[2]), parseFloat(m[1])]); // swap to [lng, lat]
+    // Close the ring if not already closed
+    if (ring.length > 0 && (ring[0][0] !== ring[ring.length-1][0] || ring[0][1] !== ring[ring.length-1][1])) {
+      ring.push([...ring[0]]);
+    }
+    // Reverse for D3 winding convention
+    const coords = [ring.slice().reverse()];
     const arrowStep = {{ $arrowStep }};
     const poly = {
       type: 'Feature',
       properties: { name: 'Polygon' },
-      geometry: { type: 'MultiPolygon', coordinates: coords }
+      geometry: { type: 'Polygon', coordinates: coords }
     };
 
-    // Extract edge midpoint segments for arrow markers using great circle interpolation
+    // Extract edge midpoint segments for arrow markers
     function getEdgeArrows(ring, step = 10) {
       const arrows = [];
       for (let i = 0; i < ring.length - 1; i += step) {
         const p1 = ring[i];
         const p2 = ring[i + 1];
         const interpolate = d3.geoInterpolate(p1, p2);
-        // Create a short segment around the midpoint (40% to 60% along edge)
         arrows.push([interpolate(0.4), interpolate(0.6)]);
       }
       return arrows;
     }
-    const edgeArrows = arrowStep > 0
-      ? geoJsonCoords.flatMap(polygon => polygon.flatMap(ring => getEdgeArrows(ring, arrowStep)))
-      : [];
+    const edgeArrows = arrowStep > 0 ? getEdgeArrows(ring, arrowStep) : [];
 
     const container = document.getElementById('globe-{{ $id }}');
     const getSize = () => {
       const width = container.offsetWidth || container.clientWidth;
       return width > 0 ? Math.min(600, width) : 600;
     };
-    // Compute the point to center on: user-provided rotate or centroid of vertices
+
     const inputRotate = {{ if $rotate }}{{ $rotate | safeJS }}{{ else }}null{{ end }};
-    const allPoints = coords.flatMap(polygon => polygon.flatMap(ring => ring));
-    const centroid = d3.geoCentroid({ type: 'MultiPoint', coordinates: allPoints });
-    // Negate lng/lat so rotate="[x,y,0]" centers on point (x,y)
+    const centroid = d3.geoCentroid({ type: 'MultiPoint', coordinates: ring });
     const centerRotate = inputRotate
       ? [-inputRotate[0], -inputRotate[1], inputRotate[2] ?? 0]
       : [-centroid[0], -centroid[1], 0];
