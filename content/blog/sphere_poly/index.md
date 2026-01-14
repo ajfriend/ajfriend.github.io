@@ -21,9 +21,8 @@ Of course, there's more detail that we'll go into below.
 (Nod to other formats? GeoJSON. State that this will be agnostic.) List some other formats. Maybe.
 
 {{< globe data="ring" arrowStep="1" >}}
-{{< globe data="three_holes" arrowStep="3" >}}
 
-A polygon with one outer ring (counter-clockwise) and three holes (clockwise).
+A polygon with one outer ring (counter-clockwise) and one hole (clockwise).
 
 You can drag the image (and others in this post) to see different parts of the globe.
 Double click to reset the image to whatever I was trying to get you to look at.
@@ -108,6 +107,12 @@ Note that, luckily, this is usually taken care of automatically when you're plug
 non-uniqueness can be a feature. if you're exporting to a system that doesn't handle
 the sphere natively, you might want to choose representatives that make it easier.
 show the example of a box around antimeridian in mapbox vs D3
+
+## Bottom line (ugh..)
+
+Lat/lng points should be treated as represenatives of a point on 3D sphere,
+and algorithms, plots, everything we do should work and look the same
+no matter what representation you give them.
 
 # Great circle arcs
 
