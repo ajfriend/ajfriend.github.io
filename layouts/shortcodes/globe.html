@@ -9,7 +9,6 @@ Parameters:
 
 Data format (GeoJSON MultiPolygon coordinates):
   - Structure: { "coordinates": [[[[lng, lat], ...]]], "_comment": "optional" }
-  - Or legacy: [[[[lng, lat], [lng, lat], ...]]]  (array of polygons, each with rings)
   - Coordinate order: [longitude, latitude]
   - Winding: counterclockwise for outer rings, clockwise for holes (GeoJSON RFC 7946)
 
@@ -32,12 +31,7 @@ Usage:
   {{- else -}}
     {{- $data = index .Site.Data.globe_coords $dataFile -}}
   {{- end -}}
-  {{- /* Support both { "coordinates": [...] } and raw [...] formats */ -}}
-  {{- if isset $data "coordinates" -}}
-    {{- $coords = $data.coordinates -}}
-  {{- else -}}
-    {{- $coords = $data -}}
-  {{- end -}}
+  {{- $coords = $data.coordinates -}}
 {{- end -}}
 
 <div class="globe-container" id="globe-{{ $id }}" style="max-width: 600px; width: 100%; aspect-ratio: 1; margin: 2em auto;"></div>
