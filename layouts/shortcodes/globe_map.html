@@ -1,0 +1,243 @@
+{{/*
+Globe Map Shortcode - Render a GeoJSON FeatureCollection with styled features on a globe or map
+
+Parameters:
+  - data: Name of JSON file to load from page bundle data/ or site data/globe_coords/
+  - rotate: Center point [lat, lng, tilt] (default: centroid of features)
+  - projection: Map projection type (default: "orthographic")
+      Common options: orthographic, mercator, equirectangular, equal-earth
+      Other D3 projections are also available.
+  - width: Max width in pixels (default: 600)
+
+Data format (GeoJSON FeatureCollection):
+  {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "fill": "blue",
+          "fillOpacity": 0.3,
+          "stroke": "darkblue",
+          "strokeWidth": 2,
+          "r": 5,
+          "arrow": true
+        },
+        "geometry": { ... }
+      }
+    ]
+  }
+
+Usage:
+  { {< globe_map data="my_map" >} }
+  { {< globe_map data="my_map" projection="mercator" width="800" >} }
+*/}}
+{{- $id := .Get "id" | default (printf "gm%x" .Ordinal) -}}
+{{- $dataFile := .Get "data" -}}
+{{- $rotate := .Get "rotate" -}}
+{{- $projection := .Get "projection" | default "orthographic" -}}
+{{- $width := .Get "width" | default "600" | int -}}
+
+{{- /* Load data from page bundle or global data */ -}}
+{{- $resource := .Page.Resources.GetMatch (printf "data/%s.json" $dataFile) -}}
+{{- $data := "" -}}
+{{- if $resource -}}
+  {{- $data = transform.Unmarshal $resource -}}
+{{- else -}}
+  {{- $data = index .Site.Data.globe_coords $dataFile -}}
+{{- end -}}
+
+{{- $isGlobe := eq $projection "orthographic" -}}
+<div class="globe-container" id="globe-{{ $id }}" style="max-width: {{ $width }}px; width: 100%; aspect-ratio: {{ if $isGlobe }}1{{ else }}2{{ end }}; margin: 2em auto;"></div>
+
+<script type="module">
+  import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
+  import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
+  import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
+
+  (async function() {
+    const rawData = {{ $data }};
+
+    if (!rawData || !rawData.features) {
+      console.error('globe_map: Invalid or missing data');
+      return;
+    }
+
+    // D3 expects opposite winding from GeoJSON, so reverse polygon rings
+    const featureCollection = {
+      type: rawData.type,
+      features: rawData.features.map(f => {
+        if (f.geometry.type === 'Polygon') {
+          return {
+            ...f,
+            geometry: {
+              ...f.geometry,
+              coordinates: f.geometry.coordinates.map(ring => ring.slice().reverse())
+            }
+          };
+        } else if (f.geometry.type === 'MultiPolygon') {
+          return {
+            ...f,
+            geometry: {
+              ...f.geometry,
+              coordinates: f.geometry.coordinates.map(polygon =>
+                polygon.map(ring => ring.slice().reverse())
+              )
+            }
+          };
+        }
+        return f;
+      })
+    };
+
+    const projection = "{{ $projection }}";
+    const isGlobe = projection === "orthographic";
+    const maxWidth = {{ $width }};
+
+    const container = document.getElementById('globe-{{ $id }}');
+    const getSize = () => {
+      const width = container.offsetWidth || container.clientWidth;
+      const w = width > 0 ? Math.min(maxWidth, width) : maxWidth;
+      return { width: w, height: isGlobe ? w : w / 2 };
+    };
+
+    // Compute centroid from all geometries (use original data before reversal)
+    const inputRotate = {{ if $rotate }}{{ $rotate | safeJS }}{{ else }}null{{ end }};
+    const allPoints = [];
+    rawData.features.forEach(f => {
+      if (f.geometry.type === 'Point') {
+        allPoints.push(f.geometry.coordinates);
+      } else if (f.geometry.type === 'LineString') {
+        allPoints.push(...f.geometry.coordinates);
+      } else if (f.geometry.type === 'Polygon') {
+        f.geometry.coordinates.forEach(ring => allPoints.push(...ring));
+      } else if (f.geometry.type === 'MultiPolygon') {
+        f.geometry.coordinates.forEach(polygon =>
+          polygon.forEach(ring => allPoints.push(...ring))
+        );
+      }
+    });
+    const centroid = allPoints.length > 0
+      ? d3.geoCentroid({ type: 'MultiPoint', coordinates: allPoints })
+      : [0, 0];
+    const centerRotate = inputRotate
+      ? [-inputRotate[1], -inputRotate[0], inputRotate[2] ?? 0]
+      : [-centroid[0], -centroid[1], 0];
+    const size = getSize();
+    const state = { rotate: centerRotate, width: size.width, height: size.height };
+
+    if (!window.globeLandData) {
+      const landTopo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
+      window.globeLandData = feature(landTopo, landTopo.objects.land);
+    }
+    const land = window.globeLandData;
+
+    function render() {
+      const size = getSize();
+      state.width = size.width;
+      state.height = size.height;
+
+      const marks = [
+        Plot.geo(land, { stroke: '#88b', fill: 'none', strokeWidth: 0.8, strokeOpacity: 0.8 }),
+        Plot.graticule({ strokeOpacity: 0.06 })
+      ];
+
+      if (isGlobe) {
+        marks.push(Plot.sphere({ strokeWidth: 2 }));
+      } else {
+        marks.push(Plot.frame({ strokeWidth: 1 }));
+      }
+
+      // Render each feature based on its properties
+      featureCollection.features.forEach(f => {
+        const props = f.properties || {};
+        const geom = f.geometry;
+
+        if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
+          marks.push(Plot.geo(f, {
+            fill: props.fill || 'red',
+            fillOpacity: props.fillOpacity ?? 0.45,
+            stroke: props.stroke || props.fill || 'red',
+            strokeWidth: props.strokeWidth ?? 1,
+            strokeOpacity: props.strokeOpacity ?? 0.7
+          }));
+        } else if (geom.type === 'LineString') {
+          marks.push(Plot.geo(f, {
+            stroke: props.stroke || 'red',
+            strokeWidth: props.strokeWidth ?? 2.5,
+            strokeOpacity: props.strokeOpacity ?? 0.9
+          }));
+
+          // Add arrow if requested
+          if (props.arrow) {
+            const coords = geom.coordinates;
+            const interpolate = d3.geoInterpolate(
+              coords[Math.floor(coords.length * 0.45)],
+              coords[Math.floor(coords.length * 0.55)]
+            );
+            marks.push(Plot.line([interpolate(0), interpolate(1)], {
+              x: d => d[0],
+              y: d => d[1],
+              markerEnd: 'arrow',
+              stroke: props.stroke || 'darkred',
+              strokeWidth: props.strokeWidth ?? 2
+            }));
+          }
+        } else if (geom.type === 'Point') {
+          marks.push(Plot.geo(f, {
+            fill: props.fill || 'red',
+            stroke: props.stroke || 'darkred',
+            strokeWidth: props.strokeWidth ?? 1,
+            r: props.r ?? 5
+          }));
+        }
+      });
+
+      const projectionConfig = isGlobe
+        ? { type: projection, rotate: state.rotate, inset: 1 }
+        : { type: projection };
+
+      const svg = Plot.plot({
+        width: state.width,
+        height: state.height,
+        projection: projectionConfig,
+        marks
+      });
+
+      container.innerHTML = '';
+      container.appendChild(svg);
+      if (isGlobe) {
+        attachDrag(svg);
+      }
+    }
+
+    window.addEventListener('resize', render);
+
+    function attachDrag(svg) {
+      const drag = d3.drag()
+        .on('start', (event) => {
+          drag.startX = event.x;
+          drag.startY = event.y;
+          drag.startRotate = state.rotate.slice();
+        })
+        .on('drag', (event) => {
+          const dx = event.x - drag.startX;
+          const dy = event.y - drag.startY;
+          const k = 0.25;
+          state.rotate = [
+            drag.startRotate[0] + dx * k,
+            drag.startRotate[1] - dy * k,
+            drag.startRotate[2]
+          ];
+          render();
+        });
+      d3.select(svg).call(drag);
+      d3.select(svg).on('dblclick', () => {
+        state.rotate = centerRotate.slice();
+        render();
+      });
+    }
+
+    render();
+  })();
+</script>

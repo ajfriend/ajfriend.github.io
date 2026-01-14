@@ -200,3 +200,9 @@ Here's a twisted polygon on the globe (drag to rotate, double-click to reset):
 
 exercise: if i were to give you the equator belt, which one of the two rings is
 the outside? how can we decide?
+
+# Composing multiple elements
+
+You can combine different styled features (polygons, lines, points) in a single map using the `globe_map` shortcode with a GeoJSON FeatureCollection:
+
+{{< globe_map data="composed_example" >}}

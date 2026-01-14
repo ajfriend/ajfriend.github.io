@@ -1,0 +1,65 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "fill": "blue",
+        "fillOpacity": 0.3,
+        "stroke": "darkblue",
+        "strokeWidth": 2
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [0, 0],
+            [30, 0],
+            [30, 30],
+            [0, 30],
+            [0, 0]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stroke": "red",
+        "strokeWidth": 3,
+        "arrow": true
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [0, 0],
+          [45, 45],
+          [90, 0]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fill": "green",
+        "stroke": "darkgreen",
+        "r": 6
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [45, 45]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fill": "orange",
+        "r": 4
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [90, 0]
+      }
+    }
+  ]
+}
