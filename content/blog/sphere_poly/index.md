@@ -92,6 +92,9 @@ f(\theta, \phi) =
 \end{bmatrix}.
 \]
 
+You don't have to actually do that transformation. You just need to make sure
+your code respects the equivalence class.
+
 
 Note that this definition is nice because it handles all cases:
 
@@ -115,6 +118,15 @@ and algorithms, plots, everything we do should work and look the same
 no matter what representation you give them.
 
 # Great circle arcs
+
+
+{{< globe_arc points="[(0, 0), (0, 179)]" strokeWidth="5" >}}
+
+{{< globe_arc points="[(0, 0), (0, 181)]" strokeWidth="5" >}}
+
+{{< globe_arc points="[(0, 0), (0, 120), (0, 270)]" strokeWidth="10" >}}
+
+{{< globe_arc points="[(0, 0), (45, 90), (30, 120), (60, 150)]" rotate="[20, 45, 0]" >}}
 
 don't be exactly 180 degrees.
 shortest path.

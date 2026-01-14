@@ -1,0 +1,152 @@
+{{/*
+Globe Arc Shortcode - Draw great circle arcs through points on an interactive globe
+
+Parameters:
+  - points: List of (lat, lng) tuples like [(40, -74), (51, 0), (48, 2)]
+  - rotate: Center point [lat, lng, tilt] (default: centroid of points)
+  - strokeWidth: Line thickness (default: 2.5)
+
+Usage:
+  { {< globe_arc points="[(40, -74), (51, 0)]" >} }
+  { {< globe_arc points="[(0, 0), (45, 90), (30, 120)]" rotate="[20, 45, 0]" strokeWidth="8" >} }
+*/}}
+{{- $id := .Get "id" | default (printf "ga%x" .Ordinal) -}}
+{{- $pointsStr := .Get "points" -}}
+{{- $rotate := .Get "rotate" -}}
+{{- $strokeWidth := .Get "strokeWidth" | default "2.5" | float -}}
+
+<div class="globe-container" id="globe-{{ $id }}" style="max-width: 600px; width: 100%; aspect-ratio: 1; margin: 2em auto;"></div>
+
+<script type="module">
+  import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
+  import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
+  import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
+
+  (async function() {
+    // Parse points from "[(lat, lng), (lat, lng), ...]" format, convert to [lng, lat] for GeoJSON
+    const pointsStr = "{{ $pointsStr }}";
+    const points = [...pointsStr.matchAll(/\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)/g)]
+      .map(m => [parseFloat(m[2]), parseFloat(m[1])]); // swap to [lng, lat]
+
+    if (points.length < 2) {
+      console.error('globe_arc: Need at least 2 points');
+      return;
+    }
+
+    // Create interpolated arc segments between consecutive points
+    const arcSegments = [];
+    const arrowSegments = [];
+    for (let i = 0; i < points.length - 1; i++) {
+      const interpolate = d3.geoInterpolate(points[i], points[i + 1]);
+      const arcPoints = d3.range(0, 1.01, 0.02).map(t => interpolate(t));
+      arcSegments.push({
+        type: 'Feature',
+        properties: {},
+        geometry: { type: 'LineString', coordinates: arcPoints }
+      });
+      // Arrow segment near the midpoint of each arc
+      arrowSegments.push([interpolate(0.45), interpolate(0.55)]);
+    }
+
+    // Points for the endpoints
+    const endpoints = {
+      type: 'FeatureCollection',
+      features: points.map((p, i) => ({
+        type: 'Feature',
+        properties: { name: `point${i}` },
+        geometry: { type: 'Point', coordinates: p }
+      }))
+    };
+
+    const container = document.getElementById('globe-{{ $id }}');
+    const getSize = () => {
+      const width = container.offsetWidth || container.clientWidth;
+      return width > 0 ? Math.min(600, width) : 600;
+    };
+
+    // inputRotate is [lat, lng, tilt], centroid is [lng, lat]
+    const inputRotate = {{ if $rotate }}{{ $rotate | safeJS }}{{ else }}null{{ end }};
+    const centroid = d3.geoCentroid({ type: 'MultiPoint', coordinates: points });
+    const centerRotate = inputRotate
+      ? [-inputRotate[1], -inputRotate[0], inputRotate[2] ?? 0]  // swap lat/lng to lng/lat, then negate
+      : [-centroid[0], -centroid[1], 0];
+    const state = { rotate: centerRotate, width: getSize(), height: getSize() };
+
+    if (!window.globeLandData) {
+      const landTopo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
+      window.globeLandData = feature(landTopo, landTopo.objects.land);
+    }
+    const land = window.globeLandData;
+
+    function render() {
+      state.width = getSize();
+      state.height = getSize();
+
+      const marks = [
+        Plot.geo(land, { stroke: '#88b', fill: 'none', strokeWidth: 0.8, strokeOpacity: 0.8 }),
+        Plot.graticule({ strokeOpacity: 0.06 }),
+        Plot.sphere({ strokeWidth: 2 }),
+        // Endpoint dots
+        Plot.geo(endpoints, { fill: 'red', stroke: 'darkred', strokeWidth: 1, r: 5 })
+      ];
+
+      const strokeWidth = {{ $strokeWidth }};
+
+      // Add each arc segment
+      arcSegments.forEach(seg => {
+        marks.push(Plot.geo(seg, { stroke: 'red', strokeWidth, strokeOpacity: 0.9 }));
+      });
+
+      // Add arrow on each arc
+      arrowSegments.forEach(seg => {
+        marks.push(Plot.line(seg, {
+          x: d => d[0],
+          y: d => d[1],
+          markerEnd: 'arrow',
+          stroke: 'darkred',
+          strokeWidth
+        }));
+      });
+
+      const svg = Plot.plot({
+        width: state.width,
+        height: state.height,
+        projection: { type: 'orthographic', rotate: state.rotate, inset: 1 },
+        marks
+      });
+
+      container.innerHTML = '';
+      container.appendChild(svg);
+      attachDrag(svg);
+    }
+
+    window.addEventListener('resize', render);
+
+    function attachDrag(svg) {
+      const drag = d3.drag()
+        .on('start', (event) => {
+          drag.startX = event.x;
+          drag.startY = event.y;
+          drag.startRotate = state.rotate.slice();
+        })
+        .on('drag', (event) => {
+          const dx = event.x - drag.startX;
+          const dy = event.y - drag.startY;
+          const k = 0.25;
+          state.rotate = [
+            drag.startRotate[0] + dx * k,
+            drag.startRotate[1] - dy * k,
+            0
+          ];
+          render();
+        });
+      d3.select(svg).call(drag);
+      d3.select(svg).on('dblclick', () => {
+        state.rotate = centerRotate.slice();
+        render();
+      });
+    }
+
+    render();
+  })();
+</script>
