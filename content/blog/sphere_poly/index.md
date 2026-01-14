@@ -203,6 +203,12 @@ the outside? how can we decide?
 
 # Composing multiple elements
 
-You can combine different styled features (polygons, lines, points) in a single map using the `globe_map` shortcode with a GeoJSON FeatureCollection:
+You can combine different styled features (polygons, lines, points) in a single map using the `globe_map` shortcode with a GeoJSON FeatureCollection.
+
+Here's the same data shown on an orthographic projection (globe):
 
 {{< globe_map data="composed_example" >}}
+
+And on an equirectangular projection (flat map):
+
+{{< globe_map data="composed_example" projection="equirectangular" width="1000" >}}

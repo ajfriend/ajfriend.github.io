@@ -28,6 +28,9 @@ Data format (GeoJSON FeatureCollection):
     ]
   }
 
+Note: LineString features are automatically rendered as great circle arcs (geodesics)
+by Plot.geo(), not as straight lines in screen space.
+
 Usage:
   { {< globe_map data="my_map" >} }
   { {< globe_map data="my_map" projection="mercator" width="800" >} }
@@ -148,29 +151,45 @@ Usage:
         marks.push(Plot.frame({ strokeWidth: 1 }));
       }
 
-      // Render each feature based on its properties
-      featureCollection.features.forEach(f => {
-        const props = f.properties || {};
-        const geom = f.geometry;
+      // Separate features by type
+      const polygons = {
+        type: 'FeatureCollection',
+        features: featureCollection.features.filter(f =>
+          f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+        )
+      };
+      const lines = {
+        type: 'FeatureCollection',
+        features: featureCollection.features.filter(f => f.geometry.type === 'LineString')
+      };
+      const points = {
+        type: 'FeatureCollection',
+        features: featureCollection.features.filter(f => f.geometry.type === 'Point')
+      };
 
-        if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
-          marks.push(Plot.geo(f, {
-            fill: props.fill || 'red',
-            fillOpacity: props.fillOpacity ?? 0.45,
-            stroke: props.stroke || props.fill || 'red',
-            strokeWidth: props.strokeWidth ?? 1,
-            strokeOpacity: props.strokeOpacity ?? 0.7
-          }));
-        } else if (geom.type === 'LineString') {
-          marks.push(Plot.geo(f, {
-            stroke: props.stroke || 'red',
-            strokeWidth: props.strokeWidth ?? 2.5,
-            strokeOpacity: props.strokeOpacity ?? 0.9
-          }));
+      // Render polygons with per-feature styling
+      if (polygons.features.length > 0) {
+        marks.push(Plot.geo(polygons, {
+          fill: d => d.properties?.fill || 'red',
+          fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
+          stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
+          strokeWidth: d => d.properties?.strokeWidth ?? 1,
+          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
+        }));
+      }
 
-          // Add arrow if requested
-          if (props.arrow) {
-            const coords = geom.coordinates;
+      // Render lines with per-feature styling
+      if (lines.features.length > 0) {
+        marks.push(Plot.geo(lines, {
+          stroke: d => d.properties?.stroke || 'red',
+          strokeWidth: d => d.properties?.strokeWidth ?? 2.5,
+          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.9
+        }));
+
+        // Add arrows for lines that request them
+        lines.features.forEach(f => {
+          if (f.properties?.arrow) {
+            const coords = f.geometry.coordinates;
             const interpolate = d3.geoInterpolate(
               coords[Math.floor(coords.length * 0.45)],
               coords[Math.floor(coords.length * 0.55)]
@@ -179,19 +198,22 @@ Usage:
               x: d => d[0],
               y: d => d[1],
               markerEnd: 'arrow',
-              stroke: props.stroke || 'darkred',
-              strokeWidth: props.strokeWidth ?? 2
+              stroke: f.properties?.stroke || 'darkred',
+              strokeWidth: f.properties?.strokeWidth ?? 2
             }));
           }
-        } else if (geom.type === 'Point') {
-          marks.push(Plot.geo(f, {
-            fill: props.fill || 'red',
-            stroke: props.stroke || 'darkred',
-            strokeWidth: props.strokeWidth ?? 1,
-            r: props.r ?? 5
-          }));
-        }
-      });
+        });
+      }
+
+      // Render points with per-feature styling
+      if (points.features.length > 0) {
+        marks.push(Plot.geo(points, {
+          fill: d => d.properties?.fill || 'red',
+          stroke: d => d.properties?.stroke || 'darkred',
+          strokeWidth: d => d.properties?.strokeWidth ?? 1,
+          r: d => d.properties?.r ?? 5
+        }));
+      }
 
       const projectionConfig = isGlobe
         ? { type: projection, rotate: state.rotate, inset: 1 }
