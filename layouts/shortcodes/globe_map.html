@@ -186,15 +186,14 @@ Usage:
           strokeOpacity: d => d.properties?.strokeOpacity ?? 0.9
         }));
 
-        // Add arrows for lines that request them
+        // Add arrows in the middle of lines that request them
         lines.features.forEach(f => {
           if (f.properties?.arrow) {
             const coords = f.geometry.coordinates;
-            const interpolate = d3.geoInterpolate(
-              coords[Math.floor(coords.length * 0.45)],
-              coords[Math.floor(coords.length * 0.55)]
-            );
-            marks.push(Plot.line([interpolate(0), interpolate(1)], {
+            const start = coords[0];
+            const end = coords[coords.length - 1];
+            const interpolate = d3.geoInterpolate(start, end);
+            marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
               x: d => d[0],
               y: d => d[1],
               markerEnd: 'arrow',
