@@ -212,3 +212,11 @@ Here's the same data shown on an orthographic projection (globe):
 And on an equirectangular projection (flat map):
 
 {{< globe_map data="composed_example" projection="equirectangular" width="1000" >}}
+
+# More composed
+
+{{< globe_map data="composed2" >}}
+
+And on an equirectangular projection (flat map):
+
+{{< globe_map data="composed2" projection="equirectangular" width="1000" >}}
