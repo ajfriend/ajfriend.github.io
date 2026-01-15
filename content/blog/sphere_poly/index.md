@@ -229,3 +229,7 @@ And on an equirectangular projection (flat map):
 {{< globe_map data="composed3" projection="equirectangular" width="1000" >}}
 
 and the large angle is still possible if...
+
+{{< globe_map data="composed4" rotate="[0, 90, 60]" >}}
+
+{{< globe_map data="composed4" projection="equirectangular" width="1000" >}}
