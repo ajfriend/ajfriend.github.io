@@ -215,8 +215,17 @@ And on an equirectangular projection (flat map):
 
 # More composed
 
-{{< globe_map data="composed2" rotate="[0, 90, 180]" >}}
+{{< globe_map data="composed2" rotate="[0, 90, 60]" >}}
 
 And on an equirectangular projection (flat map):
 
 {{< globe_map data="composed2" projection="equirectangular" width="1000" >}}
+
+
+{{< globe_map data="composed3" rotate="[0, 90, 60]" >}}
+
+And on an equirectangular projection (flat map):
+
+{{< globe_map data="composed3" projection="equirectangular" width="1000" >}}
+
+and the large angle is still possible if...
