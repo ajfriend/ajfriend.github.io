@@ -41,3 +41,11 @@ figure.center {
   margin-right: auto;
   text-align: center;
 }
+
+p.caption {
+  text-align: center;
+  font-size: small;
+  font-style: italic;
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+}

@@ -22,7 +22,7 @@ Of course, there's more detail that we'll go into below.
 
 {{< globe data="ring" arrowStep="1" >}}
 
-A polygon with one outer ring (counter-clockwise) and one hole (clockwise).
+{{< caption >}}A polygon with one outer ring (counter-clockwise) and one hole (clockwise).{{< /caption >}}
 
 You can drag the image (and others in this post) to see different parts of the globe.
 Double click to reset the image to whatever I was trying to get you to look at.
