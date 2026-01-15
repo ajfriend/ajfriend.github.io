@@ -4,20 +4,20 @@
     {
       "type": "Feature",
       "properties": {
-        "fill": "lightblue",
+        "fill": "gray",
         "fillOpacity": 0.35,
-        "stroke": "blue",
-        "strokeWidth": 2
+        "stroke": "gray",
+        "strokeWidth": 0
       },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
-            [0, 20],
-            [40, 20],
-            [40, 50],
-            [0, 50],
-            [0, 20]
+            [0, 90],
+            [-150, 0],
+            [0, -90],
+            [0, 0],
+            [0, 90]
           ]
         ]
       }
@@ -25,36 +25,15 @@
     {
       "type": "Feature",
       "properties": {
-        "fill": "lightcoral",
-        "fillOpacity": 0.4,
-        "stroke": "red",
-        "strokeWidth": 2
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [60, 10],
-            [90, 10],
-            [90, 40],
-            [60, 40],
-            [60, 10]
-          ]
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "stroke": "darkgreen",
+        "stroke": "darkblue",
         "strokeWidth": 3,
         "arrow": true
       },
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [20, 35],
-          [75, 25]
+          [-150, 0],
+          [0, 0]
         ]
       }
     },
@@ -63,23 +42,23 @@
       "properties": {
         "fill": "green",
         "stroke": "darkgreen",
-        "r": 5
+        "r": 200
       },
       "geometry": {
         "type": "Point",
-        "coordinates": [20, 35]
+        "coordinates": [-150, 0]
       }
     },
     {
       "type": "Feature",
       "properties": {
-        "fill": "purple",
-        "stroke": "darkviolet",
-        "r": 5
+        "fill": "red",
+        "stroke": "darkred",
+        "r": 200
       },
       "geometry": {
         "type": "Point",
-        "coordinates": [75, 25]
+        "coordinates": [0, 0]
       }
     }
   ]
