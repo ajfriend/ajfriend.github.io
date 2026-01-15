@@ -200,3 +200,9 @@ Here's a twisted polygon on the globe (drag to rotate, double-click to reset):
 
 exercise: if i were to give you the equator belt, which one of the two rings is
 the outside? how can we decide?
+
+# References
+
+- [More than you ever wanted to know about GeoJSON - macwright.com](https://macwright.com/2015/03/23/geojson-second-bite)
+- https://observablehq.com/@d3/winding-order
+

@@ -110,3 +110,7 @@ E = 2 \cdot \text{atan2}\left(
 $$
 
 
+# References
+
+[geometry - Deriving the Surface Area of a Spherical Triangle - Mathematics Stack Exchange](https://math.stackexchange.com/questions/110075/deriving-the-surface-area-of-a-spherical-triangle)
+
