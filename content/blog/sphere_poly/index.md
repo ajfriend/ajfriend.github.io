@@ -148,11 +148,15 @@ point to break up the any arcs that would otherwise be $\geq 180$ degrees:
 {{< globe_map data="composed4" rotate="[0, 90, 60]" >}}
 
 
+## Summary
+
 don't be exactly 180 degrees.
 
 
 Note, in the example above, that there's no problem with an arc crossing the antimeridian; we just need to remember that all arcs will be interpreted as
 their < 180 degree arc. (maybe this is the section summary.)
+
+All these were along the equator, but its the same anywhere on the globe.
 
 # Rings
 
