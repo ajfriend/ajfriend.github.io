@@ -3,7 +3,7 @@ Globe Map Shortcode - Render a GeoJSON FeatureCollection with styled features on
 
 Parameters:
   - data: Name of JSON file to load from page bundle data/ or site data/globe_coords/
-  - rotate: Center point [lat, lng, tilt] (default: centroid of features)
+  - rotate: Center point [lng, lat, tilt] (default: centroid of features)
   - projection: Map projection type (default: "orthographic")
       Common options: orthographic, mercator, equirectangular, equal-earth
       Other D3 projections are also available.
@@ -124,7 +124,7 @@ Usage:
       ? d3.geoCentroid({ type: 'MultiPoint', coordinates: allPoints })
       : [0, 0];
     const centerRotate = inputRotate
-      ? [-inputRotate[1], -inputRotate[0], inputRotate[2] ?? 0]
+      ? [-inputRotate[0], -inputRotate[1], inputRotate[2] ?? 0]
       : [-centroid[0], -centroid[1], 0];
     const size = getSize();
     const state = { rotate: centerRotate, width: size.width, height: size.height };
@@ -247,7 +247,7 @@ Usage:
           const k = 0.25;
           state.rotate = [
             drag.startRotate[0] + dx * k,
-            drag.startRotate[1] - dy * k,
+            drag.startRotate[1] + dy * k,
             drag.startRotate[2]
           ];
           render();

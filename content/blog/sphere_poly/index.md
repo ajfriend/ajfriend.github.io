@@ -215,7 +215,7 @@ And on an equirectangular projection (flat map):
 
 # More composed
 
-{{< globe_map data="composed2" >}}
+{{< globe_map data="composed2" rotate="[0, 90, 180]" >}}
 
 And on an equirectangular projection (flat map):
 
