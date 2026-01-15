@@ -119,53 +119,40 @@ no matter what representation you give them.
 
 # Great circle arcs
 
-(
-TODO: color the lune in light grey. draw the arc on the orthographic.
-The ortho and mercator should match exactly.
-color the points red and green. color the lune lines accordingly.
-)
+OK OK. we'll use lon/lat...
 
-The great circle arc between `(0, -150)` and `(0,0)` goes east:
+The great circle arc between `(-150, 0)` and `(0, 0)` goes east:
 
-{{< globe_arc points="[(0, -150), (0, 0)]" strokeWidth="5" projection="equirectangular"  width="1000" >}}
+{{< globe_map data="composed2" projection="equirectangular" width="1000" >}}
 
-This is because its the shortest path, look at this lune:
+We can see that it takes that route because it is the shortest distance,
+looking from above, we can see that it is along the equator along an arc
+that's less than 180 degrees:
 
-{{< globe_poly points="[(90, 0), (0, -150), (-90, 0), (0, 0)]" rotate="[90, 0, 180]" >}}
+{{< globe_map data="composed2" rotate="[0, 90, 60]" >}}
 
-Now, if we extend the endpoint further east to `(0, 60)`, we see that the arc takes the opposite path around the globe:
+However, if we extend the endpoint further east, the shortest path changes.
+Here's the shortest path between `(-150, 0)` and `(+60, 0)`:
 
-{{< globe_arc points="[(0, -150), (0, 60)]" strokeWidth="5" projection="equirectangular"  width="1000" >}}
+{{< globe_map data="composed3" projection="equirectangular" width="1000" >}}
 
-Checking the lune confirms it is the shortest path:
+Confirm its the shortest path because its going good good:
 
-{{< globe_poly points="[(90, 0), (0, 60), (-90, 0), (0, -150)]" rotate="[90, 0, 180]" >}}
-
-Alternatively, if we had continued in the other direction, the path would have been
-more than 180 degrees:
-
-{{< globe_poly points="[(90, 0), (0, -150), (-90, 0), (0, 60)]" rotate="[90, 0, 180]" >}}
+{{< globe_map data="composed3" rotate="[0, 90, 60]" >}}
 
 But it is possible to represent that path, we just need to add an intermediate
 point to break up the any arcs that would otherwise be $\geq 180$ degrees:
 
-{{< globe_arc points="[(0, -150), (0, 0), (0, 60)]" strokeWidth="5" projection="equirectangular"  width="1000" >}}
+{{< globe_map data="composed4" projection="equirectangular" width="1000" >}}
 
+{{< globe_map data="composed4" rotate="[0, 90, 60]" >}}
 
-{{< globe_arc points="[(0, 0), (0, 120), (0, 270)]" strokeWidth="10" >}}
-
-{{< globe_arc points="[(0, 0), (45, 90), (30, 120), (60, 150)]" rotate="[20, 45, 0]" >}}
 
 don't be exactly 180 degrees.
-shortest path.
-show sweeping a triangle out to 180, and it switches.
-
-{{< globe_poly points="[(90, 0), (0, 0), (0, 90)]" arrowStep="1"  >}}
-
-we can still acheive this, but we need to add an arc.
 
 
-
+Note, in the example above, that there's no problem with an arc crossing the antimeridian; we just need to remember that all arcs will be interpreted as
+their < 180 degree arc. (maybe this is the section summary.)
 
 # Rings
 
@@ -200,36 +187,3 @@ Here's a twisted polygon on the globe (drag to rotate, double-click to reset):
 
 exercise: if i were to give you the equator belt, which one of the two rings is
 the outside? how can we decide?
-
-# Composing multiple elements
-
-You can combine different styled features (polygons, lines, points) in a single map using the `globe_map` shortcode with a GeoJSON FeatureCollection.
-
-Here's the same data shown on an orthographic projection (globe):
-
-{{< globe_map data="composed_example" >}}
-
-And on an equirectangular projection (flat map):
-
-{{< globe_map data="composed_example" projection="equirectangular" width="1000" >}}
-
-# More composed
-
-{{< globe_map data="composed2" rotate="[0, 90, 60]" >}}
-
-And on an equirectangular projection (flat map):
-
-{{< globe_map data="composed2" projection="equirectangular" width="1000" >}}
-
-
-{{< globe_map data="composed3" rotate="[0, 90, 60]" >}}
-
-And on an equirectangular projection (flat map):
-
-{{< globe_map data="composed3" projection="equirectangular" width="1000" >}}
-
-and the large angle is still possible if...
-
-{{< globe_map data="composed4" rotate="[0, 90, 60]" >}}
-
-{{< globe_map data="composed4" projection="equirectangular" width="1000" >}}
