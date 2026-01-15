@@ -124,39 +124,48 @@ OK OK. we'll use lon/lat...
 The great circle arc between `(-150, 0)` and `(0, 0)` goes east:
 
 {{< globe_map data="composed2" projection="equirectangular" width="1000" >}}
+{{< caption >}}Arc from (-150, 0) to (0, 0).{{< /caption >}}
 
 We can see that it takes that route because it is the shortest distance,
 looking from above, we can see that it is along the equator along an arc
 that's less than 180 degrees:
 
 {{< globe_map data="composed2" rotate="[0, 90, 60]" >}}
+{{< caption >}}Arc from (-150, 0) to (0, 0).{{< /caption >}}
 
-However, if we extend the endpoint further east, the shortest path changes.
-Here's the shortest path between `(-150, 0)` and `(+60, 0)`:
+However, if we extend the endpoint further east and look
+at the arc connecting `(-150, 0)` and `(+60, 0)`, we see that everything changes.
+The arc changes direction and goes around the globe in the other direction.
 
 {{< globe_map data="composed3" projection="equirectangular" width="1000" >}}
+{{< caption >}}Arc from (-150, 0) to (+60, 0).{{< /caption >}}
 
 Confirm its the shortest path because its going good good:
 
 {{< globe_map data="composed3" rotate="[0, 90, 60]" >}}
+{{< caption >}}Arc from (-150, 0) to (+60, 0).{{< /caption >}}
 
 But it is possible to represent that path, we just need to add an intermediate
 point to break up the any arcs that would otherwise be $\geq 180$ degrees:
 
 {{< globe_map data="composed4" projection="equirectangular" width="1000" >}}
+{{< caption >}}Two arcs from (-150, 0) to (0, 0) to (+60, 0) sweep out an arc larger than 180 degrees.{{< /caption >}}
 
 {{< globe_map data="composed4" rotate="[0, 90, 60]" >}}
-
+{{< caption >}}Two arcs from (-150, 0) to (0, 0) to (+60, 0) sweep out an arc larger than 180 degrees.{{< /caption >}}
 
 ## Summary
 
 don't be exactly 180 degrees.
 
-
 Note, in the example above, that there's no problem with an arc crossing the antimeridian; we just need to remember that all arcs will be interpreted as
 their < 180 degree arc. (maybe this is the section summary.)
 
 All these were along the equator, but its the same anywhere on the globe.
+
+Direction depends on the ordering of the pair of points: always go from
+point one to point 2, along the shortest great circle arc. There are two options,
+take the shorter one.
 
 # Rings
 
