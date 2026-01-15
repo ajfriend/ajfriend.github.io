@@ -204,15 +204,15 @@ Usage:
         });
       }
 
-      // Render points with per-feature styling
-      if (points.features.length > 0) {
-        marks.push(Plot.geo(points, {
-          fill: d => d.properties?.fill || 'red',
-          stroke: d => d.properties?.stroke || 'darkred',
-          strokeWidth: d => d.properties?.strokeWidth ?? 1,
-          r: d => d.properties?.r ?? 5
+      // Render points individually to avoid auto-scaling of r
+      points.features.forEach(f => {
+        marks.push(Plot.geo(f, {
+          fill: f.properties?.fill || 'red',
+          stroke: f.properties?.stroke || 'darkred',
+          strokeWidth: f.properties?.strokeWidth ?? 1,
+          r: f.properties?.r ?? 5
         }));
-      }
+      });
 
       const projectionConfig = isGlobe
         ? { type: projection, rotate: state.rotate, inset: 1 }
