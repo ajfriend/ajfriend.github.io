@@ -1,6 +1,6 @@
 ---
-title: "The Cagnoli Function: Computing Spherical Polygon Areas"
-date: 2025-12-17
+title: "[WIP] Computing Spherical Polygon Areas"
+date: 2026-01-03
 ---
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>

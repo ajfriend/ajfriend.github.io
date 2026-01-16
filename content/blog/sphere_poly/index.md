@@ -1,6 +1,6 @@
 ---
-title: "Elements of Spherical Polygons"
-date: 2026-01-09
+title: "[WIP] Elements of Spherical Polygons"
+date: 2026-01-02
 ---
 
 These are some of my notes on constructing spherical polygons, related to

@@ -1,9 +1,9 @@
 ---
 title: "Notes on justfiles"
-date: 2026-01-09
+date: 2026-01-01
 ---
 
-Some notes, mostly for myself, around how I use [`just`](https://github.com/casey/just).
+Some notes---mostly for myself---around how I use [`just`](https://github.com/casey/just).
 
 
 # Clean recipe
@@ -70,3 +70,38 @@ lab:
 purge: clean
 	-rm uv.lock
 ```
+
+# just test as `t`
+
+I have the following in my `~/.zshrc`:
+
+```bash
+alias t='just test'
+```
+
+Across projects and programming languages, I often have a `just test` command
+that, well, tests whatever it is I'm currently working on. When I'm working on
+the H3 C repo, it'll usually look something like this:
+
+```justfile
+test: build
+    # ./build/bin/testH3CellAreaExhaustive
+    # ./build/bin/testEdgeCellsToPoly
+    # ./build/bin/testDirectedEdge
+    # ./build/bin/testArea
+    # just test-slow
+    just test-fast
+    # ./build/bin/testCellsToMultiPoly
+```
+
+The alias to `t` makes it so I can just type a single character in my terminal
+to test, which is probably the command I'm running most often.
+
+The `justfile`
+gives me some flexibility: I might be changing one function and so want to run
+a specific test, or I might want to run the whole test suite, or some specific
+benchmark.
+
+Editing the `justfile` (and commenting out things that I might switch back to in the near future) gives me a nice combination of speed/convenience, along
+with the flexibility to have that `t` do different things at different times.
+
