@@ -3,6 +3,37 @@ title: "[WIP] Making H3's cells-to-polygon faster"
 date: 2026-01-09
 ---
 
+This post is currently a quick-and-dirty attempt at explaining the algorithm
+behind [cellsToMultiPolygon core algorithm #1113 · uber/h3](https://github.com/uber/h3/pull/1113). Since I think the algorithm is pretty cool, I'll try to grow this into a
+proper blog post with more context, background, etc.
+
+
+# Rings of edges
+
+<div style="text-align: center;">
+{{< figure src="code/figs/single_cell.svg" width="400px" >}}
+</div>
+
+# Edge cancellation
+
+<div style="text-align: center;">
+{{< figure src="code/figs/two_cells_before.svg" width="400px" >}}
+</div>
+
+and then..
+
+<div style="text-align: center;">
+{{< figure src="code/figs/two_cells_after.svg" width="400px" >}}
+</div>
+
+# Connected components partition loops into polygons
+
+# Which loop is "outside"?
+
+
+
+# OLD BELOW
+
 # Intro
 
 This article covers recent improvements in H3's algorithms to

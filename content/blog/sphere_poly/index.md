@@ -9,7 +9,11 @@ my work on the H3 cells-to-polygon functionality.
 When working with spherical polygons, "edge cases" often cause problems: larger-than-a-hemisphere polygons, edges that cross the antimeridian, polygons containing
 the north or south pole, or issues with loop orientation.
 Luckly, all these issues can be handled easily if you format and interpret polygons
-in the right way. This is my take on "the right way".
+in the right way.
+
+This is my take on "the right way". Note that these ideas are not new, and if other
+systems do something different, it is probably because they are constrained by supporting historical formats. (TODO: maybe discuss some differences in an appendix.
+2d-native, non-geodesic lines)
 
 Start with an image in mind. its Hlepful to have an image in mind as we build up from building blocks.
 
@@ -60,7 +64,7 @@ longitude–latitude order, radians instead of degrees,
 write “lon” instead of “lng”, or use different symbols
 (I like $\theta$ and $\phi$ because the little lines go through the little circles mnemonically).
 
-I might say either 180 degrees or $\frac{\pi}{2}$, meaning the same thing.
+I might say either 180 degrees or $\pi$, meaning the same thing.
 
 ## What *does* matter
 

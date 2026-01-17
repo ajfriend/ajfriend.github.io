@@ -1,26 +1,23 @@
-export UV_NO_EDITABLE := "1"
-export UV_OFFLINE := "1"  # toggle on when offline to avoid failures
+export UV_NO_EDITABLE := "0"
+export UV_OFFLINE := "0"  # toggle on when offline to avoid failures
 
 _:
 	just --list
 
-setup:
-	uv venv
-	uv pip install -r requirements.txt
-	uv pip install .
-
 lab:
-	@[ -d .venv ] || just setup
 	uv run jupyter lab
 
 plot:
-	uv run python notebooks/figs.py
+	uv run python notebooks/figs_edges.py
 
-clean:
+purge:
 	just _rm .venv
-	just _rm *.egg-info
-	just _rm *.lock
+	just _rm '*.egg-info'
+	just _rm '*.ipynb_checkpoints'
+	just _rm '*.lock'
 	just _rm build
+	just _rm .claude
+	rm -rf figs/*
 
 _rm pattern:
     -@find . -name "{{pattern}}" -prune -exec rm -rf {} +

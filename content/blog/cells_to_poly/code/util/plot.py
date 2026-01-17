@@ -170,3 +170,25 @@ def plot_edges(edges, ax=None):
         directed_line(ax, p1, p2)
 
     return fig
+
+
+def cells_to_edges(cells):
+    edges = set(
+        e
+        for c in cells
+        for e in h3.origin_to_directed_edges(c)
+    )
+    return edges
+
+def get_pair_tuples(edges):
+    pairs = set(
+        tuple(sorted([e, reverse_edge(e)]))
+        for e in (edges & reverse_set(edges))
+    )
+    return pairs
+
+def twinning(*edges):
+    "For a set of edges, return the set of those edges, along with their opposites"
+    edges = set(edges)
+    rev = {reverse_edge(e) for e in edges}
+    return edges | rev
