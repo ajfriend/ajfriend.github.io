@@ -162,6 +162,7 @@ def reverse_set(edges):
         for e in edges
     )
 
+
 def plot_edges(edges, ax=None):
     if ax is None:
         fig, ax = figure(5)
