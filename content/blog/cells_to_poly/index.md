@@ -161,6 +161,8 @@ Note that canceling edges might split up rings:
 
 # Connected components partition loops into polygons
 
+TODO: edges example with multiple loops and polygons
+
 # Which loop is "outside"?
 
 
