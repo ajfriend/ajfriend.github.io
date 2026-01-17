@@ -53,12 +53,12 @@ def directed_line(ax, latlng1, latlng2, label=None):
         )
     )
 
-    # label (offset perpendicular to the line)
+    # label (offset perpendicular to the line, towards cell center)
     if label is not None:
         # perpendicular direction
         px = -dy
         py = dx
-        text_offset = 0.08 * length
+        text_offset = 0.16 * length
         ax.text(
             mx + px * text_offset,
             my + py * text_offset,

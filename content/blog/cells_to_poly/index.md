@@ -88,7 +88,15 @@ We use a simple linear probing scheme with `numBuckets = 10 * numArcs` to keep c
 
 ## Loop surgery
 
-When canceling edges `a` and `b`, we splice them out by reconnecting their neighbors:
+When canceling edges `a` and `b`, we splice them out by reconnecting their neighbors.
+
+The edges in the loops are initially chained like:
+
+TODO: latex math with something like `a^- -> a -> a^+` (and the same for b)
+
+{{< fig src="code/figs/two_cells_before_labels.svg" >}}
+
+Which we implement in code with:
 
 ```c
 a->next->prev = b->prev;
@@ -96,6 +104,8 @@ a->prev->next = b->next;
 b->next->prev = a->prev;
 b->prev->next = a->next;
 ```
+
+{{< fig src="code/figs/two_cells_after_labels.svg" >}}
 
 This merges two loops into one (or splits one loop into two) while maintaining
 valid counter-clockwise ordering.

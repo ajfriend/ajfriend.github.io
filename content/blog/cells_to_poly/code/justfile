@@ -9,6 +9,7 @@ lab:
 
 plot:
 	uv run python notebooks/figs_edges.py
+	uv run python notebooks/figs_labels.py
 
 purge:
 	just _rm .venv
