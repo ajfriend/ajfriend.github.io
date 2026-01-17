@@ -115,7 +115,7 @@ $$
 {{< fig src="code/figs/two_cells_after_labels.svg" >}}
 
 
-In the C code, this looks like:
+In the C code, this looks like the following, where `a` and `b` are `Arc` structs:
 
 ```c
 a->next->prev = b->prev;
@@ -129,8 +129,34 @@ b->prev->next = a->next;
 Luckily, the loop surgery logic above works in all possible cases.
 
 
+{{< fig src="code/figs/four_cells_0.svg" >}}
+{{< fig src="code/figs/four_cells_1.svg" >}}
+{{< fig src="code/figs/four_cells_2.svg" >}}
+{{< fig src="code/figs/four_cells_3.svg" >}}
+
+Note that we can remove the edges in any order. Even the following is
+a completely valid set of two linked-loops (even though the edges in the middle don't enclose any area and will need to be ultimately removed before we form proper polygons):
+
+{{< fig src="code/figs/four_cells_4.svg" >}}
+
+### Disk
+
+{{< fig src="code/figs/disk_0.svg" >}}
+
+Removing the edges associated with the center cell leaves a single
+ring (with 6 degenerate pairs left to be removed):
+{{< fig src="code/figs/disk_1.svg" >}}
+
+{{< fig src="code/figs/disk_2.svg" >}}
 
 
+### Hole
+
+Note that canceling edges might split up rings:
+
+{{< fig src="code/figs/ring_0.svg" >}}
+{{< fig src="code/figs/ring_1.svg" >}}
+{{< fig src="code/figs/ring_2.svg" >}}
 
 
 # Connected components partition loops into polygons
