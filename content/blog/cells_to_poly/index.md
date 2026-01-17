@@ -92,11 +92,23 @@ When canceling edges `a` and `b`, we splice them out by reconnecting their neigh
 
 The edges in the loops are initially chained like:
 
-TODO: latex math with something like `a^- -> a -> a^+` (and the same for b)
+$$
+\begin{aligned}
+a^- &\to a \to a^+ \\
+b^- &\to b \to b^+
+\end{aligned}
+$$
 
 {{< fig src="code/figs/two_cells_before_labels.svg" >}}
 
-Which we implement in code with:
+After removing edges `a` and `b`, we recconect their surrounding edges like
+
+TODO: after surgery, parallel to latex above
+
+{{< fig src="code/figs/two_cells_after_labels.svg" >}}
+
+
+In the C code, this looks like:
 
 ```c
 a->next->prev = b->prev;
@@ -105,7 +117,6 @@ b->next->prev = a->prev;
 b->prev->next = a->next;
 ```
 
-{{< fig src="code/figs/two_cells_after_labels.svg" >}}
 
 This merges two loops into one (or splits one loop into two) while maintaining
 valid counter-clockwise ordering.
