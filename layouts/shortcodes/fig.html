@@ -1,0 +1,10 @@
+{{- $src := .Get "src" -}}
+{{- $width := .Get "width" | default "400px" -}}
+{{- $alt := .Get "alt" | default "" -}}
+{{- $caption := .Get "caption" | default "" -}}
+<figure style="text-align: center;">
+  <img src="{{ $src }}" alt="{{ $alt }}" style="max-width: {{ $width }};">
+  {{- if $caption }}
+  <p class="caption">{{ $caption }}</p>
+  {{- end }}
+</figure>

@@ -10,21 +10,81 @@ proper blog post with more context, background, etc.
 
 # Rings of edges
 
-<div style="text-align: center;">
-{{< figure src="code/figs/single_cell.svg" width="400px" >}}
-</div>
+Each H3 cell has 6 directed edges (5 for pentagons) that we can enumerate
+in counter-clockwise order. We store each edge in an `Arc` struct, using
+`next` and `prev` pointers to form a doubly-linked list of the edges surrounding that cell:
+
+```c
+typedef struct Arc {
+    H3Index id;       // directed edge index
+    struct Arc *next;
+    struct Arc *prev;
+    // ...
+} Arc;
+```
+
+H3's `originToDirectedEdges` returns edges in a fixed order, but not
+counter-clockwise. We reorder them:
+
+```c
+static const uint8_t idxh[6] = {0, 4, 3, 5, 1, 2};  // hexagons
+static const uint8_t idxp[5] = {0, 1, 3, 2, 4};     // pentagons
+```
+
+{{< fig src="code/figs/single_cell.svg" >}}
+
+For each cell in the input set, we create its 5 or 6 arcs and doubly-link them into a loop of `Arc`s (work done by `cellToEdgeArcs`). We store all the `Arc`s in an `ArcSet` so that we can iterate through the `Arc`/edges them later. Note that, at this point, the loops from different cells are disjoint from one another.
+
+```c
+typedef struct {
+    int64_t numArcs;
+    Arc *arcs;
+    // ...
+} ArcSet;
+```
+
+For this loop, and the loops we'll have later on, we can call `directedEdgeToBoundary` to get the lat/lng coordinates of the edge vertices.
 
 # Edge cancellation
 
-<div style="text-align: center;">
-{{< figure src="code/figs/two_cells_before.svg" width="400px" >}}
-</div>
+The main idea of the algorithm is that we start with valid loops (small loops around cells), find pairs of edges that cancel each other out,
+remove the pairs of edges, and stitch together the loops---all while
+**maintaining valid loops the whole time**.
 
-and then..
+For example, if we were to start with two neighboring cells, with two disjoint loops, the `ArcSet` would initially correspond to this picture:
 
-<div style="text-align: center;">
-{{< figure src="code/figs/two_cells_after.svg" width="400px" >}}
-</div>
+{{< fig src="code/figs/two_cells_before.svg" caption="Initial state of edges for two cells." >}}
+
+After canceling the pair of edges, the `ArcSet` would look like this:
+
+{{< fig src="code/figs/two_cells_after.svg" width="600px" caption="After canceling pairs of edges." >}}
+
+Note that the edges stay in a counter-clockwise loop.
+
+## Finding edge pairs
+
+When we initialize the `ArcSet`, we also set up a hash table to enable
+looking up edges quickly.
+
+```c
+typedef struct {
+	// ...
+    // hash buckets for fast edge/arc lookup
+    int64_t numBuckets;
+    Arc **buckets;
+} ArcSet;
+```
+
+TODO: explain edge reversal and then hash table lookup.
+
+TODO: Cancellation flag `isRemoved`.
+
+
+## Loop surgery
+
+TODO: explain stitching the two loops together.
+
+
 
 # Connected components partition loops into polygons
 
