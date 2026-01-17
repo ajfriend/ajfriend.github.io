@@ -21,7 +21,7 @@ providing the outline of the region they correspond to.
 
 (TODO: side by side image. on the left is a set of h3 cells in the pacific ocean, maybe two holes. on the right is the outline. show the full cell edges with arrows, not the shrunken version. This is on the D3 orthographic globe.)
 
-{{< globe_map data="first_poly" width="400" >}}
+{{< globe_map data="data/first_poly.json" width="400" >}}
 
 In code this would look like
 

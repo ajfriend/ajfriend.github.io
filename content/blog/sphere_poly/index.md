@@ -127,35 +127,35 @@ OK OK. we'll use lon/lat...
 
 The great circle arc between `(-150, 0)` and `(0, 0)` goes east:
 
-{{< globe_map data="composed2" projection="equirectangular" width="1000" >}}
+{{< globe_map data="data/composed2.json" projection="equirectangular" width="1000" >}}
 {{< caption >}}Arc from (-150, 0) to (0, 0).{{< /caption >}}
 
 We can see that it takes that route because it is the shortest distance,
 looking from above, we can see that it is along the equator along an arc
 that's less than 180 degrees:
 
-{{< globe_map data="composed2" rotate="[0, 90, 60]" >}}
+{{< globe_map data="data/composed2.json" rotate="[0, 90, 60]" >}}
 {{< caption >}}Arc from (-150, 0) to (0, 0).{{< /caption >}}
 
 However, if we extend the endpoint further east and look
 at the arc connecting `(-150, 0)` and `(+60, 0)`, we see that everything changes.
 The arc changes direction and goes around the globe in the other direction.
 
-{{< globe_map data="composed3" projection="equirectangular" width="1000" >}}
+{{< globe_map data="data/composed3.json" projection="equirectangular" width="1000" >}}
 {{< caption >}}Arc from (-150, 0) to (+60, 0).{{< /caption >}}
 
 Confirm its the shortest path because its going good good:
 
-{{< globe_map data="composed3" rotate="[0, 90, 60]" >}}
+{{< globe_map data="data/composed3.json" rotate="[0, 90, 60]" >}}
 {{< caption >}}Arc from (-150, 0) to (+60, 0).{{< /caption >}}
 
 But it is possible to represent that path, we just need to add an intermediate
 point to break up the any arcs that would otherwise be $\geq 180$ degrees:
 
-{{< globe_map data="composed4" projection="equirectangular" width="1000" >}}
+{{< globe_map data="data/composed4.json" projection="equirectangular" width="1000" >}}
 {{< caption >}}Two arcs from (-150, 0) to (0, 0) to (+60, 0) sweep out an arc larger than 180 degrees.{{< /caption >}}
 
-{{< globe_map data="composed4" rotate="[0, 90, 60]" >}}
+{{< globe_map data="data/composed4.json" rotate="[0, 90, 60]" >}}
 {{< caption >}}Two arcs from (-150, 0) to (0, 0) to (+60, 0) sweep out an arc larger than 180 degrees.{{< /caption >}}
 
 ## Summary
