@@ -40,6 +40,7 @@ Usage:
 {{- $rotate := .Get "rotate" -}}
 {{- $projection := .Get "projection" | default "orthographic" -}}
 {{- $width := .Get "width" | default "600" | int -}}
+{{- $arrowStep := .Get "arrowStep" | default "0" | int -}}
 
 {{- /* Load data from page bundle */ -}}
 {{- $resource := .Page.Resources.GetMatch $dataFile -}}
@@ -94,6 +95,7 @@ Usage:
     const projection = "{{ $projection }}";
     const isGlobe = projection === "orthographic";
     const maxWidth = {{ $width }};
+    const arrowStep = {{ $arrowStep }};
 
     const container = document.getElementById('globe-{{ $id }}');
     const getSize = () => {
@@ -174,6 +176,35 @@ Usage:
           strokeWidth: d => d.properties?.strokeWidth ?? 1,
           strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
         }));
+
+        // Add arrows on polygon edges if arrowStep > 0
+        if (arrowStep > 0) {
+          let edgeIndex = 0;
+          // Use rawData (before ring reversal) to get correct winding direction for arrows
+          rawData.features.forEach(f => {
+            if (f.geometry.type !== 'Polygon' && f.geometry.type !== 'MultiPolygon') return;
+            const stroke = f.properties?.stroke || f.properties?.fill || 'red';
+            const strokeWidth = f.properties?.strokeWidth ?? 1;
+            const rings = f.geometry.type === 'Polygon'
+              ? f.geometry.coordinates
+              : f.geometry.coordinates.flat();
+            rings.forEach(ring => {
+              for (let i = 0; i < ring.length - 1; i++) {
+                if (edgeIndex % arrowStep === 0) {
+                  const interpolate = d3.geoInterpolate(ring[i], ring[i + 1]);
+                  marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
+                    x: d => d[0],
+                    y: d => d[1],
+                    markerEnd: 'arrow',
+                    stroke: 'darkred',
+                    strokeWidth: 1.5
+                  }));
+                }
+                edgeIndex++;
+              }
+            });
+          });
+        }
       }
 
       // Render lines with per-feature styling

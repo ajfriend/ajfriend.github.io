@@ -21,12 +21,45 @@ providing the outline of the region they correspond to.
 
 (TODO: side by side image. on the left is a set of h3 cells in the pacific ocean, maybe two holes. on the right is the outline. show the full cell edges with arrows, not the shrunken version. This is on the D3 orthographic globe.)
 
+<div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1rem;">
 {{< globe_map data="data/intro_cells.json" width="400" >}}
-{{< globe_map data="data/intro_poly.json" width="400" >}}
+<span style="font-size: 2rem;">→</span>
+{{< globe_map data="data/intro_poly.json" width="400" arrowStep="3" >}}
+</div>
 
-In code this would look like
+In code, this translates a set of H3 cell IDs to a polygon:
 
-(TODO: side by side of set of cells and GeoJson)
+<div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2rem;">
+<div>
+
+```python
+cells = [
+  '81463ffffffffff',
+  '8146bffffffffff',
+  '81713ffffffffff',
+  '81467ffffffffff',
+  '8147bffffffffff',
+  ...
+]
+```
+
+</div>
+<span style="font-size: 2rem;">→</span>
+<div>
+
+```json
+{
+  "type": "MultiPolygon",
+  "coordinates": [
+    [[[-179.1, 43.3], ...]],
+    [[[-137.1, 34.7], ...]],
+    [[[-147.8, 9.6], ...]]
+  ]
+}
+```
+
+</div>
+</div>
 
 GeoJson is one format, and what we talk about here is applicable to any format.
 
