@@ -63,26 +63,42 @@ Note that the edges stay in a counter-clockwise loop.
 
 ## Finding edge pairs
 
-When we initialize the `ArcSet`, we also set up a hash table to enable
-looking up edges quickly.
+Every directed edge has an edge representing the opposite direction. To find pairs, we iterate through all arcs,
+compute the reverse with `reverseDirectedEdge`, and look it up in a hash table:
+
+```c
+H3_EXPORT(reverseDirectedEdge)(a->id, &reversedEdge);
+Arc *b = findArc(arcset, reversedEdge);
+```
+
+If `b` exists, we've found a pair to cancel. We mark both as removed with `isRemoved = true` in the `Arc` struct.
+
+The hash table lives in `ArcSet`:
 
 ```c
 typedef struct {
-	// ...
-    // hash buckets for fast edge/arc lookup
-    int64_t numBuckets;
+    int64_t numArcs;
+    Arc *arcs;
+    int64_t numBuckets;  // = 10 * numArcs
     Arc **buckets;
 } ArcSet;
 ```
 
-TODO: explain edge reversal and then hash table lookup.
-
-TODO: Cancellation flag `isRemoved`.
-
+We use a simple linear probing scheme with `numBuckets = 10 * numArcs` to keep collisions low. In the future, an improved algorithm could use less memory without sacrificing lookup speed.
 
 ## Loop surgery
 
-TODO: explain stitching the two loops together.
+When canceling edges `a` and `b`, we splice them out by reconnecting their neighbors:
+
+```c
+a->next->prev = b->prev;
+a->prev->next = b->next;
+b->next->prev = a->prev;
+b->prev->next = a->next;
+```
+
+This merges two loops into one (or splits one loop into two) while maintaining
+valid counter-clockwise ordering.
 
 
 
