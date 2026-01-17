@@ -42,6 +42,9 @@ ignoreErrors = ["error-disable-taxonomy"]
 
 # Configure markup
 [markup]
+  [markup.tableOfContents]
+    startLevel = 1
+    endLevel = 3
   [markup.goldmark]
     [markup.goldmark.renderer]
       unsafe = true  # Allow raw HTML in markdown

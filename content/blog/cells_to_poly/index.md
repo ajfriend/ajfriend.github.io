@@ -1,6 +1,7 @@
 ---
 title: "[WIP] Making H3's cells-to-polygon faster"
 date: 2026-01-09
+toc: true
 ---
 
 This post is currently a quick-and-dirty attempt at explaining the algorithm
@@ -11,7 +12,45 @@ proper blog post with more context, background, etc.
 
 TODO: h3, directed edges
 
-# alternative start: just cancel out edges
+# Goal
+
+When you have a collection of H3 cells describing a subset of the globe,
+a common operation you might want to do is to translate from
+that set of individual cells to a description of a spherical polygon
+providing the outline of the region they correspond to.
+
+(TODO: side by side image. on the left is a set of h3 cells in the pacific ocean, maybe two holes. on the right is the outline. show the full cell edges with arrows, not the shrunken version. This is on the D3 orthographic globe.)
+
+In code this would look like
+
+(TODO: side by side of set of cells and GeoJson)
+
+GeoJson is one format, and what we talk about here is applicable to any format.
+
+A spherical polygon has counter-clockwise outside, clockwise holes.
+Might be multiple separate polygons, some "inside" of others.
+For more information about spherical polygons, look at ....
+Just list the salent points for ideal polygons.
+
+# H3 edges
+
+How do we do this translation. For any h3 cell, we can get the simple polygon lat/lng points that describe its region. I want to avoid floating point comparisons, so instead we'll look at the set of edges. For any edge, you can get the same lat/lng points.
+
+Edges are directed:
+
+TODO: origin destination, and then switch them below. describe right hand rule. Maybe these aren't shrunk yet.
+
+So that we can fit both on a plot, Describe how we'll srink the edges
+
+
+# General idea: cancel out the edges
+
+So how do we get the outline? Well, looking at edges, we see we can just
+cancel out the pairs and the outline remains.
+
+However, we don't have the order of lat/lng points, we don't know what the loops are, which loops are part of which polygon, and which loops are outside and which are holes.
+
+
 
 in this version, we just show sets of edges first.
 
@@ -23,6 +62,10 @@ we can go back to the idea of trying to figure out which one is which.
 
 but what if we can exploit the fact that these edges are already sorted
 in each cell. (ed: how do we demonstrate the loop?)
+
+the hash table finds the `Arc` (pair of arcs) we want to work on. we once that's in hand,
+we can do a few other things, like modify the linked-loop and keep
+track of connected components.
 
 
 # Rings of edges
@@ -189,5 +232,7 @@ Actually, not relaly that special. any loop can be the outer loop and still math
 a tricky one might look like: blah
 
 
+# Notes
 
+- maybe do a **Summary** section at the end of each, and also a **Code** section, that might ligthen it up? or is it helpful to have the code snippets in the doc inline?
 
