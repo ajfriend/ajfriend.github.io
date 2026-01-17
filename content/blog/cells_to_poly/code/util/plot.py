@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 import h3
 import numpy as np
 
+# Make SVG output deterministic (no random IDs or timestamps)
+plt.rcParams['svg.hashsalt'] = 'h3-cells-to-poly'
+
 def figure(size=5):
     fig, ax = plt.subplots(figsize=(size, size))
 
@@ -165,7 +168,7 @@ def plot_edges(edges, ax=None):
     else:
         fig = ax.get_figure()
 
-    for i, e in enumerate(edges):
+    for e in sorted(edges):
         p1, p2 = scale_edge(e, theta=0.9)
         directed_line(ax, p1, p2)
 
@@ -192,3 +195,7 @@ def twinning(*edges):
     edges = set(edges)
     rev = {reverse_edge(e) for e in edges}
     return edges | rev
+
+def save_svg(fig, path):
+    """Save figure as SVG with deterministic output (no date/creator metadata)."""
+    fig.savefig(path, bbox_inches='tight', metadata={'Date': None, 'Creator': None})

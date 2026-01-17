@@ -12,7 +12,7 @@ ax.set_aspect('equal')
 if not SHOW_AXIS:
     ax.axis('off')
 u.plot_edges(edges, ax=ax)
-fig.savefig('figs/single_cell.svg', bbox_inches='tight')
+u.save_svg(fig, 'figs/single_cell.svg')
 
 
 fig, ax = u.figure()
@@ -21,7 +21,7 @@ if not SHOW_AXIS:
     ax.axis('off')
 edges = u.cells_to_edges(['898f50703cbffff', '898f50703cfffff'])
 u.plot_edges(edges, ax=ax)
-fig.savefig('figs/two_cells_before.svg', bbox_inches='tight')
+u.save_svg(fig, 'figs/two_cells_before.svg')
 
 
 fig, ax = u.figure()
@@ -31,4 +31,4 @@ if not SHOW_AXIS:
 edges = u.cells_to_edges(['898f50703cbffff', '898f50703cfffff'])
 edges -= u.reverse_set(edges)
 u.plot_edges(edges, ax=ax)
-fig.savefig('figs/two_cells_after.svg', bbox_inches='tight')
+u.save_svg(fig, 'figs/two_cells_after.svg')

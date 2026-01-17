@@ -14,7 +14,7 @@ ax.set_aspect('equal')
 if not SHOW_AXIS:
     ax.axis('off')
 u.plot_edges(edges, ax=ax)
-fig.savefig('figs/ring_0.svg', bbox_inches='tight')
+u.save_svg(fig, 'figs/ring_0.svg')
 
 
 
@@ -32,7 +32,7 @@ ax.set_aspect('equal')
 if not SHOW_AXIS:
     ax.axis('off')
 u.plot_edges(edges1, ax=ax)
-fig.savefig('figs/ring_1.svg', bbox_inches='tight')
+u.save_svg(fig, 'figs/ring_1.svg')
 
 
 edges1 = edges - u.twinning(
@@ -49,4 +49,4 @@ ax.set_aspect('equal')
 if not SHOW_AXIS:
     ax.axis('off')
 u.plot_edges(edges1, ax=ax)
-fig.savefig('figs/ring_2.svg', bbox_inches='tight')
+u.save_svg(fig, 'figs/ring_2.svg')

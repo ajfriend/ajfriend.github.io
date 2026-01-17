@@ -50,12 +50,12 @@ ax.set_aspect('equal')
 if not SHOW_AXIS:
     ax.axis('off')
 
-for e in edges:
+for e in sorted(edges):
     p1, p2 = u.scale_edge(e, theta=0.9)
     label = labels.get(e)
     u.directed_line(ax, p1, p2, label=label)
 
-fig.savefig('figs/two_cells_before_labels.svg', bbox_inches='tight')
+u.save_svg(fig, 'figs/two_cells_before_labels.svg')
 
 
 # After cancellation: remove a and b, keep the rest with labels
@@ -66,9 +66,9 @@ ax.set_aspect('equal')
 if not SHOW_AXIS:
     ax.axis('off')
 
-for e in edges_after:
+for e in sorted(edges_after):
     p1, p2 = u.scale_edge(e, theta=0.9)
     label = labels.get(e)
     u.directed_line(ax, p1, p2, label=label)
 
-fig.savefig('figs/two_cells_after_labels.svg', bbox_inches='tight')
+u.save_svg(fig, 'figs/two_cells_after_labels.svg')

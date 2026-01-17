@@ -15,7 +15,7 @@ ax.set_aspect('equal')
 if not SHOW_AXIS:
     ax.axis('off')
 u.plot_edges(edges, ax=ax)
-fig.savefig('figs/disk_0.svg', bbox_inches='tight')
+u.save_svg(fig, 'figs/disk_0.svg')
 
 
 
@@ -28,7 +28,7 @@ ax.set_aspect('equal')
 if not SHOW_AXIS:
     ax.axis('off')
 u.plot_edges(edges1, ax=ax)
-fig.savefig('figs/disk_1.svg', bbox_inches='tight')
+u.save_svg(fig, 'figs/disk_1.svg')
 
 
 edges1 = edges - u.reverse_set(edges)
@@ -38,4 +38,4 @@ ax.set_aspect('equal')
 if not SHOW_AXIS:
     ax.axis('off')
 u.plot_edges(edges1, ax=ax)
-fig.savefig('figs/disk_2.svg', bbox_inches='tight')
+u.save_svg(fig, 'figs/disk_2.svg')

@@ -26,7 +26,7 @@ ax.set_aspect('equal')
 if not SHOW_AXIS:
     ax.axis('off')
 u.plot_edges(edges1, ax=ax)
-fig.savefig('figs/four_cells_0.svg', bbox_inches='tight')
+u.save_svg(fig, 'figs/four_cells_0.svg')
 
 
 edges1 = edges - u.twinning(
@@ -41,7 +41,7 @@ ax.set_aspect('equal')
 if not SHOW_AXIS:
     ax.axis('off')
 u.plot_edges(edges1, ax=ax)
-fig.savefig('figs/four_cells_1.svg', bbox_inches='tight')
+u.save_svg(fig, 'figs/four_cells_1.svg')
 
 
 edges1 = edges - u.twinning(
@@ -56,7 +56,7 @@ ax.set_aspect('equal')
 if not SHOW_AXIS:
     ax.axis('off')
 u.plot_edges(edges1, ax=ax)
-fig.savefig('figs/four_cells_2.svg', bbox_inches='tight')
+u.save_svg(fig, 'figs/four_cells_2.svg')
 
 edges1 = edges - u.twinning(
     '1198f50703c3ffff',
@@ -70,7 +70,7 @@ ax.set_aspect('equal')
 if not SHOW_AXIS:
     ax.axis('off')
 u.plot_edges(edges1, ax=ax)
-fig.savefig('figs/four_cells_3.svg', bbox_inches='tight')
+u.save_svg(fig, 'figs/four_cells_3.svg')
 
 edges1 = edges - u.twinning(
     '1198f50703c3ffff',
@@ -84,6 +84,6 @@ ax.set_aspect('equal')
 if not SHOW_AXIS:
     ax.axis('off')
 u.plot_edges(edges1, ax=ax)
-fig.savefig('figs/four_cells_4.svg', bbox_inches='tight')
+u.save_svg(fig, 'figs/four_cells_4.svg')
 
 
