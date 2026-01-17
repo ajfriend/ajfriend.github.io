@@ -102,8 +102,15 @@ $$
 {{< fig src="code/figs/two_cells_before_labels.svg" >}}
 
 After removing edges `a` and `b`, we recconect their surrounding edges like
+the following, which merges the two loops into one counter-clockwise loop,
+updating the doubly-linked list appropriately.
 
-TODO: after surgery, parallel to latex above
+$$
+\begin{aligned}
+a^- &\to b^+ \\
+b^- &\to a^+
+\end{aligned}
+$$
 
 {{< fig src="code/figs/two_cells_after_labels.svg" >}}
 
@@ -117,9 +124,12 @@ b->next->prev = a->prev;
 b->prev->next = a->next;
 ```
 
+## Other edge cancellation examples
 
-This merges two loops into one (or splits one loop into two) while maintaining
-valid counter-clockwise ordering.
+Luckily, the loop surgery logic above works in all possible cases.
+
+
+
 
 
 
