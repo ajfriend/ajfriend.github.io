@@ -50,7 +50,7 @@ ignoreErrors = ["error-disable-taxonomy"]
       unsafe = true  # Allow raw HTML in markdown
   [markup.highlight]
     style = 'friendly'
-    lineNos = true
+    lineNos = false
     lineNumbersInTable = false
     codeFences = true
 

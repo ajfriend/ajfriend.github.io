@@ -56,6 +56,41 @@
     text-decoration: underline;
   }
 
+  /* Code blocks */
+  .highlight {
+    background: #f6f8fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+  .highlight pre {
+    margin: 0;
+    padding: 0.1rem 1rem;
+    background: transparent;
+  }
+  .highlight code {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    font-family: 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+
+  /* Line numbers */
+  .highlight .ln {
+    color: #999;
+    margin-right: 1rem;
+    user-select: none;
+  }
+
+  /* Inline code */
+  code:not(.highlight code) {
+    background: #f0f0f0;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.88em;
+    font-family: 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+
   /* Force light mode, disable automatic dark mode */
   @media (prefers-color-scheme: dark) {
     :root {
