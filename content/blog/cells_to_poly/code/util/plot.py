@@ -1,9 +1,30 @@
 import matplotlib.pyplot as plt
 import h3
 import numpy as np
+from contextlib import contextmanager
 
 # Make SVG output deterministic (no random IDs or timestamps)
 plt.rcParams['svg.hashsalt'] = 'h3-cells-to-poly'
+
+@contextmanager
+def svg(filename, show_axis=False, size=5):
+    """Context manager for creating and saving SVG figures.
+
+    Usage:
+        with svg('figs/my_figure.svg') as ax:
+            plot_edges(edges, ax=ax)
+    """
+    fig, ax = plt.subplots(figsize=(size, size))
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+    ax.set_aspect('equal')
+    if not show_axis:
+        ax.axis('off')
+    yield ax
+    save_svg(fig, filename)
+    plt.close(fig)
 
 def figure(size=5):
     fig, ax = plt.subplots(figsize=(size, size))
