@@ -85,5 +85,3 @@ if not SHOW_AXIS:
     ax.axis('off')
 u.plot_edges(edges1, ax=ax)
 u.save_svg(fig, 'figs/four_cells_4.svg')
-
-

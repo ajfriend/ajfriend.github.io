@@ -8,11 +8,11 @@ lab:
 	uv run jupyter lab
 
 plot:
-	uv run python notebooks/figs_edges.py
-	uv run python notebooks/figs_labels.py
-	uv run python notebooks/four_cells.py
-	uv run python notebooks/figs_disk.py
-	uv run python notebooks/figs_ring.py
+	uv run python plot/figs_edges.py
+	uv run python plot/figs_labels.py
+	uv run python plot/four_cells.py
+	uv run python plot/figs_disk.py
+	uv run python plot/figs_ring.py
 
 purge:
 	just _rm .venv
