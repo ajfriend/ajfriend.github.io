@@ -37,14 +37,14 @@ def figure(size=5):
 
     return fig, ax
 
-def directed_line(ax, latlng1, latlng2, label=None, linewidth=1.5):
+def directed_line(ax, latlng1, latlng2, label=None, linewidth=1.5, arrow_scale=22, color='black', arrow_alpha=0.4):
     (y1, x1) = latlng1
     (y2, x2) = latlng2
 
     ax.plot(
         [x1, x2],
         [y1, y2],
-        color = 'black',
+        color=color,
         linewidth=linewidth,
     )
 
@@ -59,8 +59,7 @@ def directed_line(ax, latlng1, latlng2, label=None, linewidth=1.5):
     dx /= length
     dy /= length
 
-    # arrowhead only
-    style = '->'
+    # arrowhead centered on midpoint
     offset = 0.02 * length  # 2% of segment length
     ax.annotate(
         '',
@@ -68,13 +67,16 @@ def directed_line(ax, latlng1, latlng2, label=None, linewidth=1.5):
             mx + dx * offset,
             my + dy * offset,
         ),
-        xytext = (mx, my),
+        xytext = (
+            mx - dx * offset,
+            my - dy * offset,
+        ),
         arrowprops = dict(
-            arrowstyle = style,
-            color = 'black',
-            lw = 1.5,
-            mutation_scale = 22,
-            alpha = 0.4,
+            arrowstyle = '->',
+            color = color,
+            lw = linewidth,
+            mutation_scale = arrow_scale,
+            alpha = arrow_alpha,
         )
     )
 

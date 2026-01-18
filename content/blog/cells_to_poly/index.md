@@ -70,12 +70,16 @@ Edges are directed:
 
 TODO: origin destination, and then switch them below. describe right hand rule. Maybe these aren't shrunk yet.
 
-{{< fig src="code/figs/directed_edge_1.svg" >}}
-{{< fig src="code/figs/directed_edge_2.svg" >}}
+{{< fig src="code/figs/directed_edge.svg" >}}
 
-So that we can fit both on a plot, Describe how we'll srink the edges
+
+To avoid plotting two opposite edges on top of each other, we'll shrink
+each edge towards its origin cell's center:
 
 {{< fig src="code/figs/two_cells_edges.svg" >}}
+
+Maybe this is where we mention we can put the edges in order? Maybe not...
+maybe we hold that off until after the cancellation talk.
 
 
 # General idea: cancel out the edges
