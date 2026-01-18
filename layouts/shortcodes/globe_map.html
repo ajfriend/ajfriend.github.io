@@ -127,7 +127,23 @@ Usage:
       ? [-inputRotate[0], -inputRotate[1], inputRotate[2] ?? 0]
       : [-centroid[0], -centroid[1], 0];
     const size = getSize();
-    const state = { rotate: centerRotate, width: size.width, height: size.height };
+    const localState = { width: size.width, height: size.height };
+
+    // Shared rotation state for all globes on the page
+    if (!window.globeMapSync) {
+      window.globeMapSync = {
+        rotate: centerRotate,
+        centerRotate: centerRotate,
+        renders: []
+      };
+    }
+    const sync = window.globeMapSync;
+
+    // Use first globe's centerRotate as the shared default
+    if (sync.renders.length === 0) {
+      sync.rotate = centerRotate;
+      sync.centerRotate = centerRotate;
+    }
 
     if (!window.globeLandData) {
       const landTopo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
@@ -137,8 +153,8 @@ Usage:
 
     function render() {
       const size = getSize();
-      state.width = size.width;
-      state.height = size.height;
+      localState.width = size.width;
+      localState.height = size.height;
 
       const marks = [
         Plot.geo(land, { stroke: '#88b', fill: 'none', strokeWidth: 0.8, strokeOpacity: 0.8 }),
@@ -244,12 +260,12 @@ Usage:
       });
 
       const projectionConfig = isGlobe
-        ? { type: projection, rotate: state.rotate, inset: 1 }
+        ? { type: projection, rotate: sync.rotate, inset: 1 }
         : { type: projection };
 
       const svg = Plot.plot({
-        width: state.width,
-        height: state.height,
+        width: localState.width,
+        height: localState.height,
         projection: projectionConfig,
         marks
       });
@@ -308,19 +324,19 @@ Usage:
 
     function attachDrag(svg) {
       const projection = d3.geoOrthographic()
-        .rotate(state.rotate)
-        .translate([state.width / 2, state.height / 2])
-        .scale(Math.min(state.width, state.height) / 2 - 1);
+        .rotate(sync.rotate)
+        .translate([localState.width / 2, localState.height / 2])
+        .scale(Math.min(localState.width, localState.height) / 2 - 1);
 
       let v0, q0, r0;
 
       const drag = d3.drag()
         .on('start', (event) => {
-          projection.rotate(state.rotate).translate([state.width / 2, state.height / 2]).scale(Math.min(state.width, state.height) / 2 - 1);
+          projection.rotate(sync.rotate).translate([localState.width / 2, localState.height / 2]).scale(Math.min(localState.width, localState.height) / 2 - 1);
           const inv = projection.invert([event.x, event.y]);
           if (inv) {
             v0 = versor.cartesian(inv);
-            r0 = state.rotate;
+            r0 = sync.rotate;
             q0 = versor.from(r0);
           }
         })
@@ -332,16 +348,20 @@ Usage:
           const v1 = versor.cartesian(inv);
           const delta = versor.delta(v0, v1);
           const q1 = versor.multiply(q0, delta);
-          state.rotate = versor.rotation(q1);
-          render();
+          sync.rotate = versor.rotation(q1);
+          // Re-render all synced globes
+          sync.renders.forEach(r => r());
         });
 
       d3.select(svg).call(drag);
       d3.select(svg).on('dblclick', () => {
-        state.rotate = centerRotate.slice();
-        render();
+        sync.rotate = sync.centerRotate.slice();
+        sync.renders.forEach(r => r());
       });
     }
+
+    // Register this globe's render function for syncing
+    sync.renders.push(render);
 
     render();
   })();

@@ -4,30 +4,24 @@ date: 2026-01-09
 toc: true
 ---
 
-This post is currently a quick-and-dirty attempt at explaining the algorithm
-behind [cellsToMultiPolygon core algorithm #1113 · uber/h3](https://github.com/uber/h3/pull/1113). Since I think the algorithm is pretty cool, I'll try to grow this into a
+**Note**: This post is currently a quick-and-dirty attempt at explaining the algorithm
+behind [cellsToMultiPolygon core algorithm #1113 · uber/h3](https://github.com/uber/h3/pull/1113). My plan is to grow this into a
 proper blog post with more context, background, etc.
 
-# Background
 
-TODO: h3, directed edges
+# Goal: H3 cells to spherical polygons
 
-# Goal
-
-When you have a collection of H3 cells describing a subset of the globe,
-a common operation you might want to do is to translate from
-that set of individual cells to a description of a spherical polygon
-providing the outline of the region they correspond to.
-
-(TODO: side by side image. on the left is a set of h3 cells in the pacific ocean, maybe two holes. on the right is the outline. show the full cell edges with arrows, not the shrunken version. This is on the D3 orthographic globe.)
+A collection of H3 cells describes a subset of the globe,
+and a common operation is to translate that set of cells into spherical polygons (like a GeoJson MultiPolygon) outlining the same region.
 
 <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1rem;">
 {{< globe_map data="data/intro_cells.json" width="400" >}}
 <span style="font-size: 2rem;">→</span>
 {{< globe_map data="data/intro_poly.json" width="400" arrowStep="3" >}}
 </div>
+{{< caption >}}A set of H3 cells maps to three polygons; two with no holes, and one with three holes. Drag the globe to rotate; double click to reset.{{< /caption >}}
 
-In code, this translates a set of H3 cell IDs to a polygon:
+In code, it would look something like this:
 
 <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2rem;">
 <div>
@@ -61,12 +55,12 @@ cells = [
 </div>
 </div>
 
-GeoJson is one format, and what we talk about here is applicable to any format.
+GeoJson is just one format, but what we'll describe here is applicable
+to any similar format. I wrote up my thoughts on "ideal" spherical polygons in another post, but to summarize, we want to output spherical polygons such that:
 
-A spherical polygon has counter-clockwise outside, clockwise holes.
-Might be multiple separate polygons, some "inside" of others.
-For more information about spherical polygons, look at ....
-Just list the salent points for ideal polygons.
+- polygons consist of ordered loops of points on a sphere (lon/lat points)
+- polygons have one "outer" loop, with points oriented in counter-clockwise order, and zero or more "inner" loops, with points going clockwise (see the image above)
+- we can handle "large" cell sets, where resulting polygons may cross the antimeridian, enclose the poles, or be larger than a hemisphere
 
 # H3 edges
 
@@ -257,7 +251,10 @@ Note that canceling edges might split up rings:
 
 # Connected components partition loops into polygons
 
-TODO: edges example with multiple loops and polygons
+TODO: edges example with multiple loops and polygons.
+
+Plotting: make the connected components easier by just plotting the whole
+H3 cell, then i don't have to do the bits to connect the shrunken cells.
 
 # Which loop is "outside"?
 
