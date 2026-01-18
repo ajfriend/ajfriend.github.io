@@ -13,6 +13,8 @@ plot:
 	uv run plot/four_cells.py
 	uv run plot/figs_disk.py
 	uv run plot/figs_ring.py
+	uv run plot/figs_directed_edge.py
+	uv run plot/figs_cell_edges.py
 
 purge:
 	just _rm .venv

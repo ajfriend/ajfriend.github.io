@@ -64,13 +64,18 @@ to any similar format. I wrote up my thoughts on "ideal" spherical polygons in a
 
 # H3 edges
 
-How do we do this translation. For any h3 cell, we can get the simple polygon lat/lng points that describe its region. I want to avoid floating point comparisons, so instead we'll look at the set of edges. For any edge, you can get the same lat/lng points.
+How do we do this translation? For any h3 cell, we can get the simple polygon lat/lng points that describe its region. I want to avoid floating point comparisons, so instead we'll look at the set of edges. For any edge, you can get the same lat/lng points.
 
 Edges are directed:
 
 TODO: origin destination, and then switch them below. describe right hand rule. Maybe these aren't shrunk yet.
 
+{{< fig src="code/figs/directed_edge_1.svg" >}}
+{{< fig src="code/figs/directed_edge_2.svg" >}}
+
 So that we can fit both on a plot, Describe how we'll srink the edges
+
+{{< fig src="code/figs/two_cells_edges.svg" >}}
 
 
 # General idea: cancel out the edges
@@ -268,4 +273,6 @@ a tricky one might look like: blah
 # Notes
 
 - maybe do a **Summary** section at the end of each, and also a **Code** section, that might ligthen it up? or is it helpful to have the code snippets in the doc inline?
+- separate out with Code section. can link multiple implementations. include the python one
+- end with some fun, tricky examples
 

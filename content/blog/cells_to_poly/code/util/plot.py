@@ -37,7 +37,7 @@ def figure(size=5):
 
     return fig, ax
 
-def directed_line(ax, latlng1, latlng2, label=None):
+def directed_line(ax, latlng1, latlng2, label=None, linewidth=1.5):
     (y1, x1) = latlng1
     (y2, x2) = latlng2
 
@@ -45,6 +45,7 @@ def directed_line(ax, latlng1, latlng2, label=None):
         [x1, x2],
         [y1, y2],
         color = 'black',
+        linewidth=linewidth,
     )
 
     mx = (x1 + x2) / 2
