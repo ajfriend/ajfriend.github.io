@@ -1,0 +1,99 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "fill": "gray",
+        "fillOpacity": 0.35,
+        "strokeWidth": 0
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [0, 90],
+            [-150, 0],
+            [0, -90],
+            [0, 0],
+            [0, 90]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stroke": "darkblue",
+        "strokeWidth": 3,
+        "arrow": true
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-150, 0],
+          [0, 0]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "stroke": "green",
+        "strokeWidth": 3,
+        "arrow": false
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-150, 90],
+          [-150, 0],
+          [-150, -90]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "fill": "green",
+        "stroke": "darkgreen",
+        "r": 5
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-150, 0]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "stroke": "red",
+        "strokeWidth": 3,
+        "arrow": false
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-0, 90],
+          [-0, 0],
+          [-0, -90]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fill": "red",
+        "stroke": "darkred",
+        "r": 5
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [0, 0]
+      }
+    }
+  ]
+}
