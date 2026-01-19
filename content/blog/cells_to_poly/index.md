@@ -11,8 +11,9 @@ proper blog post with more context, background, etc.
 
 # Goal: H3 cells to spherical polygons
 
-A collection of H3 cells describes a subset of the globe,
-and a common operation is to translate that set of cells into spherical polygons (like a GeoJson MultiPolygon) outlining the same region.
+A collection of [H3 cells](https://h3geo.org/) describes a subset of the globe,
+and a common operation is to translate that set of cells into spherical polygons
+(e.g., a [GeoJSON](https://geojson.org/) `MultiPolygon`) outlining the same region.
 
 <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1rem;">
 {{< globe_map data="data/intro_cells.json" width="400" >}}
@@ -21,7 +22,7 @@ and a common operation is to translate that set of cells into spherical polygons
 </div>
 {{< caption >}}A set of H3 cells maps to three polygons; two with no holes, and one with three holes. Drag the globe to rotate; double click to reset.{{< /caption >}}
 
-In code, it would look something like this:
+Alternatively, in code, the translation might look like:
 
 <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2rem;">
 <div>
@@ -55,8 +56,10 @@ cells = [
 </div>
 </div>
 
-GeoJson is just one format, but what we'll describe here is applicable
-to any similar format. I wrote up my thoughts on "ideal" spherical polygons in another post, but to summarize, we want to output spherical polygons such that:
+GeoJSON is just one format we can use for describing spherical polygons,
+but the algortihm we cover here here is applicable
+to any similar format, and its easy to translate between them.
+I wrote up my thoughts on "ideal" spherical polygons in [another post](/blog/sphere_poly/), but to summarize, we want to output spherical polygons such that:
 
 - polygons consist of ordered loops of points on a sphere (lon/lat points)
 - polygons have one "outer" loop, with points oriented in counter-clockwise order, and zero or more "inner" loops, with points going clockwise (see the image above)
@@ -72,6 +75,8 @@ TODO: origin destination, and then switch them below. describe right hand rule. 
 
 {{< fig src="code/figs/directed_edge.svg" >}}
 
+
+whenever we're plotting more than one cell, where the edges might conflict...
 
 To avoid plotting two opposite edges on top of each other, we'll shrink
 each edge towards its origin cell's center:

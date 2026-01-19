@@ -11,7 +11,7 @@ disableKinds = ["taxonomy"]
 ignoreErrors = ["error-disable-taxonomy"]
 
 [permalinks]
-  blog = "/:contentbasename/"
+  blog = "/blog/:contentbasename/"
   notes = "/notes/:contentbasename/"
 
 [params]
