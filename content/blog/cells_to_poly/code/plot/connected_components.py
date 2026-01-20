@@ -190,6 +190,7 @@ joined_edges_removed = edges - edges_to_remove
 plot_figure('figs/conn_comp_joined.svg', joined_edges_removed, joined_colors)
 
 # Plot 5: Boundary edges only, no background colors
+no_colors = {cell: None for cell in cells}
 plot_figure('figs/conn_comp_boundary_only.svg', boundary_edges, no_colors)
 
 # Print remaining pair tuples from the "joined" case for the user
