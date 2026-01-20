@@ -207,7 +207,8 @@ def make_plot(filename, cells, edges_to_join=[], seed=42, show_colors=True):
 
 all_edges = u.cells_to_edges(cells)
 all_pairs = [t[0] for t in u.get_pair_tuples(all_edges)]
-# TODO: shuffle all_pairs (with a random key)
+random.seed(43)
+random.shuffle(all_pairs)
 
 # Boundary edges only, no background colors
 make_plot('figs/conn_comp_boundary_only.svg', cells, edges_to_join=all_pairs, seed=42, show_colors=False)
@@ -216,8 +217,8 @@ make_plot('figs/conn_comp_boundary_only.svg', cells, edges_to_join=all_pairs, se
 make_plot('figs/conn_comp_all.svg', cells, edges_to_join=[], seed=42, show_colors=True)
 
 # Partial join, with background colors
-# TODO: replace edges_to_join with the first few `all_pairs`, same number of edges
-make_plot('figs/conn_comp_joined.svg', cells, edges_to_join=edges_to_join, seed=44, show_colors=True)
+partial_pairs = all_pairs[:len(edges_to_join)]
+make_plot('figs/conn_comp_joined.svg', cells, edges_to_join=partial_pairs, seed=44, show_colors=True)
 
 # Boundary edges only, with background colors
 make_plot('figs/conn_comp_boundary.svg', cells, edges_to_join=all_pairs, seed=42, show_colors=True)
