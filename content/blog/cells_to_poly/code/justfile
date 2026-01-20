@@ -15,6 +15,7 @@ plot:
 	uv run plot/figs_ring.py
 	uv run plot/figs_directed_edge.py
 	uv run plot/figs_cell_edges.py
+	uv run plot/connected_components.py
 
 purge:
 	just _rm .venv
