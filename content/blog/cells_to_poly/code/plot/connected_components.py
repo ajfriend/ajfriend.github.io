@@ -41,9 +41,7 @@ cells = [
 
 edges = u.cells_to_edges(cells)
 
-# Print existing pair tuples for reference (removed edges)
-pair_tuples = u.get_pair_tuples(edges)
-pprint.pprint(pair_tuples)
+
 
 # List of edges to "join". When an edge is in this list, the two cells
 # on either side of it are considered "joined" and will share the same
@@ -61,6 +59,17 @@ edges_to_join = [
     '11966dbda903ffff',
     '11966dbda943ffff',
     '11966dbda947ffff',
+    '13966dbdabd7ffff',
+    '13966dbda82fffff',
+    '13966dbdab87ffff',
+    '11966dbda903ffff',
+    '11966dbdab97ffff',
+    '12966dbc36d7ffff',
+    '12966dbdabbbffff',
+    '11966dbdab93ffff',
+    '12966dbda943ffff',
+    '11966dbda973ffff',
+    '13966dbdabbbffff',
 ]
 
 # DSU data structure to track joined components
@@ -132,5 +141,14 @@ with u.svg('figs/conn_comp.svg', size=8) as ax:
     # Plot edges on top, removing the joined edges
     edges_to_remove = u.twinning(*edges_to_join)
     edges_to_plot = edges - edges_to_remove
-    u.plot_edges(edges_to_plot, ax=ax, arrow_scale=12, theta=0.8)
+    # Print remaining pair tuples (eligible for removal)
+    remaining_pair_tuples = u.get_pair_tuples(edges_to_plot)
+    remaining_pair_tuples = [
+        a
+        for (a,b) in remaining_pair_tuples
+    ]
 
+    print("\nRemaining pair tuples (eligible for removal):")
+    pprint.pprint(remaining_pair_tuples)
+
+    u.plot_edges(edges_to_plot, ax=ax, arrow_scale=12, theta=0.8)
