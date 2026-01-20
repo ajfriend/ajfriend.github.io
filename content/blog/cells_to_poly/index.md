@@ -385,6 +385,9 @@ six loops total, across three polygons:
 {{< caption >}}Six loops, each belonging to one of three polygons. Which loops group together into a polygon?{{< /caption >}}
 
 
+{{< fig src="code/figs/conn_comp.svg" width="800px" >}}
+
+
 Plotting: make the connected components easier by just plotting the whole
 H3 cell, then i don't have to do the bits to connect the shrunken cells.
 
