@@ -59,17 +59,24 @@ cells = [
 GeoJSON is just one format we can use for describing spherical polygons,
 but the algortihm we cover here here is applicable
 to any similar format, and its easy to translate between them.
-I wrote up my thoughts on "ideal" spherical polygons in [another post](/blog/sphere_poly/), but to summarize, we want to output spherical polygons such that:
+I wrote up my thoughts on ["ideal" spherical polygons in another post](/blog/sphere_poly/), but to summarize, we want to output spherical polygons such that:
 
 - polygons consist of ordered loops of points on a sphere (lon/lat points)
 - polygons have one "outer" loop, with points oriented in counter-clockwise order, and zero or more "inner" loops, with points going clockwise (see the image above)
 - we can handle "large" cell sets, where resulting polygons may cross the antimeridian, enclose the poles, or be larger than a hemisphere
 
-# H3 edges
+# H3 cells and edges
 
-How do we do this translation? For any h3 cell, we can get the simple polygon lat/lng points that describe its region. I want to avoid floating point comparisons, so instead we'll look at the set of edges. For any edge, you can get the same lat/lng points.
+How do we do this translation? Let's start by considering components of
+H3 cells and what we can do with them.
 
-Edges are directed:
+For any H3 cell, we can get the simple polygon of lat/lng points that describe it. In the H3 C library or in the bindings, you can get those points
+with the [`cellToBoundary()`](https://h3geo.org/docs/api/indexing#celltoboundary) function. We *could* operate on those points, using them to construct the MultiPolygon boundary, but this **continous** approach would involve floating point comparisons and error tolerances.
+As an alternative, we might look for a **discrete** approach, with discrete objects that are either present or not, can be hashed, and compared for exact, unambiguous equality. The **directed edges** that make up the H3 cell boundary are a great candidate.
+
+## Directed edges
+
+give the function that provides it.
 
 TODO: origin destination, and then switch them below. describe right hand rule. Maybe these aren't shrunk yet.
 
