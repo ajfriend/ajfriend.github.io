@@ -78,9 +78,9 @@ As an alternative, we might look for a **discrete** approach, with discrete obje
 
 ## Directed edge preliminaries
 
-In H3, a directed edge can be thought of as the boundary between two adjacent cells. Each edge has an **origin** cell and a **destination** cell.
-We can form the opposite or reversed edge by swapping the origin and destination
-cells. We can create an edge with [`cellsToDirectedEdge()`](https://h3geo.org/docs/api/uniedge#cellstodirectededge).
+In H3, a directed edge can be thought of as the boundary between two adjacent cells. Each edge has an **origin** cell and a **destination** cell, which we can
+provide to [`cellsToDirectedEdge()`](https://h3geo.org/docs/api/uniedge#cellstodirectededge) to get the edge index.
+We can form the **opposite** or **reversed** edge by swapping the origin and destination cells, or by calling [`reverseDirectedEdge()`](https://github.com/uber/h3/pull/1098).
 
 The convention we'll use in this post will be to plot an arrow along the edge,
 with the origin cell on the left (from the arrow's perspective.)
@@ -115,10 +115,33 @@ Whenever we're plotting more than one cell, edges will overlap with their opposi
 shrink the directed edges towards the center of their origin cell:
 
 {{< fig src="code/figs/two_cells_edges.svg" >}}
-{{< caption >}}Two cells with their associated directed edges shrunk towards the centers to avoid overlaps. Note the pair of opposite edges in red.{{< /caption >}}
+{{< caption >}}Two cells (blue) with their associated directed edges (black/red) shrunk towards the centers to avoid overlaps. Note the symmetric pair of opposite edges (red).{{< /caption >}}
+
+We'll refer to an edge and its reversed edge a **symmetric pair**.
 
 
-# General idea: cancel out the edge pairs
+# General idea: cancel the symmetric pairs
+
+That last image suggest an idea: for a set of cells $C$, if we get the set of all
+of the directed edges with origins belonging to $C$, we can then remove all
+the symmetric pairs (i.e., remove all the "internal" edges), and what we end up with is the set of directed edges making up the boundary of the polygon we're looking for.
+
+TODO: put these figures side by side, with the transition arrow → like we do above
+{{< fig src="code/figs/disk_0.svg" >}}
+{{< fig src="code/figs/disk_2.svg" >}}
+
+
+
+If we want to produce the polygon
+for two adjacent cells, we get their edges and cancel out the symmetric pair.
+What remains is the set of edges making up the boundary.
+
+TODO:
+
+This idea works in general. But note, so far, this just gives the set of edges,
+and we still need to work out....
+
+As another example, consider ...
 
 
 The last image should have suggested an idea. plot out all the edges
