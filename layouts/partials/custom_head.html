@@ -24,12 +24,23 @@
     padding-bottom: 0.3rem;
   }
 
-  /* Content h1 headings */
-  content h1 {
-    font-size: 1.6rem;
-    color: #333;
+  /* Content headings */
+  main h1, main h2, main h3, main h4, main h5, main h6 {
+    font-weight: 600;
     margin-top: 2rem;
+    margin-bottom: 1rem;
   }
+  main h1 {
+    font-size: 1.8rem;
+  }
+  main h2 {
+    font-size: 1.4rem;
+  }
+  main h3 {
+    font-size: 1.2rem;
+  }
+
+
 
   /* Table of contents */
   nav.toc {
@@ -101,5 +112,16 @@
       --visited-color: #8b6fcb;
       --blockquote-color: #222;
     }
+  }
+
+  /* Style for the anchor links on headings */
+  .anchor-link {
+    text-decoration: none;
+    color: #999;
+    margin-right: 0.5em;
+  }
+  .anchor-link:hover {
+    color: #333;
+    text-decoration: underline;
   }
 </style>

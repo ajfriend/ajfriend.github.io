@@ -1,0 +1,11 @@
+<h{{ .Level }} id="{{ .Anchor }}">
+  <a href="#{{ .Anchor }}" class="anchor-link">
+    {{- if eq .Level 1 }}#{{ end -}}
+    {{- if eq .Level 2 }}##{{ end -}}
+    {{- if eq .Level 3 }}###{{ end -}}
+    {{- if eq .Level 4 }}####{{ end -}}
+    {{- if eq .Level 5 }}#####{{ end -}}
+    {{- if eq .Level 6 }}######{{ end -}}
+  </a>
+  {{- .Text | safeHTML -}}
+</h{{ .Level }}>
