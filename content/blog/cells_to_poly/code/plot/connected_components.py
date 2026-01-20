@@ -42,7 +42,7 @@ def color_cells(cells, edges_to_join, seed):
                 adj[cell].append(neighbor)
 
     # Modified graph coloring for components
-    colors = plt.cm.get_cmap('tab20').colors
+    colors = plt.colormaps['tab20'].colors
     component_colors = {}
     shuffled_colors = list(colors)
     shuffled_cells = list(cells)
@@ -93,7 +93,7 @@ def color_components(cells):
             if neighbor != cell and neighbor in cell_set:
                 union(cell, neighbor)
 
-    colors = plt.cm.get_cmap('tab20').colors
+    colors = plt.colormaps['tab20'].colors
     component_colors = {}
     i = 0
     for cell in cells:
@@ -174,27 +174,47 @@ edges_to_join = [
 
 # --- Plotting ---
 
-# Plot 1: All edges, individual cell colors
-no_join_colors = color_cells(cells, [], seed=42)
-plot_figure('figs/conn_comp_all.svg', edges, no_join_colors)
+def make_plot(filename, cells, edges_to_join=[], seed=42, show_colors=True):
+    """
+    Generate a plot showing cell edges after removing symmetric pairs.
 
-# Plot 2: Boundary edges only, with one color per connected component
-boundary_colors = color_components(cells)
-boundary_edges = edges - u.reverse_set(edges)
-plot_figure('figs/conn_comp_boundary.svg', boundary_edges, boundary_colors)
+    Args:
+        filename: Output SVG filename
+        cells: List of H3 cell indices
+        edges_to_join: List of edges whose symmetric pairs should be removed
+        seed: Random seed for color assignment
+        show_colors: Whether to show background cell colors
+    """
+    all_edges = u.cells_to_edges(cells)
+    edges_to_remove = u.twinning(*edges_to_join)
+    remaining_edges = all_edges - edges_to_remove
 
-# Plot 3: Joined edges removed, with corresponding joined colors
-joined_colors = color_cells(cells, edges_to_join, seed=44)
-edges_to_remove = u.twinning(*edges_to_join)
-joined_edges_removed = edges - edges_to_remove
-plot_figure('figs/conn_comp_joined.svg', joined_edges_removed, joined_colors)
+    if show_colors:
+        cell_colors = color_cells(cells, edges_to_join, seed)
+    else:
+        cell_colors = {cell: None for cell in cells}
 
-# Plot 5: Boundary edges only, no background colors
-no_colors = {cell: None for cell in cells}
-plot_figure('figs/conn_comp_boundary_only.svg', boundary_edges, no_colors)
+    plot_figure(filename, remaining_edges, cell_colors)
 
-# Print remaining pair tuples from the "joined" case for the user
-remaining_pair_tuples = u.get_pair_tuples(joined_edges_removed)
-if remaining_pair_tuples:
-    print("\nEligible edges for further joining (from conn_comp_joined.svg):")
-    pprint.pprint(sorted([t[0] for t in remaining_pair_tuples]))
+    # Print removable edges
+    remaining_pairs = u.get_pair_tuples(remaining_edges)
+    print(f"\n{filename}")
+    if remaining_pairs:
+        pprint.pprint(sorted([t[0] for t in remaining_pairs]))
+    else:
+        print("  (no remaining pairs)")
+
+
+# All edges, with background colors
+make_plot('figs/conn_comp_all.svg', cells, edges_to_join=[], seed=42, show_colors=True)
+
+# Boundary edges only, with background colors
+all_edges = u.cells_to_edges(cells)
+all_pairs = [t[0] for t in u.get_pair_tuples(all_edges)]
+make_plot('figs/conn_comp_boundary.svg', cells, edges_to_join=all_pairs, seed=42, show_colors=True)
+
+# Boundary edges only, no background colors
+make_plot('figs/conn_comp_boundary_only.svg', cells, edges_to_join=all_pairs, seed=42, show_colors=False)
+
+# Partial join, with background colors
+make_plot('figs/conn_comp_joined.svg', cells, edges_to_join=edges_to_join, seed=44, show_colors=True)
