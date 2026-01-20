@@ -187,14 +187,14 @@ def reverse_set(edges):
     )
 
 
-def plot_edges(edges, ax=None, arrow_scale=22):
+def plot_edges(edges, ax=None, theta=0.9, arrow_scale=22):
     if ax is None:
         fig, ax = figure(5)
     else:
         fig = ax.get_figure()
 
     for e in sorted(edges):
-        p1, p2 = scale_edge(e, theta=0.9)
+        p1, p2 = scale_edge(e, theta=theta)
         directed_line(ax, p1, p2, arrow_scale=arrow_scale)
 
     return fig
