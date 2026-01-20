@@ -12,7 +12,7 @@ TODO: note the python implementation
 TODO: note the python implementation
 #Goal: H3 cells to spherical polygons A collection of H3 cells describes a subset of the globe, and a common operation is to translate that set of cells into spherical polygons (e.g., a GeoJSON MultiPolygon) outlining the same region."><meta itemprop=name content="[WIP] Making H3's cells-to-polygon faster"><meta itemprop=description content="Note: This post is currently a quick-and-dirty attempt at explaining the algorithm behind cellsToMultiPolygon core algorithm #1113 · uber/h3. My plan is to grow this into a proper blog post with more context, background, etc.
 TODO: note the python implementation
-#Goal: H3 cells to spherical polygons A collection of H3 cells describes a subset of the globe, and a common operation is to translate that set of cells into spherical polygons (e.g., a GeoJSON MultiPolygon) outlining the same region."><meta itemprop=datePublished content="2026-01-09T00:00:00+00:00"><meta itemprop=dateModified content="2026-01-09T00:00:00+00:00"><meta itemprop=wordCount content="2343"><meta name=referrer content="no-referrer-when-downgrade"><style>:root{--width:720px;--font-main:Verdana, sans-serif;--font-secondary:Verdana, sans-serif;--font-scale:1em;--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--blockquote-color:#222}@media(prefers-color-scheme:dark){:root{--background-color:#01242e;--heading-color:#eee;--text-color:#ddd;--link-color:#8cc2dd;--visited-color:#8b6fcb;--blockquote-color:#ccc}}body{font-family:var(--font-secondary);font-size:var(--font-scale);margin:auto;padding:20px;max-width:var(--width);text-align:left;background-color:var(--background-color);word-wrap:break-word;overflow-wrap:break-word;line-height:1.5;color:var(--text-color)}h1,h2,h3,h4,h5,h6{font-family:var(--font-main);color:var(--heading-color)}a{color:var(--link-color);cursor:pointer;text-decoration:none}a:hover{text-decoration:underline}nav a{margin-right:8px}strong,b{color:var(--heading-color)}button{margin:0;cursor:pointer}time{font-family:monospace;font-style:normal;font-size:15px}main{line-height:1.6}table{width:100%}hr{border:0;border-top:1px dashed}img{max-width:100%}code{font-family:monospace;padding:2px;border-radius:3px}blockquote{border-left:1px solid #999;color:var(--blockquote-color);padding-left:20px;font-style:italic}footer{padding:25px 0;text-align:center}.title:hover{text-decoration:none}.title h1{font-size:1.5em}.inline{width:auto!important}.highlight,.code{border-radius:3px;margin-block-start:1em;margin-block-end:1em;overflow-x:auto}ul.blog-posts{list-style-type:none;padding:unset}ul.blog-posts li{display:flex}ul.blog-posts li span{flex:0 0 130px}ul.blog-posts li a:visited{color:var(--visited-color)}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css integrity=sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+ crossorigin=anonymous><style>:root{--width:900px}p.caption{text-align:center;font-size:small;font-style:italic;margin-top:-1rem}h1.page-title{font-size:2.2rem;color:#111;margin-bottom:.2rem;border-bottom:2px solid #3273dc;padding-bottom:.3rem}main h1,main h2,main h3,main h4,main h5,main h6{font-weight:600;margin-top:2rem;margin-bottom:1rem}main h1{font-size:1.8rem}main h2{font-size:1.4rem}main h3{font-size:1.2rem}nav.toc{background:#f8f8f8;padding:1rem 1.5rem;margin-bottom:2rem;border-radius:4px}nav.toc h2{margin-top:0;font-size:1.1rem}nav.toc ul{margin:0;padding-left:1.5rem}nav.toc li{margin:.3rem 0}nav.toc a{text-decoration:none}nav.toc a:hover{text-decoration:underline}.highlight{background:#f6f8fa;border:1px solid #e1e4e8;border-radius:6px;margin:1.5rem 0;overflow-x:auto}.highlight pre{margin:0;padding:.1rem 1rem;background:0 0}.highlight code{font-size:.9rem;line-height:1.5;font-family:sf mono,Consolas,liberation mono,Menlo,monospace}.highlight .ln{color:#999;margin-right:1rem;user-select:none}code:not(.highlight code){background:#f0f0f0;padding:.15rem .4rem;border-radius:3px;font-size:.88em;font-family:sf mono,Consolas,liberation mono,Menlo,monospace}@media(prefers-color-scheme:dark){:root{--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--blockquote-color:#222}}.anchor-link{text-decoration:none;color:#999;margin-right:.5em}.anchor-link:hover{color:#333;text-decoration:underline}</style></head><body><header><a href=/ class=title><h2>AJ Friend</h2></a><nav><a href=/>Home</a>
+#Goal: H3 cells to spherical polygons A collection of H3 cells describes a subset of the globe, and a common operation is to translate that set of cells into spherical polygons (e.g., a GeoJSON MultiPolygon) outlining the same region."><meta itemprop=datePublished content="2026-01-09T00:00:00+00:00"><meta itemprop=dateModified content="2026-01-09T00:00:00+00:00"><meta itemprop=wordCount content="2387"><meta name=referrer content="no-referrer-when-downgrade"><style>:root{--width:720px;--font-main:Verdana, sans-serif;--font-secondary:Verdana, sans-serif;--font-scale:1em;--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--blockquote-color:#222}@media(prefers-color-scheme:dark){:root{--background-color:#01242e;--heading-color:#eee;--text-color:#ddd;--link-color:#8cc2dd;--visited-color:#8b6fcb;--blockquote-color:#ccc}}body{font-family:var(--font-secondary);font-size:var(--font-scale);margin:auto;padding:20px;max-width:var(--width);text-align:left;background-color:var(--background-color);word-wrap:break-word;overflow-wrap:break-word;line-height:1.5;color:var(--text-color)}h1,h2,h3,h4,h5,h6{font-family:var(--font-main);color:var(--heading-color)}a{color:var(--link-color);cursor:pointer;text-decoration:none}a:hover{text-decoration:underline}nav a{margin-right:8px}strong,b{color:var(--heading-color)}button{margin:0;cursor:pointer}time{font-family:monospace;font-style:normal;font-size:15px}main{line-height:1.6}table{width:100%}hr{border:0;border-top:1px dashed}img{max-width:100%}code{font-family:monospace;padding:2px;border-radius:3px}blockquote{border-left:1px solid #999;color:var(--blockquote-color);padding-left:20px;font-style:italic}footer{padding:25px 0;text-align:center}.title:hover{text-decoration:none}.title h1{font-size:1.5em}.inline{width:auto!important}.highlight,.code{border-radius:3px;margin-block-start:1em;margin-block-end:1em;overflow-x:auto}ul.blog-posts{list-style-type:none;padding:unset}ul.blog-posts li{display:flex}ul.blog-posts li span{flex:0 0 130px}ul.blog-posts li a:visited{color:var(--visited-color)}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css integrity=sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+ crossorigin=anonymous><style>:root{--width:900px}p.caption{text-align:center;font-size:small;font-style:italic;margin-top:-1rem}h1.page-title{font-size:2.2rem;color:#111;margin-bottom:.2rem;border-bottom:2px solid #3273dc;padding-bottom:.3rem}main h1,main h2,main h3,main h4,main h5,main h6{font-weight:600;margin-top:2rem;margin-bottom:1rem}main h1{font-size:1.8rem}main h2{font-size:1.4rem}main h3{font-size:1.2rem}nav.toc{background:#f8f8f8;padding:1rem 1.5rem;margin-bottom:2rem;border-radius:4px}nav.toc h2{margin-top:0;font-size:1.1rem}nav.toc ul{margin:0;padding-left:1.5rem}nav.toc li{margin:.3rem 0}nav.toc a{text-decoration:none}nav.toc a:hover{text-decoration:underline}.highlight{background:#f6f8fa;border:1px solid #e1e4e8;border-radius:6px;margin:1.5rem 0;overflow-x:auto}.highlight pre{margin:0;padding:.1rem 1rem;background:0 0}.highlight code{font-size:.9rem;line-height:1.5;font-family:sf mono,Consolas,liberation mono,Menlo,monospace}.highlight .ln{color:#999;margin-right:1rem;user-select:none}code:not(.highlight code){background:#f0f0f0;padding:.15rem .4rem;border-radius:3px;font-size:.88em;font-family:sf mono,Consolas,liberation mono,Menlo,monospace}@media(prefers-color-scheme:dark){:root{--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--blockquote-color:#222}}.anchor-link{text-decoration:none;color:#999;margin-right:.5em}.anchor-link:hover{color:#333;text-decoration:underline}</style></head><body><header><a href=/ class=title><h2>AJ Friend</h2></a><nav><a href=/>Home</a>
 <a href=/blog>Blog</a>
 <a href=/software>Software</a>
 <a href=/notes>Notes</a></nav></header><main><h1 class=page-title>[WIP] Making H3's cells-to-polygon faster</h1><p><i><time datetime=2026-01-09>2026-01-09</time></i></p><nav class=toc><h2>Contents</h2><nav id=TableOfContents><ul><li><a href=#goal-h3-cells-to-spherical-polygons>Goal: H3 cells to spherical polygons</a></li><li><a href=#h3-cells-and-edges>H3 cells and edges</a><ul><li><a href=#directed-edge-preliminaries>Directed edge preliminaries</a></li></ul></li><li><a href=#general-idea-remove-symmetric-pairs>General idea: remove symmetric pairs</a><ul><li><a href=#example-one-hole>Example: one hole</a></li><li><a href=#implementation-notes-hash-table>Implementation notes: hash table</a><ul><li><a href=#python>Python</a></li><li><a href=#c>C</a></li></ul></li></ul></li><li><a href=#loops-of-edges>Loops of edges</a><ul><li><a href=#loop-surgery>Loop surgery</a><ul><li><a href=#example-four-cells>Example: four cells</a></li><li><a href=#example-disk>Example: disk</a></li><li><a href=#example-hole>Example: hole</a></li></ul></li><li><a href=#implementation-notes-doubly-linked-loops>Implementation notes: doubly-linked loops</a></li></ul></li><li><a href=#connected-components-partition-loops-into-polygons>Connected components partition loops into polygons</a></li><li><a href=#which-loop-is-outside>Which loop is &ldquo;outside&rdquo;?</a></li><li><a href=#notes>Notes</a></li></ul></nav></nav><content><p><strong>Note</strong>: This post is currently a quick-and-dirty attempt at explaining the algorithm
@@ -759,6 +759,320 @@ ring (with 6 degenerate pairs left to be removed):<figure style=text-align:cente
 and the <code>cellToEdgeArcs()</code> function puts the edges in the proper
 order for each cell and connects them in the doubly-linked loop.</p><p>In <code>cancelArcPairs()</code>, we perform the linked-loop surgery operation
 for each symmetric pair that we find.</p><h1 id=connected-components-partition-loops-into-polygons><a href=#connected-components-partition-loops-into-polygons class=anchor-link>#</a>Connected components partition loops into polygons</h1><p>So, so far we have the outer boundary of our polygons, along with the holes,
-and we have the loops of edges in the proper order.</p><p>TODO: edges example with multiple loops and polygons.</p><p>Plotting: make the connected components easier by just plotting the whole
+and we have the loops of edges in the proper order.</p><p>But how do we keep track of which loops (outer and holes) belong to which polygon? Recall the example with three polygons from the top of the page. It has
+six loops total, across three polygons:</p><p><div class=globe-container id=globe-gm23 style="max-width:600px;width:100%;aspect-ratio:1;margin:2em auto"></div><script type=module>
+  import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
+  import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
+  import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
+
+  (async function() {
+    const rawData = {"features":[{"geometry":{"coordinates":[[[[-179.170112546831,43.33462463706695],[179.9534193241767,38.728779390762334],[174.49688633843544,36.85680682151307],[174.02804175387834,32.1119243692579],[169.07436240121478,29.9547386287809],[168.91929058653923,25.257056432213375],[164.45727251367725,23.004725058862295],[164.53519134064652,18.52280839538614],[160.52670878987635,16.340968799924067],[160.7733897026288,12.194726726168003],[164.67056230846524,10.175448079467838],[164.7007803629394,8.237083943199265],[164.93539603741021,6.119591258608642],[168.3352524578736,4.467031609784524],[172.03418236939353,6.172978893164637],[175.46041201203371,4.248592317017825],[179.2171608248945,5.88992175431389],[-178.02519665249852,2.9040374505798114],[-174.31673738369324,3.8210244943304374],[-171.37544324872502,0.649870565576401],[-167.31261713417402,1.5147974903819574],[-164.25615857265893,-1.7743965588128086],[-159.93112334382027,-0.9446533902388665],[-156.8531091350144,-4.259065522271725],[-152.3980821982831,-3.4345808068957697],[-149.4028814909321,-6.672537737437516],[-144.9683236097968,-5.820413131280587],[-143.3961790952625,-1.706579969821454],[-138.95903110794228,-0.8353130739527114],[-137.3063271216714,3.372828505596593],[-132.96499017492758,4.158942627265325],[-131.26895225504,8.320295172124068],[-133.89520751564908,11.884131145297399],[-132.14080471892913,16.072271835802038],[-134.89965579269537,19.7532105149965],[-133.08381598345164,23.820431161854447],[-135.98689147817444,27.469138609544558],[-140.91889130500928,27.061192038819836],[-144.17342232410294,30.569950882968854],[-149.34707529879068,29.89183008460252],[-152.85043045733752,33.12732053866678],[-158.04649474959947,32.12156651323389],[-161.64707805135708,34.994006697107615],[-159.94762734735153,39.09941640444715],[-163.39292691687498,42.461841701752746],[-168.8876761772056,41.53861492567143],[-173.2513616288856,44.74985555511408],[-179.170112546831,43.33462463706695]],[[-157.6068486027842,20.259691594705036],[-156.08998858841755,24.696711258039056],[-151.04796662686522,25.669243623986258],[-147.69594788211106,22.16693900740581],[-142.7188705783351,22.885971422359724],[-139.6214919325493,19.2239309458196],[-141.37151007296615,14.881959131410003],[-138.42043748614526,11.22287623237951],[-140.12125038010964,6.870649308036964],[-144.72979242136543,6.045591181415267],[-146.33638072286848,1.6772949381945044],[-150.91862197114955,0.7969950664894166],[-154.0294052002189,4.260374459536214],[-158.59967491814012,3.335734857517349],[-161.77338167921764,6.766536253596436],[-160.44607430026895,11.231115019630433],[-163.71455965998953,14.623074892227512],[-162.39694129463984,19.114485874069658],[-157.6068486027842,20.259691594705036]],[[-178.95063664056067,17.74333218723816],[-175.45827111402537,15.285730312483953],[-176.35806599111405,11.05195584369349],[-178.23815999124182,10.46324037683843],[179.77693144202632,9.615942399155198],[176.28993210653294,11.794175727566111],[172.29426677728955,9.978189493251357],[168.53745793093609,12.10200548276957],[168.65279280829242,16.286127926718756],[172.88878640797157,18.30669067889132],[173.23062212965775,22.777763428069576],[177.84694371159145,24.75690942135447],[-178.22376950605553,22.092681232201556],[-178.95063664056067,17.74333218723816]],[[-175.56432922504848,35.741206971176496],[-170.27191812997154,37.14623592274974],[-166.5289282511271,33.96535450751626],[-167.88337203384341,29.62550789823012],[-172.64626329548403,28.20896181794974],[-176.54267313535857,31.148162090824524],[-175.56432922504848,35.741206971176496]]],[[[-137.16670054747664,34.7661254517022],[-136.19839496396796,36.53790229001989],[-135.31985086435014,38.551076772095065],[-138.45029122366302,41.45713981733577],[-143.8463112012841,41.20828589932378],[-147.45009391663316,44.09362423911828],[-153.03739182353243,43.44325276436556],[-154.78487065089823,39.9092677035244],[-151.12386440058128,37.032961967755135],[-145.74636904346727,37.68759229063255],[-142.3232078622538,34.454167617014946],[-137.16670054747664,34.7661254517022]]],[[[-147.80006555587835,9.62874721795654],[-146.16007687374923,14.110797540904425],[-149.3676428224656,17.73753035354521],[-154.25484084592026,16.797013674901503],[-155.7634836482284,12.265823643881989],[-152.5335322367957,8.71898308656318],[-147.80006555587835,9.62874721795654]]]],"type":"MultiPolygon"},"properties":{"fill":"#dc3545","fillOpacity":0.3,"stroke":"#dc3545","strokeWidth":2},"type":"Feature"}],"type":"FeatureCollection"};
+
+    if (!rawData || !rawData.features) {
+      console.error('globe_map: Invalid or missing data');
+      return;
+    }
+
+    
+    const featureCollection = {
+      type: rawData.type,
+      features: rawData.features.map(f => {
+        if (f.geometry.type === 'Polygon') {
+          return {
+            ...f,
+            geometry: {
+              ...f.geometry,
+              coordinates: f.geometry.coordinates.map(ring => ring.slice().reverse())
+            }
+          };
+        } else if (f.geometry.type === 'MultiPolygon') {
+          return {
+            ...f,
+            geometry: {
+              ...f.geometry,
+              coordinates: f.geometry.coordinates.map(polygon =>
+                polygon.map(ring => ring.slice().reverse())
+              )
+            }
+          };
+        }
+        return f;
+      })
+    };
+
+    const projection = "orthographic";
+    const isGlobe = projection === "orthographic";
+    const maxWidth =  600 ;
+    const arrowStep =  3 ;
+
+    const container = document.getElementById('globe-gm23');
+    const getSize = () => {
+      const width = container.offsetWidth || container.clientWidth;
+      const w = width > 0 ? Math.min(maxWidth, width) : maxWidth;
+      return { width: w, height: isGlobe ? w : w / 2 };
+    };
+
+    
+    const inputRotate = null;
+    const allPoints = [];
+    rawData.features.forEach(f => {
+      if (f.geometry.type === 'Point') {
+        allPoints.push(f.geometry.coordinates);
+      } else if (f.geometry.type === 'LineString') {
+        allPoints.push(...f.geometry.coordinates);
+      } else if (f.geometry.type === 'Polygon') {
+        f.geometry.coordinates.forEach(ring => allPoints.push(...ring));
+      } else if (f.geometry.type === 'MultiPolygon') {
+        f.geometry.coordinates.forEach(polygon =>
+          polygon.forEach(ring => allPoints.push(...ring))
+        );
+      }
+    });
+    const centroid = allPoints.length > 0
+      ? d3.geoCentroid({ type: 'MultiPoint', coordinates: allPoints })
+      : [0, 0];
+    const centerRotate = inputRotate
+      ? [-inputRotate[0], -inputRotate[1], inputRotate[2] ?? 0]
+      : [-centroid[0], -centroid[1], 0];
+    const size = getSize();
+    const localState = { width: size.width, height: size.height };
+
+    
+    if (!window.globeMapSync) {
+      window.globeMapSync = {
+        rotate: centerRotate,
+        centerRotate: centerRotate,
+        renders: []
+      };
+    }
+    const sync = window.globeMapSync;
+
+    
+    if (sync.renders.length === 0) {
+      sync.rotate = centerRotate;
+      sync.centerRotate = centerRotate;
+    }
+
+    if (!window.globeLandData) {
+      const landTopo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
+      window.globeLandData = feature(landTopo, landTopo.objects.land);
+    }
+    const land = window.globeLandData;
+
+    function render() {
+      const size = getSize();
+      localState.width = size.width;
+      localState.height = size.height;
+
+      const marks = [
+        Plot.geo(land, { stroke: '#88b', fill: 'none', strokeWidth: 0.8, strokeOpacity: 0.8 }),
+        Plot.graticule({ strokeOpacity: 0.06 })
+      ];
+
+      if (isGlobe) {
+        marks.push(Plot.sphere({ strokeWidth: 2 }));
+      } else {
+        marks.push(Plot.frame({ strokeWidth: 1 }));
+      }
+
+      
+      const polygons = {
+        type: 'FeatureCollection',
+        features: featureCollection.features.filter(f =>
+          f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+        )
+      };
+      const lines = {
+        type: 'FeatureCollection',
+        features: featureCollection.features.filter(f => f.geometry.type === 'LineString')
+      };
+      const points = {
+        type: 'FeatureCollection',
+        features: featureCollection.features.filter(f => f.geometry.type === 'Point')
+      };
+
+      
+      if (polygons.features.length > 0) {
+        marks.push(Plot.geo(polygons, {
+          fill: d => d.properties?.fill || 'red',
+          fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
+          stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
+          strokeWidth: d => d.properties?.strokeWidth ?? 1,
+          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
+        }));
+
+        
+        if (arrowStep > 0) {
+          let edgeIndex = 0;
+          
+          rawData.features.forEach(f => {
+            if (f.geometry.type !== 'Polygon' && f.geometry.type !== 'MultiPolygon') return;
+            const stroke = f.properties?.stroke || f.properties?.fill || 'red';
+            const strokeWidth = f.properties?.strokeWidth ?? 1;
+            const rings = f.geometry.type === 'Polygon'
+              ? f.geometry.coordinates
+              : f.geometry.coordinates.flat();
+            rings.forEach(ring => {
+              for (let i = 0; i < ring.length - 1; i++) {
+                if (edgeIndex % arrowStep === 0) {
+                  const interpolate = d3.geoInterpolate(ring[i], ring[i + 1]);
+                  marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
+                    x: d => d[0],
+                    y: d => d[1],
+                    markerEnd: 'arrow',
+                    stroke: 'darkred',
+                    strokeWidth: 1.5
+                  }));
+                }
+                edgeIndex++;
+              }
+            });
+          });
+        }
+      }
+
+      
+      if (lines.features.length > 0) {
+        marks.push(Plot.geo(lines, {
+          stroke: d => d.properties?.stroke || 'red',
+          strokeWidth: d => d.properties?.strokeWidth ?? 2.5,
+          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.9
+        }));
+
+        
+        lines.features.forEach(f => {
+          if (f.properties?.arrow) {
+            const coords = f.geometry.coordinates;
+            for (let i = 0; i < coords.length - 1; i++) {
+              const interpolate = d3.geoInterpolate(coords[i], coords[i + 1]);
+              marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
+                x: d => d[0],
+                y: d => d[1],
+                markerEnd: 'arrow',
+                stroke: f.properties?.stroke || 'darkred',
+                strokeWidth: f.properties?.strokeWidth ?? 2
+              }));
+            }
+          }
+        });
+      }
+
+      
+      points.features.forEach(f => {
+        marks.push(Plot.geo(f, {
+          fill: f.properties?.fill || 'red',
+          stroke: f.properties?.stroke || 'darkred',
+          strokeWidth: f.properties?.strokeWidth ?? 1,
+          r: f.properties?.r ?? 5
+        }));
+      });
+
+      const projectionConfig = isGlobe
+        ? { type: projection, rotate: sync.rotate, inset: 1 }
+        : { type: projection };
+
+      const svg = Plot.plot({
+        width: localState.width,
+        height: localState.height,
+        projection: projectionConfig,
+        marks
+      });
+
+      container.innerHTML = '';
+      container.appendChild(svg);
+      if (isGlobe) {
+        attachDrag(svg);
+      }
+    }
+
+    window.addEventListener('resize', render);
+
+    
+    const versor = {
+      cartesian: function(e) {
+        const l = e[0] * Math.PI / 180, p = e[1] * Math.PI / 180, cp = Math.cos(p);
+        return [cp * Math.cos(l), cp * Math.sin(l), Math.sin(p)];
+      },
+      rotation: function(q) {
+        return [
+          Math.atan2(2 * (q[0] * q[1] + q[2] * q[3]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])) * 180 / Math.PI,
+          Math.asin(Math.max(-1, Math.min(1, 2 * (q[0] * q[2] - q[3] * q[1])))) * 180 / Math.PI,
+          Math.atan2(2 * (q[0] * q[3] + q[1] * q[2]), 1 - 2 * (q[2] * q[2] + q[3] * q[3])) * 180 / Math.PI
+        ];
+      },
+      delta: function(v0, v1) {
+        const w = this.cross(v0, v1), l = Math.sqrt(this.dot(w, w));
+        if (!l) return [1, 0, 0, 0];
+        const t = Math.acos(Math.max(-1, Math.min(1, this.dot(v0, v1)))) / 2, s = Math.sin(t);
+        return [Math.cos(t), w[2] / l * s, -w[1] / l * s, w[0] / l * s];
+      },
+      multiply: function(a, b) {
+        return [
+          a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3],
+          a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2],
+          a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1],
+          a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0]
+        ];
+      },
+      from: function(r) {
+        const l = r[0] / 2 * Math.PI / 180, p = r[1] / 2 * Math.PI / 180, g = r[2] / 2 * Math.PI / 180;
+        const sl = Math.sin(l), cl = Math.cos(l);
+        const sp = Math.sin(p), cp = Math.cos(p);
+        const sg = Math.sin(g), cg = Math.cos(g);
+        return [
+          cl * cp * cg + sl * sp * sg,
+          sl * cp * cg - cl * sp * sg,
+          cl * sp * cg + sl * cp * sg,
+          cl * cp * sg - sl * sp * cg
+        ];
+      },
+      cross: function(a, b) { return [a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]]; },
+      dot: function(a, b) { return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; }
+    };
+
+    function attachDrag(svg) {
+      const projection = d3.geoOrthographic()
+        .rotate(sync.rotate)
+        .translate([localState.width / 2, localState.height / 2])
+        .scale(Math.min(localState.width, localState.height) / 2 - 1);
+
+      let v0, q0, r0;
+
+      const drag = d3.drag()
+        .on('start', (event) => {
+          projection.rotate(sync.rotate).translate([localState.width / 2, localState.height / 2]).scale(Math.min(localState.width, localState.height) / 2 - 1);
+          const inv = projection.invert([event.x, event.y]);
+          if (inv) {
+            v0 = versor.cartesian(inv);
+            r0 = sync.rotate;
+            q0 = versor.from(r0);
+          }
+        })
+        .on('drag', (event) => {
+          if (!v0) return;
+          projection.rotate(r0);
+          const inv = projection.invert([event.x, event.y]);
+          if (!inv) return;
+          const v1 = versor.cartesian(inv);
+          const delta = versor.delta(v0, v1);
+          const q1 = versor.multiply(q0, delta);
+          sync.rotate = versor.rotation(q1);
+          
+          sync.renders.forEach(r => r());
+        });
+
+      d3.select(svg).call(drag);
+      d3.select(svg).on('dblclick', () => {
+        sync.rotate = sync.centerRotate.slice();
+        sync.renders.forEach(r => r());
+      });
+    }
+
+    
+    sync.renders.push(render);
+
+    render();
+  })();
+</script><p class=caption>Six loops, each belonging to one of three polygons. Which loops group together into a polygon?</p></p><p>Plotting: make the connected components easier by just plotting the whole
 H3 cell, then i don&rsquo;t have to do the bits to connect the shrunken cells.</p><h1 id=which-loop-is-outside><a href=#which-loop-is-outside class=anchor-link>#</a>Which loop is &ldquo;outside&rdquo;?</h1><p>In a polygon, one loop is <em>special</em>. The outer loop. the rest are holes.
 Actually, not relaly that special. any loop can be the outer loop and still mathematical describe the same polygon, even if it is an unintuitive format.</p><p>a tricky one might look like: blah</p><h1 id=notes><a href=#notes class=anchor-link>#</a>Notes</h1><ul><li>maybe do a <strong>Summary</strong> section at the end of each, and also a <strong>Code</strong> section, that might ligthen it up? or is it helpful to have the code snippets in the doc inline?</li><li>separate out with Code section. can link multiple implementations. include the python one</li><li>end with some fun, tricky examples</li></ul></content><p></p></main><footer>© 2025 AJ Friend · Made with <a href=https://github.com/janraasch/hugo-bearblog/>Hugo ʕ•ᴥ•ʔ Bear</a></footer></body></html>
