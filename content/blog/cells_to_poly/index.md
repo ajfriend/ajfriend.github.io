@@ -193,7 +193,7 @@ for an edge. We'll only focus on the parts we need for symmetric pair cancellati
 ```c
 typedef struct Arc {
     H3Index id;  // directed edge index
-    // ... (additional state)
+    // ...
 } Arc;
 ```
 
@@ -227,19 +227,17 @@ Arc *b = findArc(arcset, reversedEdge);
 
 We use a simple linear probing scheme with `numBuckets = 10 * numArcs` to keep collisions low. In the future, an improved algorithm could use less memory without sacrificing lookup speed. (Suggestions welcome!)
 
-After initializing the `ArcSet`, we can perform the edge cancellation as follows (in rough pseudocode):
+After initializing the `ArcSet`, we can perform the edge cancellation with the C function `cancelArcPairs()`, which roughly follows the pseudocode:
 
 1. loop through the `Arc`s (that haven't been removed yet) via the `ArcSet.arcs` array
 2. for each `Arc`, `a`, compute its reversed edge like `e_b = reverseDirectedEdge(a.id)`
 3. find the corresponding `Arc` via the hash table with `Arc *b = findArc(arcset, e_b)`
 4. with both `Arc`s in hand, we can mark both as removed:
-
-<!-- TODO: is there a way to make this code block part of the list? -->
-```c
-a->isRemoved = true;
-b->isRemoved = true;
-```
-5. do some additional work around loops and connected components, but we'll cover that in the upcoming sections.
+    ```c
+    a->isRemoved = true;
+    b->isRemoved = true;
+    ```
+5. Note that we do some additional work around loops and connected components, but we'll cover that in the upcoming sections.
 
 The edges remaining afer cancellation (those with `isRemoved = false`) are the
 ones that make up the polygon boundaries.
@@ -248,23 +246,18 @@ boundary edges.  Next, we'll discuss the additional strucutre we need
 to keep track of to form the polygons.
 
 
-# Rings of edges
+# Loops of edges
 
-we can go back to the idea of trying to figure out which one is which.
+Above, we found the **set** of edges that make up the polygon boundary.
+But how do we construct or maintain the ordering of edges so that we can construct the ordered loops of lat/lng points that make up polygon outer loops
+and holes?
 
-but what if we can exploit the fact that these edges are already sorted
-in each cell. (ed: how do we demonstrate the loop?)
+Recall from ["Directed edge preliminaries"](#directed-edge-preliminaries) that we can order the edges of individual cells so that they are in counter-clockwise order:
 
-the hash table finds the `Arc` (pair of arcs) we want to work on. we once that's in hand,
-we can do a few other things, like modify the linked-loop and keep
-track of connected components.
+{{< fig src="code/figs/single_cell.svg" >}}
 
-
-
-Each H3 cell has 6 directed edges (5 for pentagons) that we can enumerate
-in counter-clockwise order. We store each edge in an `Arc` struct, using
-`next` and `prev` pointers to form a doubly-linked list of the edges surrounding that cell:
-
+To keep track of this ordering each `Arc` maintains `prev` and `next` pointers,
+which we use to construct doublye-linked lists of `Arc`s:
 ```c
 typedef struct Arc {
     H3Index id;       // directed edge index
@@ -274,33 +267,14 @@ typedef struct Arc {
 } Arc;
 ```
 
-H3's `originToDirectedEdges` returns edges in a fixed order, but not
-counter-clockwise. We reorder them:
+When we initialize the `ArcSet` in `createArcSet()`, we assign the pointers
+so that each individual cell corresponds to a separate doubly-linked loop
+of edges/`Arcs`.
 
-```c
-static const uint8_t idxh[6] = {0, 4, 3, 5, 1, 2};  // hexagons
-static const uint8_t idxp[5] = {0, 1, 3, 2, 4};     // pentagons
-```
+Now, `ArcSet` starts in a state where we have a set of valid doubly-linked loops.
+The big idea is, with each edge pair cancellation, to **maintain that valid
+state of linked loops**.
 
-{{< fig src="code/figs/single_cell.svg" >}}
-
-For each cell in the input set, we create its 5 or 6 arcs and doubly-link them into a loop of `Arc`s (work done by `cellToEdgeArcs`). We store all the `Arc`s in an `ArcSet` so that we can iterate through the `Arc`/edges them later. Note that, at this point, the loops from different cells are disjoint from one another.
-
-```c
-typedef struct {
-    int64_t numArcs;
-    Arc *arcs;
-    // ...
-} ArcSet;
-```
-
-For this loop, and the loops we'll have later on, we can call `directedEdgeToBoundary` to get the lat/lng coordinates of the edge vertices.
-
-# Edge cancellation
-
-The main idea of the algorithm is that we start with valid loops (small loops around cells), find pairs of edges that cancel each other out,
-remove the pairs of edges, and stitch together the loops---all while
-**maintaining valid loops the whole time**.
 
 For example, if we were to start with two neighboring cells, with two disjoint loops, the `ArcSet` would initially correspond to this picture:
 
@@ -310,11 +284,12 @@ After canceling the pair of edges, the `ArcSet` would look like this:
 
 {{< fig src="code/figs/two_cells_after.svg" width="600px" caption="After canceling pairs of edges." >}}
 
-Note that the edges stay in a counter-clockwise loop.
+Note that the edges stay in a counter-clockwise loop. But how do we update the
+doubly-linked loops?
 
 ## Loop surgery
 
-When canceling edges `a` and `b`, we splice them out by reconnecting their neighbors.
+When canceling a symmetric pair of edges `a` and `b`, we splice them out by reconnecting their neighbors.
 
 The edges in the loops are initially chained like:
 
@@ -325,7 +300,10 @@ b^- &\to b \to b^+
 \end{aligned}
 $$
 
+which we can also see in the two cell diagram:
+
 {{< fig src="code/figs/two_cells_before_labels.svg" >}}
+{{< caption >}}Two loops and the relevant edges before surgery.{{< /caption >}}
 
 After removing edges `a` and `b`, we recconect their surrounding edges like
 the following, which merges the two loops into one counter-clockwise loop,
@@ -339,6 +317,7 @@ b^- &\to a^+
 $$
 
 {{< fig src="code/figs/two_cells_after_labels.svg" >}}
+{{< caption >}}The resulting single loop after surgery.{{< /caption >}}
 
 
 In the C code, this looks like the following, where `a` and `b` are `Arc` structs:
@@ -350,22 +329,21 @@ b->next->prev = a->prev;
 b->prev->next = a->next;
 ```
 
-## Other edge cancellation examples
+### Example: four cells
 
-Luckily, the loop surgery logic above works in all possible cases.
-
+Luckily, the loop surgery logic above works in all possible cases and in any order. Consider the following sequence of symmetric pair removals. Since we've already seen it, we start with two pairs of cells with the common edges removed:
 
 {{< fig src="code/figs/four_cells_0.svg" >}}
 {{< fig src="code/figs/four_cells_1.svg" >}}
 {{< fig src="code/figs/four_cells_2.svg" >}}
 {{< fig src="code/figs/four_cells_3.svg" >}}
 
-Note that we can remove the edges in any order. Even the following is
+Note that we can **remove edges in any order**. The following is
 a completely valid set of two linked-loops (even though the edges in the middle don't enclose any area and will need to be ultimately removed before we form proper polygons):
 
 {{< fig src="code/figs/four_cells_4.svg" >}}
 
-### Disk
+### Example: disk
 
 {{< fig src="code/figs/disk_0.svg" >}}
 
@@ -376,7 +354,7 @@ ring (with 6 degenerate pairs left to be removed):
 {{< fig src="code/figs/disk_2.svg" >}}
 
 
-### Hole
+### Example: hole
 
 Note that canceling edges might split up rings:
 
@@ -384,6 +362,14 @@ Note that canceling edges might split up rings:
 {{< fig src="code/figs/ring_1.svg" >}}
 {{< fig src="code/figs/ring_2.svg" >}}
 
+## Implementation notes: doubly-linked loops
+
+In [uber/h3 #1113](https://github.com/uber/h3/pull/1113), we initialize the edges from cells in `createArcSet()`,
+and the `cellToEdgeArcs()` function puts the edges in the proper
+order for each cell and connects them in the doubly-linked loop.
+
+In `cancelArcPairs()`, we perform the linked-loop surgery operation
+for each symmetric pair that we find.
 
 # Connected components partition loops into polygons
 
