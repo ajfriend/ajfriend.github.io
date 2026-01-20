@@ -375,24 +375,24 @@ for each symmetric pair that we find.
 
 # Connected components partition loops into polygons
 
-So, so far we have the outer boundary of our polygons, along with the holes,
+So far we have the outer boundary of our polygons, along with the holes,
 and we have the loops of edges in the proper order.
 
 But how do we keep track of which loops (outer and holes) belong to which polygon? Recall the example with three polygons from the top of the page. It has
-six loops total, across three polygons:
+six loops total, across three polygons, but can we determine the grouping?
 
-{{< globe_map data="data/intro_poly.json" width="600" arrowStep="3" >}}
+{{< fig src="code/figs/conn_comp_boundary_only.svg" width="800px" >}}
 {{< caption >}}Six loops, each belonging to one of three polygons. Which loops group together into a polygon?{{< /caption >}}
+
 
 one:
 {{< fig src="code/figs/conn_comp_all.svg" width="800px" >}}
 
 two:
-TODO: why isn't this figure rendering?
-{{< fig src="code/figs/figs/conn_comp_boundary.svg" width="800px" >}}
+{{< fig src="code/figs/conn_comp_joined.svg" width="800px" >}}
 
 three:
-{{< fig src="code/figs/conn_comp_joined.svg" width="800px" >}}
+{{< fig src="code/figs/conn_comp_boundary.svg" width="800px" >}}
 
 
 Plotting: make the connected components easier by just plotting the whole

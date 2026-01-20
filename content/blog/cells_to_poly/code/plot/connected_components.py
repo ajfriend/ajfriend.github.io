@@ -189,6 +189,9 @@ edges_to_remove = u.twinning(*edges_to_join)
 joined_edges_removed = edges - edges_to_remove
 plot_figure('figs/conn_comp_joined.svg', joined_edges_removed, joined_colors)
 
+# Plot 5: Boundary edges only, no background colors
+plot_figure('figs/conn_comp_boundary_only.svg', boundary_edges, no_colors)
+
 # Print remaining pair tuples from the "joined" case for the user
 remaining_pair_tuples = u.get_pair_tuples(joined_edges_removed)
 if remaining_pair_tuples:
