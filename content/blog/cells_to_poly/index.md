@@ -8,6 +8,8 @@ toc: true
 behind [cellsToMultiPolygon core algorithm #1113 · uber/h3](https://github.com/uber/h3/pull/1113). My plan is to grow this into a
 proper blog post with more context, background, etc.
 
+TODO: note the python implementation
+
 
 # Goal: H3 cells to spherical polygons
 
@@ -74,27 +76,55 @@ For any H3 cell, we can get the simple polygon of lat/lng points that describe i
 with the [`cellToBoundary()`](https://h3geo.org/docs/api/indexing#celltoboundary) function. We *could* operate on those points, using them to construct the MultiPolygon boundary, but this **continous** approach would involve floating point comparisons and error tolerances.
 As an alternative, we might look for a **discrete** approach, with discrete objects that are either present or not, can be hashed, and compared for exact, unambiguous equality. The **directed edges** that make up the H3 cell boundary are a great candidate.
 
-## Directed edges
+## Directed edge preliminaries
 
-give the function that provides it.
+In H3, a directed edge can be thought of as the boundary between two adjacent cells. Each edge has an **origin** cell and a **destination** cell.
+We can form the opposite or reversed edge by swapping the origin and destination
+cells. We can create an edge with [`cellsToDirectedEdge()`](https://h3geo.org/docs/api/uniedge#cellstodirectededge).
 
-TODO: origin destination, and then switch them below. describe right hand rule. Maybe these aren't shrunk yet.
+The convention we'll use in this post will be to plot an arrow along the edge,
+with the origin cell on the left (from the arrow's perspective.)
 
 {{< fig src="code/figs/directed_edge.svg" >}}
+{{< caption >}}An H3 directed edge and its reverse edge. Note the orientation of the arrow with respect to the origin cell.{{< /caption >}}
 
+Also, we can get the lat/lng points that make up the edge from [`directedEdgeToBoundary()`](https://h3geo.org/docs/api/uniedge#directededgetoboundary), and they're returned in the order that aligns with the arrow: first point at the tail of the arrow, and last point at the tip. (Note that due to icosahedron distortions, some H3 edges have a "kink" in them, and thus have three points instead of just two.)
 
-whenever we're plotting more than one cell, where the edges might conflict...
+Plotting the edges for a single H3 hexagon, we see that these components align with [the right-hand rule for spherical polygons
+that GeoJSON conforms to](https://gis.stackexchange.com/questions/259944/polygons-and-multipolygons-should-follow-the-right-hand-rule). That is,
+if we take the edges in order and extract their lat/lng points, we get a sequence
+of points in counter-clockwise order around the cell. Note that the last
+point of an edge is the first point of the following edge.
 
-To avoid plotting two opposite edges on top of each other, we'll shrink
-each edge towards its origin cell's center:
+{{< fig src="code/figs/single_cell_directed_edges.svg" >}}
+
+Note that this almost acheives our goal (at least for a single cell): we can recover a list of lat/lng points in counter-clockwise order denoting the outer
+loop of a spherical polygon.
+
+However, the order of the edges is important. Note that
+[`originToDirectedEdges()`](https://h3geo.org/docs/api/uniedge#origintodirectededges) doesn't automatically return directed edges
+in counter-clockwise order, but we can permute them so that that's the case---and the same permutation works for every H3 cell. We'll get into using
+the ordering later on, but for now I'll just note that we hard code the permutation in the PR with something like
+
+```c
+static const uint8_t idxh[6] = {0, 4, 3, 5, 1, 2};  // hexagons
+static const uint8_t idxp[5] = {0, 1, 3, 2, 4};     // pentagons
+```
+
+Whenever we're plotting more than one cell, edges will overlap with their opposites. To visually distinguish them in most of the plots below, we'll
+shrink the directed edges towards the center of their origin cell:
 
 {{< fig src="code/figs/two_cells_edges.svg" >}}
-
-Maybe this is where we mention we can put the edges in order? Maybe not...
-maybe we hold that off until after the cancellation talk.
+{{< caption >}}Two cells with their associated directed edges shrunk towards the centers to avoid overlaps. Note the pair of opposite edges in red.{{< /caption >}}
 
 
-# General idea: cancel out the edges
+# General idea: cancel out the edge pairs
+
+
+The last image should have suggested an idea. plot out all the edges
+and just cancel the reversed pairs. what's left is the boundary of the polygon.
+And we can get the lat/lng from each! (what we don't get at this point is...)
+
 
 So how do we get the outline? Well, looking at edges, we see we can just
 cancel out the pairs and the outline remains.
