@@ -59,7 +59,7 @@ cells = [
 </div>
 
 GeoJSON is just one format we can use for describing spherical polygons,
-but the algortihm we cover here here is applicable
+but the algorithm we cover here is applicable
 to any similar format, and its easy to translate between them.
 I wrote up my thoughts on ["ideal" spherical polygons in another post](/blog/sphere_poly/), but to summarize, we want to output spherical polygons such that:
 
@@ -73,7 +73,7 @@ How do we do this translation? Let's start by considering components of
 H3 cells and what we can do with them.
 
 For any H3 cell, we can get the simple polygon of lat/lng points that describe it. In the H3 C library or in the bindings, you can get those points
-with the [`cellToBoundary()`](https://h3geo.org/docs/api/indexing#celltoboundary) function. We *could* operate on those points, gathering them for each cell, and using them to construct the MultiPolygon boundary, but this **continous** approach would involve floating point comparisons and error tolerances.
+with the [`cellToBoundary()`](https://h3geo.org/docs/api/indexing#celltoboundary) function. We *could* operate on those points, gathering them for each cell, and using them to construct the MultiPolygon boundary, but this **continuous** approach would involve floating point comparisons and error tolerances.
 As an alternative, we might look for a **discrete** approach, with discrete objects that are either present or not, can be hashed, and compared for exact, unambiguous equality. The **directed edges** that make up the H3 cell boundary are a great candidate.
 
 ## Directed edge preliminaries
@@ -152,7 +152,7 @@ counter-clockwise order. (This figure doesn't represent the actual locations of 
 {{< fig src="code/figs/ring_1.svg" >}}
 {{< caption >}}A (geometrically) degenerate, but intermediate counter-clockwise loop. {{< /caption >}}
 
-When the final symmetric pair is removed, we're left with two rings of edges: one outer loop in counter-clockwise order and one inner loop in clockwise order, deoting the hole missing from the polygon:
+When the final symmetric pair is removed, we're left with two rings of edges: one outer loop in counter-clockwise order and one inner loop in clockwise order, denoting the hole missing from the polygon:
 {{< fig src="code/figs/ring_2.svg" >}}
 {{< caption >}}An outer loop (counter-clockwise) and one hole loop (clockwise).{{< /caption >}}
 
@@ -242,7 +242,7 @@ After initializing the `ArcSet`, we can perform the edge cancellation with the C
 The edges remaining afer cancellation (those with `isRemoved = false`) are the
 ones that make up the polygon boundaries.
 But note that this logic just amounts to keeping track of the **set** of
-boundary edges.  Next, we'll discuss the additional strucutre we need
+boundary edges.  Next, we'll discuss the additional structure we need
 to keep track of to form the polygons.
 
 
@@ -257,7 +257,7 @@ Recall from ["Directed edge preliminaries"](#directed-edge-preliminaries) that w
 {{< fig src="code/figs/single_cell.svg" >}}
 
 To keep track of this ordering each `Arc` maintains `prev` and `next` pointers,
-which we use to construct doublye-linked lists of `Arc`s:
+which we use to construct doubly-linked lists of `Arc`s:
 ```c
 typedef struct Arc {
     H3Index id;       // directed edge index
@@ -362,6 +362,8 @@ Note that canceling edges might split up rings:
 {{< fig src="code/figs/ring_1.svg" >}}
 {{< fig src="code/figs/ring_2.svg" >}}
 
+Also note that the inner hole of this polygon has the desired clockwise orientation.
+
 ## Implementation notes: doubly-linked loops
 
 In [uber/h3 #1113](https://github.com/uber/h3/pull/1113), we initialize the edges from cells in `createArcSet()`,
@@ -372,6 +374,10 @@ In `cancelArcPairs()`, we perform the linked-loop surgery operation
 for each symmetric pair that we find.
 
 # Connected components partition loops into polygons
+
+So, so far we have the outer boundary of our polygons, along with the holes,
+and we have the loops of edges in the proper order.
+
 
 TODO: edges example with multiple loops and polygons.
 
