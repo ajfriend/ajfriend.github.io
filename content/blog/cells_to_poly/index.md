@@ -161,6 +161,8 @@ we need (beyond just the unordered set of edges) to describe the polygon.
 
 ## Implementation notes: hash table
 
+### Python
+
 In Python, just getting the set of cells and canceling out the symmetric
 pairs is pretty trivial. I would look something like:
 
@@ -179,8 +181,10 @@ reversed_edges = {
 boundary_edges = edges - reversed_edges
 ```
 
+### C
+
 In [uber/h3 #1113](https://github.com/uber/h3/pull/1113), we need to do a
-little more work, and set up the data structures we'll use to keep track of the
+little more work to set up the hashing we'll use to find the symmetric pairs, and we also need to set up the data structures we'll use to keep track of the
 additional information we'll need to create well-formed polygons.
 
 For each edge, we create an `Arc` struct to capture all the relevant information
@@ -200,7 +204,7 @@ looping through an array.
 In addition to iterating through the `Arc`s, we'll want to be able to quickly
 look them up by their H3 index so that we can remove symmetric pairs.
 For this, we create a simple hash table,
-corresponding to `buckets` and `numBuckets`.
+corresponding to `buckets` and `numBuckets` in `ArcSet`:
 
 ```c
 typedef struct {
@@ -211,9 +215,8 @@ typedef struct {
 } ArcSet;
 ```
 
-After initializing the `ArcSet` with all the intial loops from each individual
-cell, we loop through the `Arc`s (that haven't been removed yet), compute
-their reversed edge, look it up with the hash table, and mark `arc.isRemoved = true`. (We also do some additional work that we'll get to in the following sections.)
+The `createArcSet()` function initializes the `Arc`s from an array of H3 cells,
+and hashes all the edges for quick random lookup.
 
 For some `Arc` called `a`, we can get a pointer to its reverse edge (if it exists in the set) using `findArc`:
 
@@ -222,19 +225,27 @@ H3_EXPORT(reverseDirectedEdge)(a->id, &reversedEdge);
 Arc *b = findArc(arcset, reversedEdge);
 ```
 
-We can do what we want with this pair of edges `a` and `b`. For now, the first
-step is to mark them both as being removed:
+We use a simple linear probing scheme with `numBuckets = 10 * numArcs` to keep collisions low. In the future, an improved algorithm could use less memory without sacrificing lookup speed. (Suggestions welcome!)
 
+After initializing the `ArcSet`, we can perform the edge cancellation as follows (in rough pseudocode):
+
+1. loop through the `Arc`s (that haven't been removed yet) via the `ArcSet.arcs` array
+2. for each `Arc`, `a`, compute its reversed edge like `e_b = reverseDirectedEdge(a.id)`
+3. find the corresponding `Arc` via the hash table with `Arc *b = findArc(arcset, e_b)`
+4. with both `Arc`s in hand, we can mark both as removed:
+
+<!-- TODO: is there a way to make this code block part of the list? -->
 ```c
 a->isRemoved = true;
 b->isRemoved = true;
 ```
+5. do some additional work around loops and connected components, but we'll cover that in the upcoming sections.
 
-We use a simple linear probing scheme with `numBuckets = 10 * numArcs` to keep collisions low. In the future, an improved algorithm could use less memory without sacrificing lookup speed. (Suggestions welcome!)
-
-As mentioned, so far, this just covers keeping track of the **set** of
-edges we care about. Now we'll discuss the additional strucutre we need
-to keep track of.
+The edges remaining afer cancellation (those with `isRemoved = false`) are the
+ones that make up the polygon boundaries.
+But note that this logic just amounts to keeping track of the **set** of
+boundary edges.  Next, we'll discuss the additional strucutre we need
+to keep track of to form the polygons.
 
 
 # Rings of edges
@@ -300,31 +311,6 @@ After canceling the pair of edges, the `ArcSet` would look like this:
 {{< fig src="code/figs/two_cells_after.svg" width="600px" caption="After canceling pairs of edges." >}}
 
 Note that the edges stay in a counter-clockwise loop.
-
-## Finding edge pairs
-
-Every directed edge has an edge representing the opposite direction. To find pairs, we iterate through all arcs,
-compute the reverse with `reverseDirectedEdge`, and look it up in a hash table:
-
-```c
-H3_EXPORT(reverseDirectedEdge)(a->id, &reversedEdge);
-Arc *b = findArc(arcset, reversedEdge);
-```
-
-If `b` exists, we've found a pair to cancel. We mark both as removed with `isRemoved = true` in the `Arc` struct.
-
-The hash table lives in `ArcSet`:
-
-```c
-typedef struct {
-    int64_t numArcs;
-    Arc *arcs;
-    int64_t numBuckets;  // = 10 * numArcs
-    Arc **buckets;
-} ArcSet;
-```
-
-We use a simple linear probing scheme with `numBuckets = 10 * numArcs` to keep collisions low. In the future, an improved algorithm could use less memory without sacrificing lookup speed.
 
 ## Loop surgery
 
