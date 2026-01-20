@@ -205,16 +205,19 @@ def make_plot(filename, cells, edges_to_join=[], seed=42, show_colors=True):
         print("  (no remaining pairs)")
 
 
-# All edges, with background colors
-make_plot('figs/conn_comp_all.svg', cells, edges_to_join=[], seed=42, show_colors=True)
-
-# Boundary edges only, with background colors
 all_edges = u.cells_to_edges(cells)
 all_pairs = [t[0] for t in u.get_pair_tuples(all_edges)]
-make_plot('figs/conn_comp_boundary.svg', cells, edges_to_join=all_pairs, seed=42, show_colors=True)
 
 # Boundary edges only, no background colors
 make_plot('figs/conn_comp_boundary_only.svg', cells, edges_to_join=all_pairs, seed=42, show_colors=False)
 
+# All edges, with background colors
+make_plot('figs/conn_comp_all.svg', cells, edges_to_join=[], seed=42, show_colors=True)
+
 # Partial join, with background colors
 make_plot('figs/conn_comp_joined.svg', cells, edges_to_join=edges_to_join, seed=44, show_colors=True)
+
+# Boundary edges only, with background colors
+make_plot('figs/conn_comp_boundary.svg', cells, edges_to_join=all_pairs, seed=42, show_colors=True)
+
+
