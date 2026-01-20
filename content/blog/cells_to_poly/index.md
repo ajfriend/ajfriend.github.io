@@ -378,8 +378,12 @@ for each symmetric pair that we find.
 So, so far we have the outer boundary of our polygons, along with the holes,
 and we have the loops of edges in the proper order.
 
+But how do we keep track of which loops (outer and holes) belong to which polygon? Recall the example with three polygons from the top of the page. It has
+six loops total, across three polygons:
 
-TODO: edges example with multiple loops and polygons.
+{{< globe_map data="data/intro_poly.json" width="600" arrowStep="3" >}}
+{{< caption >}}Six loops, each belonging to one of three polygons. Which loops group together into a polygon?{{< /caption >}}
+
 
 Plotting: make the connected components easier by just plotting the whole
 H3 cell, then i don't have to do the bits to connect the shrunken cells.
