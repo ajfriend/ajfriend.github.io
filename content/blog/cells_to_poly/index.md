@@ -73,7 +73,7 @@ How do we do this translation? Let's start by considering components of
 H3 cells and what we can do with them.
 
 For any H3 cell, we can get the simple polygon of lat/lng points that describe it. In the H3 C library or in the bindings, you can get those points
-with the [`cellToBoundary()`](https://h3geo.org/docs/api/indexing#celltoboundary) function. We *could* operate on those points, using them to construct the MultiPolygon boundary, but this **continous** approach would involve floating point comparisons and error tolerances.
+with the [`cellToBoundary()`](https://h3geo.org/docs/api/indexing#celltoboundary) function. We *could* operate on those points, gathering them for each cell, and using them to construct the MultiPolygon boundary, but this **continous** approach would involve floating point comparisons and error tolerances.
 As an alternative, we might look for a **discrete** approach, with discrete objects that are either present or not, can be hashed, and compared for exact, unambiguous equality. The **directed edges** that make up the H3 cell boundary are a great candidate.
 
 ## Directed edge preliminaries
@@ -120,47 +120,124 @@ shrink the directed edges towards the center of their origin cell:
 We'll refer to an edge and its reversed edge a **symmetric pair**.
 
 
-# General idea: cancel the symmetric pairs
+# General idea: remove symmetric pairs
 
 That last image suggest an idea: for a set of cells $C$, if we get the set of all
 of the directed edges with origins belonging to $C$, we can then remove all
 the symmetric pairs (i.e., remove all the "internal" edges), and what we end up with is the set of directed edges making up the boundary of the polygon we're looking for.
 
-TODO: put these figures side by side, with the transition arrow → like we do above
-{{< fig src="code/figs/disk_0.svg" >}}
-{{< fig src="code/figs/disk_2.svg" >}}
+<div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0rem;">
+{{< fig src="code/figs/disk_0.svg" width="300px" >}}
+<span style="font-size: 2rem;">→</span>
+{{< fig src="code/figs/disk_2.svg" width="300px" >}}
+</div>
+{{< caption >}}Eliminating symmetric pairs of edges leaves us with the set of edges on the boundary.{{< /caption >}}
+
+Note that, so far, we've just described how to get the **set** of boundary edges.
+There's no notion yet of how we make sure the lat/lng points in the outer boundary are in counter-clockwise order, how we handle holes, or how we figure
+out which edges are part of which loop or polygon. We'll get to that below,
+but first we'll discuss the cancellation logic. (But do notice that if the edges *were* put in the correct order, we would have our desired counter-clockwise loop
+for this polygon's outer looop.)
+
+## Example: one hole
+
+Here's the symmetric pair cancellation procedure on another example.
+We start with 6 cells, with a center cell missing, and consider the full set of
+their edges:
+{{< fig src="code/figs/ring_0.svg" >}}
+{{< caption >}}Initial set of edges from six cells, with a central cell missing. Loops initially all counter-clockwise.{{< /caption >}}
+
+Eliminating all symmetric pairs but one leaves us with a single loop in
+counter-clockwise order. (This figure doesn't represent the actual locations of the edge endpoints since we've shrunk them, so it's true that this loop is degenerate in the sense that the symmetric pair of edges exactly overlap one another, but we're OK with that for this intermediate state, since they're about to be removed anyway.)
+{{< fig src="code/figs/ring_1.svg" >}}
+{{< caption >}}A (geometrically) degenerate, but intermediate counter-clockwise loop. {{< /caption >}}
+
+When the final symmetric pair is removed, we're left with two rings of edges: one outer loop in counter-clockwise order and one inner loop in clockwise order, deoting the hole missing from the polygon:
+{{< fig src="code/figs/ring_2.svg" >}}
+{{< caption >}}An outer loop (counter-clockwise) and one hole loop (clockwise).{{< /caption >}}
+
+The next major sections describe how we recover the additional information
+we need (beyond just the unordered set of edges) to describe the polygon.
+
+## Implementation notes: hash table
+
+In Python, just getting the set of cells and canceling out the symmetric
+pairs is pretty trivial. I would look something like:
+
+```python
+import h3
+
+edges = {
+    e
+    for h in cells
+    for e in h3.origin_to_directed_edges(h)
+}
+reversed_edges = {
+    h3.reverse_directed_edge(e)
+    for e in edges
+}
+boundary_edges = edges - reversed_edges
+```
+
+In [uber/h3 #1113](https://github.com/uber/h3/pull/1113), we need to do a
+little more work, and set up the data structures we'll use to keep track of the
+additional information we'll need to create well-formed polygons.
+
+For each edge, we create an `Arc` struct to capture all the relevant information
+for an edge. We'll only focus on the parts we need for symmetric pair cancellation in this section.
+
+```c
+typedef struct Arc {
+    H3Index id;  // directed edge index
+    // ... (additional state)
+} Arc;
+```
+
+For each cell in the input set, we create its 5 or 6 `Arc`s and store
+them in an `ArcSet`, so that we can iterate through the `Arc`/edges later on by
+looping through an array.
+
+In addition to iterating through the `Arc`s, we'll want to be able to quickly
+look them up by their H3 index so that we can remove symmetric pairs.
+For this, we create a simple hash table,
+corresponding to `buckets` and `numBuckets`.
+
+```c
+typedef struct {
+    int64_t numArcs;
+    Arc *arcs;
+    int64_t numBuckets;  // = 10 * numArcs
+    Arc **buckets;
+} ArcSet;
+```
+
+After initializing the `ArcSet` with all the intial loops from each individual
+cell, we loop through the `Arc`s (that haven't been removed yet), compute
+their reversed edge, look it up with the hash table, and mark `arc.isRemoved = true`. (We also do some additional work that we'll get to in the following sections.)
+
+For some `Arc` called `a`, we can get a pointer to its reverse edge (if it exists in the set) using `findArc`:
+
+```c
+H3_EXPORT(reverseDirectedEdge)(a->id, &reversedEdge);
+Arc *b = findArc(arcset, reversedEdge);
+```
+
+We can do what we want with this pair of edges `a` and `b`. For now, the first
+step is to mark them both as being removed:
+
+```c
+a->isRemoved = true;
+b->isRemoved = true;
+```
+
+We use a simple linear probing scheme with `numBuckets = 10 * numArcs` to keep collisions low. In the future, an improved algorithm could use less memory without sacrificing lookup speed. (Suggestions welcome!)
+
+As mentioned, so far, this just covers keeping track of the **set** of
+edges we care about. Now we'll discuss the additional strucutre we need
+to keep track of.
 
 
-
-If we want to produce the polygon
-for two adjacent cells, we get their edges and cancel out the symmetric pair.
-What remains is the set of edges making up the boundary.
-
-TODO:
-
-This idea works in general. But note, so far, this just gives the set of edges,
-and we still need to work out....
-
-As another example, consider ...
-
-
-The last image should have suggested an idea. plot out all the edges
-and just cancel the reversed pairs. what's left is the boundary of the polygon.
-And we can get the lat/lng from each! (what we don't get at this point is...)
-
-
-So how do we get the outline? Well, looking at edges, we see we can just
-cancel out the pairs and the outline remains.
-
-However, we don't have the order of lat/lng points, we don't know what the loops are, which loops are part of which polygon, and which loops are outside and which are holes.
-
-
-
-in this version, we just show sets of edges first.
-
-compute the reverse. look for collisions.
-ok, but this just gives us the bag of edges.
-how do we get a loop in order?
+# Rings of edges
 
 we can go back to the idea of trying to figure out which one is which.
 
@@ -172,7 +249,6 @@ we can do a few other things, like modify the linked-loop and keep
 track of connected components.
 
 
-# Rings of edges
 
 Each H3 cell has 6 directed edges (5 for pentagons) that we can enumerate
 in counter-clockwise order. We store each edge in an `Arc` struct, using
