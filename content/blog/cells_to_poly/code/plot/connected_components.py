@@ -2,6 +2,7 @@ import util as u
 import h3
 import matplotlib.pyplot as plt
 import random
+import pprint
 random.seed(42)
 
 cells = [
@@ -39,6 +40,9 @@ cells = [
 ]
 
 edges = u.cells_to_edges(cells)
+
+pair_tuples = u.get_pair_tuples(edges)
+pprint.pprint(pair_tuples)
 
 # Graph coloring for cell outlines
 colors = plt.cm.get_cmap('tab20').colors
