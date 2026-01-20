@@ -3,17 +3,21 @@
  &lt;img src="figs/83754efffffffff.png" alt="Bin plot" style="cursor: zoom-in;" loading="lazy"&gt;
 &lt;/a&gt;
 
-&lt;h1 id="globes"&gt;Globes&lt;/h1&gt;
+&lt;h1 id="globes"&gt;
+ &lt;a href="#globes" class="anchor-link"&gt;#&lt;/a&gt;Globes&lt;/h1&gt;
 &lt;p&gt;&lt;img src="figs/globe0.png" alt="Globe 0"&gt;
 &lt;img src="figs/globe1.png" alt="Globe 1"&gt;
 &lt;img src="figs/globe2.png" alt="Globe 2"&gt;&lt;/p&gt;</description></item><item><title>Reproducible Plots Example</title><link>https://ajfriend.com/notes/reproducible_plots/</link><pubDate>Mon, 15 Dec 2025 00:00:00 +0000</pubDate><guid>https://ajfriend.com/notes/reproducible_plots/</guid><description>&lt;p&gt;This post demonstrates keeping Python code and generated figures together with the post content.&lt;/p&gt;
-&lt;h2 id="sine-and-cosine-waves"&gt;Sine and Cosine Waves&lt;/h2&gt;
+&lt;h2 id="sine-and-cosine-waves"&gt;
+ &lt;a href="#sine-and-cosine-waves" class="anchor-link"&gt;##&lt;/a&gt;Sine and Cosine Waves&lt;/h2&gt;
 &lt;p&gt;Here&amp;rsquo;s a simple plot of sine and cosine functions generated with matplotlib:&lt;/p&gt;
 &lt;p&gt;&lt;img src="images/trig_functions.png" alt="Sine and Cosine"&gt;&lt;/p&gt;
-&lt;h2 id="random-walk"&gt;Random Walk&lt;/h2&gt;
+&lt;h2 id="random-walk"&gt;
+ &lt;a href="#random-walk" class="anchor-link"&gt;##&lt;/a&gt;Random Walk&lt;/h2&gt;
 &lt;p&gt;A visualization of a 2D random walk with 1000 steps:&lt;/p&gt;
 &lt;p&gt;&lt;img src="images/random_walk.png" alt="Random Walk"&gt;&lt;/p&gt;
-&lt;h2 id="regenerating-the-figures"&gt;Regenerating the Figures&lt;/h2&gt;
+&lt;h2 id="regenerating-the-figures"&gt;
+ &lt;a href="#regenerating-the-figures" class="anchor-link"&gt;##&lt;/a&gt;Regenerating the Figures&lt;/h2&gt;
 &lt;p&gt;All figures in this post are generated from Python code in the &lt;code&gt;code/&lt;/code&gt; directory. The project uses &lt;a href="https://docs.astral.sh/uv/"&gt;uv&lt;/a&gt; to manage dependencies, ensuring reproducibility across different environments and Python versions.&lt;/p&gt;</description></item><item><title>Spherical Aspect Ratio</title><link>https://ajfriend.com/notes/sphere_aspect_ratio/</link><pubDate>Mon, 15 Dec 2025 00:00:00 +0000</pubDate><guid>https://ajfriend.com/notes/sphere_aspect_ratio/</guid><description>&lt;p&gt;We can compute the spherical aspect ratio&lt;/p&gt;
 &lt;p&gt;TODO: worry about the 
  &lt;span class="katex"&gt;&lt;span class="katex-html" aria-hidden="true"&gt;&lt;span class="base"&gt;&lt;span class="strut" style="height:0.888em;"&gt;&lt;/span&gt;&lt;span class="mord"&gt;&lt;span class="mord mathnormal"&gt;A&lt;/span&gt;&lt;span class="msupsub"&gt;&lt;span class="vlist-t"&gt;&lt;span class="vlist-r"&gt;&lt;span class="vlist" style="height:0.888em;"&gt;&lt;span style="top:-3.063em;margin-right:0.05em;"&gt;&lt;span class="pstrut" style="height:2.7em;"&gt;&lt;/span&gt;&lt;span class="sizing reset-size6 size3 mtight"&gt;&lt;span class="mord mtight"&gt;&lt;span class="mord mtight"&gt;1/2&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Home on AJ Friend</title><link>https://ajfriend.com/</link><description>Recent content in Home on AJ Friend</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Fri, 09 Jan 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://ajfriend.com/index.xml" rel="self" type="application/rss+xml"/><item><title>[WIP] Making H3's cells-to-polygon faster</title><link>https://ajfriend.com/blog/cells_to_poly/</link><pubDate>Fri, 09 Jan 2026 00:00:00 +0000</pubDate><guid>https://ajfriend.com/blog/cells_to_poly/</guid><description>&lt;p&gt;&lt;strong&gt;Note&lt;/strong&gt;: This post is currently a quick-and-dirty attempt at explaining the algorithm
 behind &lt;a href="https://github.com/uber/h3/pull/1113"&gt;cellsToMultiPolygon core algorithm #1113 · uber/h3&lt;/a&gt;. My plan is to grow this into a
 proper blog post with more context, background, etc.&lt;/p&gt;
-&lt;h1 id="goal-h3-cells-to-spherical-polygons"&gt;Goal: H3 cells to spherical polygons&lt;/h1&gt;
+&lt;p&gt;TODO: note the python implementation&lt;/p&gt;
+&lt;h1 id="goal-h3-cells-to-spherical-polygons"&gt;
+ &lt;a href="#goal-h3-cells-to-spherical-polygons" class="anchor-link"&gt;#&lt;/a&gt;Goal: H3 cells to spherical polygons&lt;/h1&gt;
 &lt;p&gt;A collection of &lt;a href="https://h3geo.org/"&gt;H3 cells&lt;/a&gt; describes a subset of the globe,
 and a common operation is to translate that set of cells into spherical polygons
 (e.g., a &lt;a href="https://geojson.org/"&gt;GeoJSON&lt;/a&gt; &lt;code&gt;MultiPolygon&lt;/code&gt;) outlining the same region.&lt;/p&gt;</description></item><item><title>[WIP] Computing Spherical Polygon Areas</title><link>https://ajfriend.com/blog/sphere_poly_area/</link><pubDate>Sat, 03 Jan 2026 00:00:00 +0000</pubDate><guid>https://ajfriend.com/blog/sphere_poly_area/</guid><description>&lt;script src="https://cdn.jsdelivr.net/npm/d3@7"&gt;&lt;/script&gt;
@@ -21,7 +23,8 @@ in the right way.&lt;/p&gt;
 &lt;p&gt;This is my take on &amp;ldquo;the right way&amp;rdquo;. Note that these ideas are not new, and if other
 systems do something different, it is probably because they are constrained by supporting historical formats. (TODO: maybe discuss some differences in an appendix.
 2d-native, non-geodesic lines)&lt;/p&gt;</description></item><item><title>Notes on justfiles</title><link>https://ajfriend.com/blog/using_just/</link><pubDate>Thu, 01 Jan 2026 00:00:00 +0000</pubDate><guid>https://ajfriend.com/blog/using_just/</guid><description>&lt;p&gt;Some notes&amp;mdash;mostly for myself&amp;mdash;around how I use &lt;a href="https://github.com/casey/just"&gt;&lt;code&gt;just&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
-&lt;h1 id="clean-recipe"&gt;Clean recipe&lt;/h1&gt;
+&lt;h1 id="clean-recipe"&gt;
+ &lt;a href="#clean-recipe" class="anchor-link"&gt;#&lt;/a&gt;Clean recipe&lt;/h1&gt;
 &lt;div class="highlight"&gt;&lt;pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-justfile" data-lang="justfile"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#06287e"&gt;clean&lt;/span&gt;&lt;span style="color:#666"&gt;:&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; just _rm env
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; just _rm .venv
@@ -31,7 +34,8 @@ systems do something different, it is probably because they are constrained by s
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#06287e"&gt;_rm pattern&lt;/span&gt;&lt;span style="color:#666"&gt;:&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; -@find . -name &lt;span style="color:#4070a0"&gt;&amp;#34;{{pattern}}&amp;#34;&lt;/span&gt; -prune -exec rm -rf &lt;span style="color:#666"&gt;{}&lt;/span&gt; +
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Alternatively, there&amp;rsquo;s &lt;code&gt;git clean -fdx&lt;/code&gt;, but I don&amp;rsquo;t use that often.&lt;/p&gt;
-&lt;h1 id="uv"&gt;UV&lt;/h1&gt;
+&lt;h1 id="uv"&gt;
+ &lt;a href="#uv" class="anchor-link"&gt;#&lt;/a&gt;UV&lt;/h1&gt;
 &lt;p&gt;&lt;a href="https://docs.astral.sh/uv/"&gt;&lt;code&gt;uv&lt;/code&gt;&lt;/a&gt; is great, but I really wish it had an &amp;ldquo;online, but best effort when offline&amp;rdquo;
 for retrieving packages, so that I can work seamlessly when my laptop
 doesn&amp;rsquo;t have an internet connection.&lt;/p&gt;</description></item><item><title>Big Figures</title><link>https://ajfriend.com/notes/big_figs/</link><pubDate>Mon, 15 Dec 2025 00:00:00 +0000</pubDate><guid>https://ajfriend.com/notes/big_figs/</guid><description>&lt;p&gt;Can i plot some big figs?&lt;/p&gt;
@@ -39,17 +43,21 @@ doesn&amp;rsquo;t have an internet connection.&lt;/p&gt;</description></item><it
  &lt;img src="figs/83754efffffffff.png" alt="Bin plot" style="cursor: zoom-in;" loading="lazy"&gt;
 &lt;/a&gt;
 
-&lt;h1 id="globes"&gt;Globes&lt;/h1&gt;
+&lt;h1 id="globes"&gt;
+ &lt;a href="#globes" class="anchor-link"&gt;#&lt;/a&gt;Globes&lt;/h1&gt;
 &lt;p&gt;&lt;img src="figs/globe0.png" alt="Globe 0"&gt;
 &lt;img src="figs/globe1.png" alt="Globe 1"&gt;
 &lt;img src="figs/globe2.png" alt="Globe 2"&gt;&lt;/p&gt;</description></item><item><title>Reproducible Plots Example</title><link>https://ajfriend.com/notes/reproducible_plots/</link><pubDate>Mon, 15 Dec 2025 00:00:00 +0000</pubDate><guid>https://ajfriend.com/notes/reproducible_plots/</guid><description>&lt;p&gt;This post demonstrates keeping Python code and generated figures together with the post content.&lt;/p&gt;
-&lt;h2 id="sine-and-cosine-waves"&gt;Sine and Cosine Waves&lt;/h2&gt;
+&lt;h2 id="sine-and-cosine-waves"&gt;
+ &lt;a href="#sine-and-cosine-waves" class="anchor-link"&gt;##&lt;/a&gt;Sine and Cosine Waves&lt;/h2&gt;
 &lt;p&gt;Here&amp;rsquo;s a simple plot of sine and cosine functions generated with matplotlib:&lt;/p&gt;
 &lt;p&gt;&lt;img src="images/trig_functions.png" alt="Sine and Cosine"&gt;&lt;/p&gt;
-&lt;h2 id="random-walk"&gt;Random Walk&lt;/h2&gt;
+&lt;h2 id="random-walk"&gt;
+ &lt;a href="#random-walk" class="anchor-link"&gt;##&lt;/a&gt;Random Walk&lt;/h2&gt;
 &lt;p&gt;A visualization of a 2D random walk with 1000 steps:&lt;/p&gt;
 &lt;p&gt;&lt;img src="images/random_walk.png" alt="Random Walk"&gt;&lt;/p&gt;
-&lt;h2 id="regenerating-the-figures"&gt;Regenerating the Figures&lt;/h2&gt;
+&lt;h2 id="regenerating-the-figures"&gt;
+ &lt;a href="#regenerating-the-figures" class="anchor-link"&gt;##&lt;/a&gt;Regenerating the Figures&lt;/h2&gt;
 &lt;p&gt;All figures in this post are generated from Python code in the &lt;code&gt;code/&lt;/code&gt; directory. The project uses &lt;a href="https://docs.astral.sh/uv/"&gt;uv&lt;/a&gt; to manage dependencies, ensuring reproducibility across different environments and Python versions.&lt;/p&gt;</description></item><item><title>Software</title><link>https://ajfriend.com/software/</link><pubDate>Mon, 15 Dec 2025 00:00:00 +0000</pubDate><guid>https://ajfriend.com/software/</guid><description>&lt;p&gt;&lt;strong&gt;Software&lt;/strong&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;&lt;a href="https://github.com/uber/h3-py"&gt;h3-py&lt;/a&gt;&lt;/strong&gt;
