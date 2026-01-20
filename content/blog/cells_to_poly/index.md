@@ -384,8 +384,15 @@ six loops total, across three polygons:
 {{< globe_map data="data/intro_poly.json" width="600" arrowStep="3" >}}
 {{< caption >}}Six loops, each belonging to one of three polygons. Which loops group together into a polygon?{{< /caption >}}
 
+one:
+{{< fig src="code/figs/conn_comp_all.svg" width="800px" >}}
 
-{{< fig src="code/figs/conn_comp.svg" width="800px" >}}
+two:
+TODO: why isn't this figure rendering?
+{{< fig src="code/figs/figs/conn_comp_boundary.svg" width="800px" >}}
+
+three:
+{{< fig src="code/figs/conn_comp_joined.svg" width="800px" >}}
 
 
 Plotting: make the connected components easier by just plotting the whole

@@ -3,7 +3,118 @@ import h3
 import matplotlib.pyplot as plt
 import random
 import pprint
-random.seed(42)
+
+def color_cells(cells, edges_to_join, seed):
+    """
+    Assigns colors to cells based on a graph coloring algorithm,
+    joining components specified by edges_to_join.
+    A random seed is used to ensure reproducible colorings.
+    """
+    random.seed(seed)
+
+    # DSU data structure to track joined components
+    parent = {cell: cell for cell in cells}
+    def find(cell):
+        if parent[cell] == cell:
+            return cell
+        parent[cell] = find(parent[cell])
+        return parent[cell]
+
+    def union(cell1, cell2):
+        root1 = find(cell1)
+        root2 = find(cell2)
+        if root1 != root2:
+            parent[root2] = root1
+
+    # Join components based on edges_to_join
+    for edge in edges_to_join:
+        origin, destination = h3.directed_edge_to_cells(edge)
+        if origin in parent and destination in parent:
+            union(origin, destination)
+
+    # Adjacency graph for coloring
+    adj = {cell: [] for cell in cells}
+    cell_set = set(cells)
+    for cell in cells:
+        neighbors = h3.grid_disk(cell, 1)
+        for neighbor in neighbors:
+            if neighbor != cell and neighbor in cell_set:
+                adj[cell].append(neighbor)
+
+    # Modified graph coloring for components
+    colors = plt.cm.get_cmap('tab20').colors
+    component_colors = {}
+    shuffled_colors = list(colors)
+    shuffled_cells = list(cells)
+    random.shuffle(shuffled_cells)
+
+    for cell in shuffled_cells:
+        root = find(cell)
+        if root in component_colors:
+            continue
+
+        neighbor_component_colors = set()
+        component_cells = [c for c in cells if find(c) == root]
+        for c in component_cells:
+            for neighbor in adj[c]:
+                neighbor_root = find(neighbor)
+                if neighbor_root != root and neighbor_root in component_colors:
+                    neighbor_component_colors.add(component_colors[neighbor_root])
+
+        random.shuffle(shuffled_colors)
+        for color in shuffled_colors:
+            if color not in neighbor_component_colors:
+                component_colors[root] = color
+                break
+    
+    return {cell: component_colors.get(find(cell)) for cell in cells}
+
+def color_components(cells):
+    """
+    Assigns a single color to each connected component of cells.
+    """
+    parent = {cell: cell for cell in cells}
+    cell_set = set(cells)
+    def find(cell):
+        if parent[cell] == cell:
+            return cell
+        parent[cell] = find(parent[cell])
+        return parent[cell]
+
+    def union(cell1, cell2):
+        root1 = find(cell1)
+        root2 = find(cell2)
+        if root1 != root2:
+            parent[root2] = root1
+
+    for cell in cells:
+        neighbors = h3.grid_disk(cell, 1)
+        for neighbor in neighbors:
+            if neighbor != cell and neighbor in cell_set:
+                union(cell, neighbor)
+
+    colors = plt.cm.get_cmap('tab20').colors
+    component_colors = {}
+    i = 0
+    for cell in cells:
+        root = find(cell)
+        if root not in component_colors:
+            component_colors[root] = colors[i]
+            i = (i + 1) % len(colors)
+    
+    return {cell: component_colors[find(cell)] for cell in cells}
+
+
+def plot_figure(filename, edges_to_plot, cell_colors, size=8, arrow_scale=12, theta=0.8):
+    """Helper function to generate a single plot."""
+    with u.svg(filename, size=size) as ax:
+        for cell, color in cell_colors.items():
+            if color:
+                u.fill_cell(ax, cell, color=color, alpha=0.5, theta=1.0)
+        
+        u.plot_edges(edges_to_plot, ax=ax, arrow_scale=arrow_scale, theta=theta)
+
+# --- Main script ---
 
 cells = [
     '8966dbda96bffff',
@@ -41,18 +152,7 @@ cells = [
 
 edges = u.cells_to_edges(cells)
 
-
-
-# List of edges to "join". When an edge is in this list, the two cells
-# on either side of it are considered "joined" and will share the same
-# background color. The edge and its reverse will be removed from the plot.
-#
-# You can get edge IDs by creating them from adjacent cells, e.g.:
-# h3.cells_to_directed_edge('8966dbda96bffff', '8966dbda96fffff')
-#
-# You can find adjacent cells by running this script and looking at the
-# printed "pair_tuples" output.
-
+# List of edges to "join".
 edges_to_join = [
     '11966dbc36dbffff',
     '11966dbda827ffff',
@@ -72,83 +172,25 @@ edges_to_join = [
     '13966dbdabbbffff',
 ]
 
-# DSU data structure to track joined components
-parent = {cell: cell for cell in cells}
-def find(cell):
-    if parent[cell] == cell:
-        return cell
-    parent[cell] = find(parent[cell])
-    return parent[cell]
+# --- Plotting ---
 
-def union(cell1, cell2):
-    root1 = find(cell1)
-    root2 = find(cell2)
-    if root1 != root2:
-        parent[root2] = root1
+# Plot 1: All edges, individual cell colors
+no_join_colors = color_cells(cells, [], seed=42)
+plot_figure('figs/conn_comp_all.svg', edges, no_join_colors)
 
-# Join components based on edges_to_join
-for edge in edges_to_join:
-    origin, destination = h3.directed_edge_to_cells(edge)
-    if origin in parent and destination in parent:
-        union(origin, destination)
+# Plot 2: Boundary edges only, with one color per connected component
+boundary_colors = color_components(cells)
+boundary_edges = edges - u.reverse_set(edges)
+plot_figure('figs/conn_comp_boundary.svg', boundary_edges, boundary_colors)
 
-# Adjacency graph for coloring
-adj = {cell: [] for cell in cells}
-cell_set = set(cells)
-for cell in cells:
-    neighbors = h3.grid_disk(cell, 1)
-    for neighbor in neighbors:
-        if neighbor != cell and neighbor in cell_set:
-            adj[cell].append(neighbor)
+# Plot 3: Joined edges removed, with corresponding joined colors
+joined_colors = color_cells(cells, edges_to_join, seed=44)
+edges_to_remove = u.twinning(*edges_to_join)
+joined_edges_removed = edges - edges_to_remove
+plot_figure('figs/conn_comp_joined.svg', joined_edges_removed, joined_colors)
 
-# Modified graph coloring for components
-colors = plt.cm.get_cmap('tab20').colors
-component_colors = {}
-shuffled_colors = list(colors)
-shuffled_cells = list(cells)
-random.shuffle(shuffled_cells)
-
-for cell in shuffled_cells:
-    root = find(cell)
-    if root in component_colors:
-        continue
-
-    # Find colors of neighboring components
-    neighbor_component_colors = set()
-    component_cells = [c for c in cells if find(c) == root]
-    for c in component_cells:
-        for neighbor in adj[c]:
-            neighbor_root = find(neighbor)
-            if neighbor_root != root and neighbor_root in component_colors:
-                neighbor_component_colors.add(component_colors[neighbor_root])
-
-    random.shuffle(shuffled_colors)
-    for color in shuffled_colors:
-        if color not in neighbor_component_colors:
-            component_colors[root] = color
-            break
-
-# Assign colors to cells based on their component's color
-cell_colors = {cell: component_colors.get(find(cell)) for cell in cells}
-
-
-with u.svg('figs/conn_comp.svg', size=8) as ax:
-    # Fill cell interiors
-    for cell, color in cell_colors.items():
-        if color: # Color might be None if coloring fails
-            u.fill_cell(ax, cell, color=color, alpha=0.5, theta=1.0)
-
-    # Plot edges on top, removing the joined edges
-    edges_to_remove = u.twinning(*edges_to_join)
-    edges_to_plot = edges - edges_to_remove
-    # Print remaining pair tuples (eligible for removal)
-    remaining_pair_tuples = u.get_pair_tuples(edges_to_plot)
-    remaining_pair_tuples = [
-        a
-        for (a,b) in remaining_pair_tuples
-    ]
-
-    print("\nRemaining pair tuples (eligible for removal):")
-    pprint.pprint(remaining_pair_tuples)
-
-    u.plot_edges(edges_to_plot, ax=ax, arrow_scale=12, theta=0.8)
+# Print remaining pair tuples from the "joined" case for the user
+remaining_pair_tuples = u.get_pair_tuples(joined_edges_removed)
+if remaining_pair_tuples:
+    print("\nEligible edges for further joining (from conn_comp_joined.svg):")
+    pprint.pprint(sorted([t[0] for t in remaining_pair_tuples]))
