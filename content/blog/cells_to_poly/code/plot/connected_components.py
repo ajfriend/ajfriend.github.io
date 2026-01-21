@@ -2,18 +2,11 @@ import util as u
 import h3
 import matplotlib.pyplot as plt
 import random
-import pprint
 
-def color_cells(cells, edges_to_join, seed):
-    """
-    Assigns colors to cells based on a graph coloring algorithm,
-    joining components specified by edges_to_join.
-    A random seed is used to ensure reproducible colorings.
-    """
-    random.seed(seed)
-
-    # DSU data structure to track joined components
+def get_components(cells, edges_to_join):
+    """Return a dict mapping each cell to its component root."""
     parent = {cell: cell for cell in cells}
+
     def find(cell):
         if parent[cell] == cell:
             return cell
@@ -26,83 +19,147 @@ def color_cells(cells, edges_to_join, seed):
         if root1 != root2:
             parent[root2] = root1
 
-    # Join components based on edges_to_join
     for edge in edges_to_join:
         origin, destination = h3.directed_edge_to_cells(edge)
         if origin in parent and destination in parent:
             union(origin, destination)
 
-    # Adjacency graph for coloring
-    adj = {cell: [] for cell in cells}
+    return {cell: find(cell) for cell in cells}
+
+
+def initial_colors(cells, seed):
+    """Assign initial colors to individual cells using graph coloring."""
+    random.seed(seed)
+
+    # Build adjacency
     cell_set = set(cells)
+    adj = {cell: [] for cell in cells}
     for cell in cells:
-        neighbors = h3.grid_disk(cell, 1)
-        for neighbor in neighbors:
+        for neighbor in h3.grid_disk(cell, 1):
             if neighbor != cell and neighbor in cell_set:
                 adj[cell].append(neighbor)
 
-    # Modified graph coloring for components
     colors = plt.colormaps['tab20'].colors
-    component_colors = {}
+    cell_colors = {}
     shuffled_colors = list(colors)
     shuffled_cells = list(cells)
     random.shuffle(shuffled_cells)
 
     for cell in shuffled_cells:
-        root = find(cell)
-        if root in component_colors:
-            continue
-
-        neighbor_component_colors = set()
-        component_cells = [c for c in cells if find(c) == root]
-        for c in component_cells:
-            for neighbor in adj[c]:
-                neighbor_root = find(neighbor)
-                if neighbor_root != root and neighbor_root in component_colors:
-                    neighbor_component_colors.add(component_colors[neighbor_root])
-
+        neighbor_colors = {cell_colors.get(n) for n in adj[cell]}
         random.shuffle(shuffled_colors)
         for color in shuffled_colors:
-            if color not in neighbor_component_colors:
-                component_colors[root] = color
+            if color not in neighbor_colors:
+                cell_colors[cell] = color
                 break
-    
-    return {cell: component_colors.get(find(cell)) for cell in cells}
 
-def color_components(cells):
+    return cell_colors
+
+
+def inherit_colors(cells, edges_to_join, prev_colors):
     """
-    Assigns a single color to each connected component of cells.
+    Assign colors based on component merging.
+    Each merged component gets the color of its largest constituent group.
     """
-    parent = {cell: cell for cell in cells}
-    cell_set = set(cells)
-    def find(cell):
-        if parent[cell] == cell:
-            return cell
-        parent[cell] = find(parent[cell])
-        return parent[cell]
+    components = get_components(cells, edges_to_join)
 
-    def union(cell1, cell2):
-        root1 = find(cell1)
-        root2 = find(cell2)
-        if root1 != root2:
-            parent[root2] = root1
+    # Group cells by current component
+    comp_to_cells = {}
+    for cell, root in components.items():
+        comp_to_cells.setdefault(root, []).append(cell)
 
-    for cell in cells:
-        neighbors = h3.grid_disk(cell, 1)
-        for neighbor in neighbors:
-            if neighbor != cell and neighbor in cell_set:
-                union(cell, neighbor)
-
-    colors = plt.colormaps['tab20'].colors
+    # For each component, count cells by their previous color
     component_colors = {}
-    i = 0
-    for cell in cells:
-        root = find(cell)
-        if root not in component_colors:
-            component_colors[root] = colors[i]
-            i = (i + 1) % len(colors)
-    
-    return {cell: component_colors[find(cell)] for cell in cells}
+    for root, comp_cells in comp_to_cells.items():
+        color_counts = {}
+        for cell in comp_cells:
+            color = prev_colors[cell]
+            color_counts[color] = color_counts.get(color, 0) + 1
+
+        # Pick color with most cells
+        best_color = max(color_counts.keys(), key=lambda c: color_counts[c])
+        component_colors[root] = best_color
+
+    return {cell: component_colors[components[cell]] for cell in cells}
+
+
+def has_color_conflicts(cells, edges_to_join, cell_colors):
+    """
+    Check if any adjacent components have the same color.
+    Adjacent components are those connected by edges NOT in edges_to_join.
+    Returns list of conflicting edge pairs, or empty list if no conflicts.
+    """
+    components = get_components(cells, edges_to_join)
+
+    # Get all edges and remove the joined ones
+    all_edges = u.cells_to_edges(cells)
+    edges_to_remove = u.twinning(*edges_to_join)
+    boundary_edges = all_edges - edges_to_remove
+
+    # Check edges that still exist (boundary edges) for same-color components
+    conflicts = []
+    seen = set()
+
+    for edge in boundary_edges:
+        origin, dest = h3.directed_edge_to_cells(edge)
+        if origin not in components or dest not in components:
+            continue
+
+        # Only check if they're in different components
+        if components[origin] != components[dest]:
+            pair = tuple(sorted([origin, dest]))
+            if pair not in seen:
+                seen.add(pair)
+                if cell_colors[origin] == cell_colors[dest]:
+                    conflicts.append(pair)
+
+    return conflicts
+
+
+def generate_color_stages(cells, all_pairs, stage_cuts, seed):
+    """
+    Generate colors for all stages. Returns list of color dicts, one per stage.
+    stage_cuts: list of indices into all_pairs for each stage, e.g. [0, 16, 35, len(all_pairs)]
+    """
+    colors_0 = initial_colors(cells, seed=seed)
+    stages = [colors_0]
+
+    prev_colors = colors_0
+    for cut in stage_cuts[1:]:
+        next_colors = inherit_colors(cells, all_pairs[:cut], prev_colors)
+        stages.append(next_colors)
+        prev_colors = next_colors
+
+    return stages
+
+
+def find_valid_coloring(cells, all_pairs, stage_cuts, overall_seed, max_iters=1000):
+    """
+    Stochastically search for a coloring with no conflicts at any stage.
+    Returns (seed, stages) where stages is list of color dicts.
+    """
+    random.seed(overall_seed)
+
+    for i in range(max_iters):
+        seed = random.randint(0, 2**32 - 1)
+        stages = generate_color_stages(cells, all_pairs, stage_cuts, seed)
+
+        # Check for conflicts at each stage
+        has_conflict = False
+        for stage_idx, colors in enumerate(stages):
+            edges_to_join = all_pairs[:stage_cuts[stage_idx]]
+            conflicts = has_color_conflicts(cells, edges_to_join, colors)
+            if conflicts:
+                print(f"  iter {i}: seed {seed}, stage {stage_idx} has {len(conflicts)} conflict(s)")
+                has_conflict = True
+                break
+
+        if not has_conflict:
+            print(f"Found valid coloring at iter {i} with seed {seed}")
+            return seed, stages
+
+    print(f"No valid coloring found after {max_iters} iterations")
+    return seed, stages  # Return last attempt
 
 
 def plot_figure(filename, edges_to_plot, cell_colors, size=8, arrow_scale=12, theta=0.8):
@@ -154,7 +211,7 @@ cells = [
 
 # --- Plotting ---
 
-def make_plot(filename, cells, edges_to_join=[], seed=42, show_colors=True):
+def make_plot(filename, cells, edges_to_join, cell_colors):
     """
     Generate a plot showing cell edges after removing symmetric pairs.
 
@@ -162,46 +219,42 @@ def make_plot(filename, cells, edges_to_join=[], seed=42, show_colors=True):
         filename: Output SVG filename
         cells: List of H3 cell indices
         edges_to_join: List of edges whose symmetric pairs should be removed
-        seed: Random seed for color assignment
-        show_colors: Whether to show background cell colors
+        cell_colors: Dict mapping cell -> color (or None for no fill)
     """
     all_edges = u.cells_to_edges(cells)
     edges_to_remove = u.twinning(*edges_to_join)
     remaining_edges = all_edges - edges_to_remove
 
-    if show_colors:
-        cell_colors = color_cells(cells, edges_to_join, seed)
-    else:
-        cell_colors = {cell: None for cell in cells}
-
     plot_figure(filename, remaining_edges, cell_colors)
-
-    # Print removable edges
-    remaining_pairs = u.get_pair_tuples(remaining_edges)
-    print(f"\n{filename}")
-    if remaining_pairs:
-        pprint.pprint(sorted([t[0] for t in remaining_pairs]))
-    else:
-        print("  (no remaining pairs)")
 
 
 all_edges = u.cells_to_edges(cells)
 all_pairs = sorted([t[0] for t in u.get_pair_tuples(all_edges)])
-random.seed(46)
+random.seed(47)
 random.shuffle(all_pairs)
 
+# Stage cuts: indices into all_pairs for each stage
+stage_cuts = [0, 16, 35, len(all_pairs)]
+
+# Find a valid coloring with no conflicts at any stage
+overall_seed = 123
+color_seed, stages = find_valid_coloring(cells, all_pairs, stage_cuts, overall_seed)
+colors_0, colors_1, colors_2, colors_3 = stages
+
 # Boundary edges only, no background colors
-make_plot('figs/conn_comp_white.svg', cells, edges_to_join=all_pairs, seed=42, show_colors=False)
+no_colors = {cell: None for cell in cells}
+make_plot('figs/conn_comp_white.svg', cells, all_pairs, no_colors)
 
-# All edges, with background colors
-make_plot('figs/conn_comp_colors_0.svg', cells, edges_to_join=[], seed=42)
+# Stage 0: initial colors (no edges joined)
+make_plot('figs/conn_comp_colors_0.svg', cells, [], colors_0)
 
-# Partial join, with background colors
-make_plot('figs/conn_comp_colors_1.svg', cells, edges_to_join=all_pairs[:16], seed=44)
+# Stage 1
+make_plot('figs/conn_comp_colors_1.svg', cells, all_pairs[:16], colors_1)
 
-make_plot('figs/conn_comp_colors_2.svg', cells, edges_to_join=all_pairs[:35], seed=50)
+# Stage 2
+make_plot('figs/conn_comp_colors_2.svg', cells, all_pairs[:35], colors_2)
 
-# Boundary edges only, with background colors
-make_plot('figs/conn_comp_colors_3.svg', cells, edges_to_join=all_pairs, seed=42)
+# Stage 3
+make_plot('figs/conn_comp_colors_3.svg', cells, all_pairs, colors_3)
 
 
