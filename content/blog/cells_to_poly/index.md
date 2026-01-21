@@ -386,13 +386,15 @@ six loops total, across three polygons, but can we determine the grouping?
 
 
 one:
-{{< fig src="code/figs/conn_comp_all.svg" width="800px" >}}
+{{< fig src="code/figs/conn_comp_colors_0.svg" width="800px" >}}
 
 two:
-{{< fig src="code/figs/conn_comp_joined.svg" width="800px" >}}
+{{< fig src="code/figs/conn_comp_colors_1.svg" width="800px" >}}
 
 three:
-{{< fig src="code/figs/conn_comp_boundary.svg" width="800px" >}}
+{{< fig src="code/figs/conn_comp_colors_2.svg" width="800px" >}}
+
+{{< fig src="code/figs/conn_comp_colors_3.svg" width="800px" >}}
 
 
 Plotting: make the connected components easier by just plotting the whole
