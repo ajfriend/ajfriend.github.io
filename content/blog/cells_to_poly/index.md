@@ -72,6 +72,8 @@ I wrote up my thoughts on ["ideal" spherical polygons in another post](/blog/sph
 How do we do this translation? Let's start by considering components of
 H3 cells and what we can do with them.
 
+Cells are already polygons themselves. So how do you build a big polygon from smaller ones? Pull them apart and put the pieces back together! We have a couple of options: 1) vertices, 2) h3 vertices, 3) edges.
+
 For any H3 cell, we can get the simple polygon of lat/lng points that describe it. In the H3 C library or in the bindings, you can get those points
 with the [`cellToBoundary()`](https://h3geo.org/docs/api/indexing#celltoboundary) function. We *could* operate on those points, gathering them for each cell, and using them to construct the MultiPolygon boundary, but this **continuous** approach would involve floating point comparisons and error tolerances.
 As an alternative, we might look for a **discrete** approach, with discrete objects that are either present or not, can be hashed, and compared for exact, unambiguous equality. The **directed edges** that make up the H3 cell boundary are a great candidate.
@@ -451,6 +453,7 @@ There are four loops of edges here. Eyeballing, it is easy for us to pick out
 which one we think *should* be the outer loop---but how do we determine that algorithmically? Let's look at a more extreme example of two loops close to the equator, encircling the entire globe:
 
 {{< globe_map data="data/equator.json" width="500" sync="false" >}}
+{{< caption >}}It can be unclear which loop is the "correct" outer loop. In this case, the choice is basically arbitrary; we get exactly the same spherical polygon with either choice.{{< /caption >}}
 
 We can assume that we know these two loops are part of the same polygon based on
 the connected components calculation, and the orientation of the loops indicates that the interior of the polygon includes the equator (if you're on the surface of the globe, walking along a loop in the direction of the arrows, the interior is to your left---the right-hand rule), so we know that this object is a polygon with one outer loop and one hole. But which one is which?
@@ -478,11 +481,13 @@ eyeball norm:
 {{< globe_map data="data/holes_0.json" arrowStep="3" >}}
 </div>
 {{< caption >}}The loops (dark red), ordered by their enclosed area (light red).
-Full polygon (dashed grey) for reference. The orientation of the loops (arrows) has the first three enclose most of the globe; the smallest area corresponds to the "natural" outer loop.{{< /caption >}}
+Full polygon (dashed grey) for reference. The orientations of the loops (arrows) cause the first three to enclose most of the globe; the smallest area corresponds to the "natural" outer loop.{{< /caption >}}
 
 We critically depend on the orientation of the loops here.
 
 note that the area calculation depends on "ideal" spherical polgyons (note my post), and all the outputs here will respect that, in particular because no H3 edge is more than 180 degrees, so we can cross the antimeridian or have large loops without problems.
+
+This approach is critically dependent on the area calculation, even for "small" polygons.
 
 In reality, we need to ensure that we are computing the unsigned area.
 We might compute a signed area, but let's avoid. Details in this other post.
@@ -495,13 +500,17 @@ Show a simple globe example
 In a polygon, one loop is *special*. The outer loop. the rest are holes.
 Actually, not relaly that special. any loop can be the outer loop and still mathematical describe the same polygon, even if it is an unintuitive format.
 
-Note, up to this point, everything has been **discrete**, discrete edges represented as H3 indexes which are integers, graphs and edges. This is
+
+Note, up to this point, everything has been **discrete**, discrete edges represented as H3 indexes which are integers, graphs and edges. (We've just been doing graph theory, ignorant of the underlying geometry) This is
 the first time we need to realize our edges as being embedded in a **continous**
-space on the surface of the sphere. Ties? who cares! like we said, it doesn't matter which one.
+space on the surface of the sphere. And this is where spherical polygons and
+a proper area computation come into play. This is what unlocks global polygons.
 
-One rule that works universally
+Ties? who cares! like we said, it doesn't matter which one.
 
-a tricky one might look like: blah
+## Implementation notes
+
+TODO: fill in links to code
 
 # Additional processing
 
