@@ -394,6 +394,7 @@ two:
 three:
 {{< fig src="code/figs/conn_comp_colors_2.svg" width="800px" >}}
 
+four:
 {{< fig src="code/figs/conn_comp_colors_3.svg" width="800px" >}}
 
 

@@ -136,7 +136,7 @@ def generate_color_stages(cells, all_pairs, stage_cuts, seed):
 def find_valid_coloring(cells, all_pairs, stage_cuts, overall_seed, max_iters=1000):
     """
     Stochastically search for a coloring with no conflicts at any stage.
-    Returns (seed, stages) where stages is list of color dicts.
+    Returns list of color dicts, one per stage.
     """
     random.seed(overall_seed)
 
@@ -156,10 +156,10 @@ def find_valid_coloring(cells, all_pairs, stage_cuts, overall_seed, max_iters=10
 
         if not has_conflict:
             print(f"Found valid coloring at iter {i} with seed {seed}")
-            return seed, stages
+            return stages
 
     print(f"No valid coloring found after {max_iters} iterations")
-    return seed, stages  # Return last attempt
+    return stages  # Return last attempt
 
 
 def plot_figure(filename, edges_to_plot, cell_colors, size=8, arrow_scale=12, theta=0.8):
@@ -238,23 +238,14 @@ stage_cuts = [0, 16, 35, len(all_pairs)]
 
 # Find a valid coloring with no conflicts at any stage
 overall_seed = 123
-color_seed, stages = find_valid_coloring(cells, all_pairs, stage_cuts, overall_seed)
-colors_0, colors_1, colors_2, colors_3 = stages
+stages = find_valid_coloring(cells, all_pairs, stage_cuts, overall_seed)
 
 # Boundary edges only, no background colors
 no_colors = {cell: None for cell in cells}
 make_plot('figs/conn_comp_white.svg', cells, all_pairs, no_colors)
 
-# Stage 0: initial colors (no edges joined)
-make_plot('figs/conn_comp_colors_0.svg', cells, [], colors_0)
-
-# Stage 1
-make_plot('figs/conn_comp_colors_1.svg', cells, all_pairs[:16], colors_1)
-
-# Stage 2
-make_plot('figs/conn_comp_colors_2.svg', cells, all_pairs[:35], colors_2)
-
-# Stage 3
-make_plot('figs/conn_comp_colors_3.svg', cells, all_pairs, colors_3)
+# Plot each stage
+for i, (cut, colors) in enumerate(zip(stage_cuts, stages)):
+    make_plot(f'figs/conn_comp_colors_{i}.svg', cells, all_pairs[:cut], colors)
 
 
