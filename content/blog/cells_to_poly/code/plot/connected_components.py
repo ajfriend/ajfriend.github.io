@@ -254,7 +254,7 @@ def plot_all(cells, cuts, order_seed, color_seed):
     for i, (cut, colors) in enumerate(zip(stage_cuts, stages)):
         make_plot(f'figs/conn_comp_colors_{i}.svg', cells, all_pairs[:cut], colors)
 
-
-plot_all(cells, cuts=[16, 35], order_seed=49, color_seed=128)
+# 133, 138, 142
+plot_all(cells, cuts=[10, 16, 28, 35], order_seed=49, color_seed=145)
 
 

@@ -384,18 +384,13 @@ six loops total, across three polygons, but can we determine the grouping?
 {{< fig src="code/figs/conn_comp_boundary_only.svg" width="800px" >}}
 {{< caption >}}Six loops, each belonging to one of three polygons. Which loops group together into a polygon?{{< /caption >}}
 
-
-one:
+<!-- TODO: make sure these scale on phones -->
 {{< fig src="code/figs/conn_comp_colors_0.svg" width="800px" >}}
-
-two:
 {{< fig src="code/figs/conn_comp_colors_1.svg" width="800px" >}}
-
-three:
 {{< fig src="code/figs/conn_comp_colors_2.svg" width="800px" >}}
-
-four:
 {{< fig src="code/figs/conn_comp_colors_3.svg" width="800px" >}}
+{{< fig src="code/figs/conn_comp_colors_4.svg" width="800px" >}}
+{{< fig src="code/figs/conn_comp_colors_5.svg" width="800px" >}}
 
 
 Plotting: make the connected components easier by just plotting the whole
