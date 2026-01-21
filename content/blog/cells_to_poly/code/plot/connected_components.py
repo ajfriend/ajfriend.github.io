@@ -254,6 +254,17 @@ def plot_all(cells, cuts, order_seed, color_seed):
     for i, (cut, colors) in enumerate(zip(stage_cuts, stages)):
         make_plot(f'figs/conn_comp_colors_{i}.svg', cells, all_pairs[:cut], colors)
 
+    # Plot just the largest connected component
+    final_components = get_components(cells, all_pairs)
+    comp_to_cells = {}
+    for cell, root in final_components.items():
+        comp_to_cells.setdefault(root, []).append(cell)
+    largest_comp_cells = max(comp_to_cells.values(), key=len)
+
+    final_colors = stages[-1]
+    largest_colors = {cell: final_colors[cell] for cell in largest_comp_cells}
+    make_plot('figs/conn_comp_largest.svg', largest_comp_cells, all_pairs, largest_colors)
+
 # 133, 138, 142
 plot_all(cells, cuts=[10, 16, 28, 35], order_seed=49, color_seed=148)
 

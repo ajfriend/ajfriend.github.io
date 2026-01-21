@@ -384,6 +384,11 @@ six loops total, across three polygons, but can we determine the grouping?
 {{< fig src="code/figs/conn_comp_white.svg" width="800px" >}}
 {{< caption >}}Six loops, each belonging to one of three polygons. Which loops group together into a polygon?{{< /caption >}}
 
+TODO: polygons are just connected components of cells. so rings that are connected by cells are in the same polygon, even if they're disjoint/separate rings. (even though the rings themselves don't touch)
+
+also note that there is no notion of one polygon being "inside" or "outside" of
+another; they're just separate polygons.
+
 The key insight is that **removing a symmetric pair of edges joins their cells' connected components**. We track this with a [union-find data structure](https://en.wikipedia.org/wiki/Disjoint-set_data_structure): when we cancel an edge pair, we union the components of the two adjacent cells.
 
 Initially, each cell is its own component:
@@ -434,16 +439,41 @@ We identify each connected component by one arbitrary edge ID—specifically, th
 
 # Which loop is "outside"?
 
+To recap up to this point, we've described how we can eliminate internal edges
+to get the polygon boundaries, how we can maintain the orientation of the loops,
+and how we keep traack of which loops belong to which polygon.
+
+But how do we determine which loop in a polygon is the outer and which are the holes? What might seem like an easy question is a litte more complicated. Consider the largest polygon from the previous example:
+
+{{< fig src="code/figs/conn_comp_largest.svg" width="800px" >}}
+
+There are four loops of edges here. Eyeballing, it is easy for us to pick out
+which one *should* be the outer loop, but how do we determine that algorithmically? Let's look at a more difficult example:
+
+TODO: write a python script to convert /Users/aj/work/ajfriend.github.io/data/globe_coords/equator.json into the format we need under /Users/aj/work/ajfriend.github.io/content/blog/cells_to_poly/data and place a file there. then render it here with the `globe_map` shortcode
+
+
+But also, note that it doesn't matter, technically.
+
+Show a simple globe example
+
 In a polygon, one loop is *special*. The outer loop. the rest are holes.
 Actually, not relaly that special. any loop can be the outer loop and still mathematical describe the same polygon, even if it is an unintuitive format.
 
 
 a tricky one might look like: blah
 
+# Additional processing
+
+
 # Code overview
 
 - this function does this...
 - that function does that
+
+# Bonus: the flowsnake
+
+even faster
 
 # Notes
 
