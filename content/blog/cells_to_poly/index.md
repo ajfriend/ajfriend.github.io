@@ -425,7 +425,12 @@ typedef struct Arc {
 } Arc;
 ```
 
-The `parent` and `rank` fields implement the [union-find data structure](https://en.wikipedia.org/wiki/Disjoint-set_data_structure). When we cancel a symmetric pair of edges in `cancelArcPairs()`, we union the components of the two adjacent cells. After all cancellations, loops sharing the same root belong to the same polygon.
+The `parent` and `rank` fields implement the [union-find data structure](https://en.wikipedia.org/wiki/Disjoint-set_data_structure). Two functions handle the core operations:
+
+- `getRoot(Arc *arc)` finds the root of an `Arc`'s connected component, using path compression for efficiency
+- `unionArcs(Arc *a, Arc *b)` merges two components using union-by-rank
+
+We identify each connected component by one arbitrary edge ID—specifically, the `id` field of the root `Arc`. When we cancel a symmetric pair of edges in `cancelArcPairs()`, we call `unionArcs()` to merge the components of the two adjacent cells. After all cancellations, loops sharing the same root belong to the same polygon.
 
 # Which loop is "outside"?
 
