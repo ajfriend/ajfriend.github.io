@@ -543,9 +543,9 @@ A few other details round out the implementation:
 
 **Input validation.** The function checks for duplicate input cells (which would cause incorrect edge cancellation) and returns `E_DUPLICATE_INPUT` if any are found.
 
-# Code overview
+# Full algorithm summary
 
-The main function `cellsToMultiPolygon()` proceeds through five stages:
+In [uber/h3 #1113](https://github.com/uber/h3/pull/1113), the primary function `cellsToMultiPolygon()` proceeds through five stages:
 
 1. **Input validation** (`validateCellSet`): Check for duplicate cells, which would break edge cancellation logic.
 
