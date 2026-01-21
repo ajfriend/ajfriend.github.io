@@ -228,17 +228,19 @@ def make_plot(filename, cells, edges_to_join, cell_colors):
     plot_figure(filename, remaining_edges, cell_colors)
 
 
+# Random seeds for reproducibility
+order_seed = 47   # controls edge removal order
+color_seed = 128  # controls cell coloring
+
 all_edges = u.cells_to_edges(cells)
 all_pairs = sorted([t[0] for t in u.get_pair_tuples(all_edges)])
-random.seed(47)
+random.seed(order_seed)
 random.shuffle(all_pairs)
 
 # Stage cuts: indices into all_pairs for each stage
 stage_cuts = [0, 16, 35, len(all_pairs)]
 
-# Find a valid coloring with no conflicts at any stage
-overall_seed = 123
-stages = find_valid_coloring(cells, all_pairs, stage_cuts, overall_seed)
+stages = find_valid_coloring(cells, all_pairs, stage_cuts, color_seed)
 
 # Boundary edges only, no background colors
 no_colors = {cell: None for cell in cells}
