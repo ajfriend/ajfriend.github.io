@@ -560,15 +560,8 @@ The main function `cellsToMultiPolygon()` proceeds through five stages:
 
 5. **Create MultiPolygon** (`createMultiPolygon`): Walk the sorted loops, grouping consecutive loops with the same root into polygons. The first loop becomes the outer; the rest become holes. Finally, sort polygons by outer loop area (descending) so the largest polygon comes first.
 
-# TODO: The Gosper Curve
+# (TODO) Bonus: The Gosper Curve
 
 We can get even greater speed improvements by compacting the input cells
 and processing *only* the outer loop of edges we'd get from uncompacting a cell
 to the original resolution. This work still needs to be done ([uber/h3 #1114](https://github.com/uber/h3/pull/1114)), but I expect this will offer the biggest speed improvements.
-
-# Notes
-
-- maybe do a **Summary** section at the end of each, and also a **Code** section, that might ligthen it up? or is it helpful to have the code snippets in the doc inline?
-- separate out with Code section. can link multiple implementations. include the python one
-- end with some fun, tricky examples
-
