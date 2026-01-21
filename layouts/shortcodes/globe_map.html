@@ -196,15 +196,42 @@ Usage:
         features: featureCollection.features.filter(f => f.geometry.type === 'Point')
       };
 
-      // Render polygons with per-feature styling
-      if (polygons.features.length > 0) {
-        marks.push(Plot.geo(polygons, {
+      // Separate dashed and non-dashed polygons
+      const dashedPolygons = {
+        type: 'FeatureCollection',
+        features: polygons.features.filter(f => f.properties?.strokeDasharray)
+      };
+      const solidPolygons = {
+        type: 'FeatureCollection',
+        features: polygons.features.filter(f => !f.properties?.strokeDasharray)
+      };
+
+      // Render solid polygons
+      if (solidPolygons.features.length > 0) {
+        marks.push(Plot.geo(solidPolygons, {
           fill: d => d.properties?.fill || 'red',
           fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
           stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
           strokeWidth: d => d.properties?.strokeWidth ?? 1,
           strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
         }));
+      }
+
+      // Render dashed polygons
+      if (dashedPolygons.features.length > 0) {
+        marks.push(Plot.geo(dashedPolygons, {
+          fill: d => d.properties?.fill || 'red',
+          fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
+          stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
+          strokeWidth: d => d.properties?.strokeWidth ?? 1,
+          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
+        }));
+      }
+
+      // Store dashed polygon info for post-processing
+      const dashedPolyInfo = dashedPolygons.features.map(f => ({
+        dasharray: f.properties?.strokeDasharray
+      }));
 
         // Add arrows on polygon edges if arrowStep > 0
         if (arrowStep > 0) {
@@ -234,7 +261,6 @@ Usage:
             });
           });
         }
-      }
 
       // Render lines with per-feature styling
       if (lines.features.length > 0) {
@@ -288,6 +314,16 @@ Usage:
 
       container.innerHTML = '';
       container.appendChild(svg);
+
+      // Apply stroke-dasharray to dashed polygons (those with fill="none")
+      dashedPolyInfo.forEach(info => {
+        svg.querySelectorAll('path').forEach(path => {
+          if (path.getAttribute('fill') === 'none') {
+            path.setAttribute('stroke-dasharray', info.dasharray);
+          }
+        });
+      });
+
       if (isGlobe) {
         attachDrag(svg);
       }
