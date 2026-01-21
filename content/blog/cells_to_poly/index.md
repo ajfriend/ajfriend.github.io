@@ -471,6 +471,13 @@ Let's apply it to the example from above, and see if we get the right answer. We
 eyeball norm:
 
 
+{{< globe_map data="data/holes_0.json" width="400" >}}
+{{< globe_map data="data/holes_1.json" width="400" >}}
+{{< globe_map data="data/holes_2.json" width="400" >}}
+{{< globe_map data="data/holes_3.json" width="400" >}}
+
+We critically depend on the orientation of the loops here.
+
 In reality, we need to ensure that we are computing the unsigned area.
 We might compute a signed area, but let's avoid. Details in this other post.
 
