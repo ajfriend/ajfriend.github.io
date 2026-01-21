@@ -381,20 +381,51 @@ and we have the loops of edges in the proper order.
 But how do we keep track of which loops (outer and holes) belong to which polygon? Recall the example with three polygons from the top of the page. It has
 six loops total, across three polygons, but can we determine the grouping?
 
-{{< fig src="code/figs/conn_comp_boundary_only.svg" width="800px" >}}
+{{< fig src="code/figs/conn_comp_white.svg" width="800px" >}}
 {{< caption >}}Six loops, each belonging to one of three polygons. Which loops group together into a polygon?{{< /caption >}}
 
-<!-- TODO: make sure these scale on phones -->
+The key insight is that **removing a symmetric pair of edges joins their cells' connected components**. We track this with a [union-find data structure](https://en.wikipedia.org/wiki/Disjoint-set_data_structure): when we cancel an edge pair, we union the components of the two adjacent cells.
+
+Initially, each cell is its own component:
+
 {{< fig src="code/figs/conn_comp_colors_0.svg" width="800px" >}}
+
+As we remove symmetric pairs, components merge:
+
 {{< fig src="code/figs/conn_comp_colors_1.svg" width="800px" >}}
 {{< fig src="code/figs/conn_comp_colors_2.svg" width="800px" >}}
 {{< fig src="code/figs/conn_comp_colors_3.svg" width="800px" >}}
 {{< fig src="code/figs/conn_comp_colors_4.svg" width="800px" >}}
+
+After all symmetric pairs are removed, the remaining components correspond exactly to the polygons we want to output. Loops belonging to the same polygon (both outer and holes) share the same connected component:
+
 {{< fig src="code/figs/conn_comp_colors_5.svg" width="800px" >}}
+{{< caption >}}Three connected components, each corresponding to a polygon. The loops within each component form one polygon's outer boundary and holes.{{< /caption >}}
 
+Note that at this stage we know *which* loops belong together, but we don't yet know which loop is the outer boundary versus which are holes. We'll address that in the next section.
 
-Plotting: make the connected components easier by just plotting the whole
-H3 cell, then i don't have to do the bits to connect the shrunken cells.
+## Implementation notes: union-find
+
+In [uber/h3 #1113](https://github.com/uber/h3/pull/1113), each `Arc` stores the union-find state directly:
+
+```c
+typedef struct Arc {
+    H3Index id;
+
+    bool isVisited;
+    bool isRemoved;
+
+    // For doubly-linked list of edges in loop
+    struct Arc *next;
+    struct Arc *prev;
+
+    // For union-find data structure
+    struct Arc *parent;
+    int64_t rank;
+} Arc;
+```
+
+The `parent` and `rank` fields implement the [union-find data structure](https://en.wikipedia.org/wiki/Disjoint-set_data_structure). When we cancel a symmetric pair of edges in `cancelArcPairs()`, we union the components of the two adjacent cells. After all cancellations, loops sharing the same root belong to the same polygon.
 
 # Which loop is "outside"?
 
