@@ -450,7 +450,7 @@ But how do we determine which loop in a polygon is the outer and which are the h
 There are four loops of edges here. Eyeballing, it is easy for us to pick out
 which one *should* be the outer loop, but how do we determine that algorithmically? Let's look at a more difficult example:
 
-TODO: write a python script to convert /Users/aj/work/ajfriend.github.io/data/globe_coords/equator.json into the format we need under /Users/aj/work/ajfriend.github.io/content/blog/cells_to_poly/data and place a file there. then render it here with the `globe_map` shortcode
+{{< globe_map data="data/equator.json" width="500" >}}
 
 
 But also, note that it doesn't matter, technically.
@@ -460,6 +460,8 @@ Show a simple globe example
 In a polygon, one loop is *special*. The outer loop. the rest are holes.
 Actually, not relaly that special. any loop can be the outer loop and still mathematical describe the same polygon, even if it is an unintuitive format.
 
+
+One rule that works universally
 
 a tricky one might look like: blah
 
