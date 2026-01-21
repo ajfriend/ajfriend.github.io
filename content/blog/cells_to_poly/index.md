@@ -510,19 +510,61 @@ Ties? who cares! like we said, it doesn't matter which one.
 
 ## Implementation notes
 
-TODO: fill in links to code
+In [uber/h3 #1113](https://github.com/uber/h3/pull/1113), the outer loop selection happens via sorting. After edge cancellation, we have a set of loops, each tagged with its connected component (the `root` from union-find) and its computed area. The key data structures are:
+
+```c
+typedef struct {
+    H3Index root;   // connected component identifier
+    double area;    // area enclosed by loop (via right-hand rule)
+    GeoLoop loop;
+} SortableLoop;
+
+typedef struct {
+    double outerArea;  // area of outer loop, for sorting polygons
+    GeoPolygon poly;
+} SortablePoly;
+```
+
+The `createSortableLoop()` function computes each loop's area using `geoLoopAreaRads2()`, which returns the (positive, unsigned) area enclosed by following the loop's orientation.
+
+The `createSortableLoopSet()` function collects all loops and sorts them using `cmp_SortableLoop`, which:
+1. First sorts by `root` (component ID), grouping loops of the same polygon together
+2. Then sorts by `area` (ascending), so the **smallest area comes first**
+
+After sorting, loops from the same polygon are contiguous in memory, with the outer loop (smallest area) first, followed by holes. The `createMultiPolygon()` function walks through this sorted array, grouping consecutive loops with the same `root` into polygons.
 
 # Additional processing
 
+A few other details round out the implementation:
+
+**Extracting lat/lng vertices from edges.** The `createSortableLoop()` function walks the doubly-linked loop of edges and calls `directedEdgeToBoundary()` for each edge to get its lat/lng points. Since consecutive edges share a vertex, we only take `numVerts - 1` points from each edge (skipping the last one, which is the first point of the next edge).
+
+**Polygon ordering.** After constructing all polygons, `cmp_SortablePoly` sorts them by outer loop area in **descending** order—so the largest polygon appears first in the output MultiPolygon. This is purely for convenience (e.g., in a set of cells covering the USA, the continental US polygon comes before Hawaii).
+
+**Input validation.** The function checks for duplicate input cells (which would cause incorrect edge cancellation) and returns `E_DUPLICATE_INPUT` if any are found.
 
 # Code overview
 
-- this function does this...
-- that function does that
+The main function `cellsToMultiPolygon()` proceeds through five stages:
 
-# Bonus: the flowsnake
+1. **Input validation** (`validateCellSet`): Check for duplicate cells, which would break edge cancellation logic.
 
-even faster
+2. **Create ArcSet** (`createArcSet`): For each input cell, create `Arc` structs for its 5-6 edges. Initialize the hash table for fast lookups, doubly-linked loops (one per cell, in counter-clockwise order), and union-find (each cell starts as its own component).
+
+3. **Cancel arc pairs** (`cancelArcPairs`): Loop through all arcs, find symmetric pairs via the hash table, and for each pair:
+   - Mark both arcs as removed
+   - Perform loop surgery to maintain valid doubly-linked loops
+   - Union the connected components of the two adjacent cells
+
+4. **Create SortableLoopSet** (`createSortableLoopSet`): Walk the remaining (non-removed) arcs to extract loops. For each loop, compute its area with `geoLoopAreaRads2()` and record its component root. Sort all loops by (component, area) so loops of each polygon are contiguous, with smallest-area loop first.
+
+5. **Create MultiPolygon** (`createMultiPolygon`): Walk the sorted loops, grouping consecutive loops with the same root into polygons. The first loop becomes the outer; the rest become holes. Finally, sort polygons by outer loop area (descending) so the largest polygon comes first.
+
+# TODO: The Gosper Curve
+
+We can get even greater speed improvements by compacting the input cells
+and processing *only* the outer loop of edges we'd get from uncompacting a cell
+to the original resolution. This work still needs to be done ([uber/h3 #1114](https://github.com/uber/h3/pull/1114)), but I expect this will offer the biggest speed improvements.
 
 # Notes
 
