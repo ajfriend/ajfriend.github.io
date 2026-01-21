@@ -1,0 +1,16 @@
+{{- $type := .Get "type" | default "note" -}}
+{{- $title := .Get "title" -}}
+{{- $colors := dict
+    "note" "#3273dc"
+    "tip" "#23d160"
+    "warning" "#ffdd57"
+    "danger" "#dc3545"
+    "info" "#209cee"
+-}}
+{{- $color := index $colors $type | default "#3273dc" -}}
+<div style="border-left: 4px solid {{ $color }}; background: {{ $color }}11; padding: 1em 1.2em; margin: 1.5em 0; border-radius: 0 4px 4px 0;">
+  {{- if $title }}
+  <strong style="color: {{ $color }}; display: block; margin-bottom: 0.5em;">{{ $title }}</strong>
+  {{- end }}
+  <div>{{ .Inner | markdownify }}</div>
+</div>

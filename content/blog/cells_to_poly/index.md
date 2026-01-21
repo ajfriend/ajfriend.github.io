@@ -448,9 +448,31 @@ But how do we determine which loop in a polygon is the outer and which are the h
 {{< fig src="code/figs/conn_comp_largest.svg" width="800px" >}}
 
 There are four loops of edges here. Eyeballing, it is easy for us to pick out
-which one *should* be the outer loop, but how do we determine that algorithmically? Let's look at a more difficult example:
+which one we think *should* be the outer loop---but how do we determine that algorithmically? Let's look at a more extreme example of two loops close to the equator, encircling the entire globe:
 
-{{< globe_map data="data/equator.json" width="500" >}}
+{{< globe_map data="data/equator.json" width="500" sync="false" >}}
+
+We can assume that we know these two loops are part of the same polygon based on
+the connected components calculation, and the orientation of the loops indicates that the interior of the polygon includes the equator (if you're on the surface of the globe, walking along a loop in the direction of the arrows, the interior is to your left---the right-hand rule), so we know that this object is a polygon with one outer loop and one hole. But which one is which?
+
+This is example is designed to make it harder to tell. And, honestly, the right answer is that there is no right answer! Selecting one loop or the other as the outer loop provides just as valid a spherical polygon. This is generally true for all spherical polygons: **you can select any of the loops as the outer with the others as interior, and you maintain a valid spherical polygon that describes exactly the same region**.
+
+However, there's still an obious "correct" answer for smaller polygons (less than a hemisphere), which comes from the interpretation of the polygon if you plotted
+it on a flat 2D projection. So while, technically, we can choose any loop to be the outer, we still want to choose the loop that matches this intuition, and
+is more likely to work with planar plotting libraries.
+
+Luckily, there's a single rule that picks the "correct" answer for small polygons, and picks a reasonable option for the pathological "global" polygons like the equator example here.
+
+{{< admonition type="note" title="Rule for selecting the outer loop of a polygon" >}}
+For each loop in the polygon, compute the (positive, unsigned) area enclosed by the loop, where "enclosed" is defined by the orientation of the loop and the right-hand rule. The outer loop is the one with smallest area; the rest are holes.
+{{< /admonition >}}
+
+Let's apply it to the example from above, and see if we get the right answer. We have four loops to compute the area for. Area will be computed in units of
+eyeball norm:
+
+
+In reality, we need to ensure that we are computing the unsigned area.
+We might compute a signed area, but let's avoid. Details in this other post.
 
 
 But also, note that it doesn't matter, technically.
@@ -460,6 +482,9 @@ Show a simple globe example
 In a polygon, one loop is *special*. The outer loop. the rest are holes.
 Actually, not relaly that special. any loop can be the outer loop and still mathematical describe the same polygon, even if it is an unintuitive format.
 
+Note, up to this point, everything has been **discrete**, discrete edges represented as H3 indexes which are integers, graphs and edges. This is
+the first time we need to realize our edges as being embedded in a **continous**
+space on the surface of the sphere. Ties? who cares! like we said, it doesn't matter which one.
 
 One rule that works universally
 

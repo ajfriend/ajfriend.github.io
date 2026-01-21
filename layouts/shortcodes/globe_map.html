@@ -41,6 +41,7 @@ Usage:
 {{- $projection := .Get "projection" | default "orthographic" -}}
 {{- $width := .Get "width" | default "600" | int -}}
 {{- $arrowStep := .Get "arrowStep" | default "0" | int -}}
+{{- $sync := .Get "sync" | default "true" -}}
 
 {{- /* Load data from page bundle */ -}}
 {{- $resource := .Page.Resources.GetMatch $dataFile -}}
@@ -96,6 +97,7 @@ Usage:
     const isGlobe = projection === "orthographic";
     const maxWidth = {{ $width }};
     const arrowStep = {{ $arrowStep }};
+    const shouldSync = {{ eq $sync "true" }};
 
     const container = document.getElementById('globe-{{ $id }}');
     const getSize = () => {
@@ -129,20 +131,31 @@ Usage:
     const size = getSize();
     const localState = { width: size.width, height: size.height };
 
-    // Shared rotation state for all globes on the page
-    if (!window.globeMapSync) {
-      window.globeMapSync = {
+    // Rotation state - either shared with other globes or independent
+    let sync;
+    if (shouldSync) {
+      // Shared rotation state for all synced globes on the page
+      if (!window.globeMapSync) {
+        window.globeMapSync = {
+          rotate: centerRotate,
+          centerRotate: centerRotate,
+          renders: []
+        };
+      }
+      sync = window.globeMapSync;
+
+      // Use first synced globe's centerRotate as the shared default
+      if (sync.renders.length === 0) {
+        sync.rotate = centerRotate;
+        sync.centerRotate = centerRotate;
+      }
+    } else {
+      // Independent rotation state for this globe only
+      sync = {
         rotate: centerRotate,
         centerRotate: centerRotate,
         renders: []
       };
-    }
-    const sync = window.globeMapSync;
-
-    // Use first globe's centerRotate as the shared default
-    if (sync.renders.length === 0) {
-      sync.rotate = centerRotate;
-      sync.centerRotate = centerRotate;
     }
 
     if (!window.globeLandData) {
