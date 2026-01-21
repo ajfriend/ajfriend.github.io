@@ -562,6 +562,6 @@ The main function `cellsToMultiPolygon()` proceeds through five stages:
 
 # (TODO) Bonus: The Gosper Curve
 
-We can get even greater speed improvements by compacting the input cells
-and processing *only* the outer loop of edges we'd get from uncompacting a cell
-to the original resolution. This work still needs to be done ([uber/h3 #1114](https://github.com/uber/h3/pull/1114)), but I expect this will offer the biggest speed improvements.
+The algorithm above processes every edge of every input cell. But if a group of cells can be [compacted](https://h3geo.org/docs/api/hierarchy#compactcells) into a single coarser cell, we don't need to process all those internal edges---we only need the outer boundary of the compacted cell. That boundary follows the [Gosper curve](https://en.wikipedia.org/wiki/Gosper_curve) (a.k.a. flowsnake), which is the fractal shape traced by H3 cell boundaries.
+
+This optimization is planned for [uber/h3 #1114](https://github.com/uber/h3/pull/1114) and should provide significant speedups for large, compactible cell sets.
