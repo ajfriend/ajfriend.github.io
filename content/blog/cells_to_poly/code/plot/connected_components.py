@@ -228,26 +228,33 @@ def make_plot(filename, cells, edges_to_join, cell_colors):
     plot_figure(filename, remaining_edges, cell_colors)
 
 
-# Random seeds for reproducibility
-order_seed = 47   # controls edge removal order
-color_seed = 128  # controls cell coloring
+def plot_all(cells, cuts, order_seed, color_seed):
+    """
+    Generate all connected component plots.
 
-all_edges = u.cells_to_edges(cells)
-all_pairs = sorted([t[0] for t in u.get_pair_tuples(all_edges)])
-random.seed(order_seed)
-random.shuffle(all_pairs)
+    Args:
+        cells: List of H3 cell indices
+        cuts: List of intermediate stage cut points (0 and len are added automatically)
+        order_seed: Random seed for edge removal order
+        color_seed: Random seed for cell coloring
+    """
+    all_edges = u.cells_to_edges(cells)
+    all_pairs = sorted([t[0] for t in u.get_pair_tuples(all_edges)])
+    random.seed(order_seed)
+    random.shuffle(all_pairs)
 
-# Stage cuts: indices into all_pairs for each stage
-stage_cuts = [0, 16, 35, len(all_pairs)]
+    stage_cuts = [0] + cuts + [len(all_pairs)]
+    stages = find_valid_coloring(cells, all_pairs, stage_cuts, color_seed)
 
-stages = find_valid_coloring(cells, all_pairs, stage_cuts, color_seed)
+    # Boundary edges only, no background colors
+    no_colors = {cell: None for cell in cells}
+    make_plot('figs/conn_comp_white.svg', cells, all_pairs, no_colors)
 
-# Boundary edges only, no background colors
-no_colors = {cell: None for cell in cells}
-make_plot('figs/conn_comp_white.svg', cells, all_pairs, no_colors)
+    # Plot each stage
+    for i, (cut, colors) in enumerate(zip(stage_cuts, stages)):
+        make_plot(f'figs/conn_comp_colors_{i}.svg', cells, all_pairs[:cut], colors)
 
-# Plot each stage
-for i, (cut, colors) in enumerate(zip(stage_cuts, stages)):
-    make_plot(f'figs/conn_comp_colors_{i}.svg', cells, all_pairs[:cut], colors)
+
+plot_all(cells, cuts=[16, 35], order_seed=49, color_seed=128)
 
 
