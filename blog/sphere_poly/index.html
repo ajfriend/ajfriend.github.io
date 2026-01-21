@@ -236,6 +236,7 @@ no matter what representation you give them.</p><h1 id=great-circle-arcs><a href
     const isGlobe = projection === "orthographic";
     const maxWidth =  1000 ;
     const arrowStep =  0 ;
+    const shouldSync =  true ;
 
     const container = document.getElementById('globe-gm2');
     const getSize = () => {
@@ -270,19 +271,30 @@ no matter what representation you give them.</p><h1 id=great-circle-arcs><a href
     const localState = { width: size.width, height: size.height };
 
     
-    if (!window.globeMapSync) {
-      window.globeMapSync = {
+    let sync;
+    if (shouldSync) {
+      
+      if (!window.globeMapSync) {
+        window.globeMapSync = {
+          rotate: centerRotate,
+          centerRotate: centerRotate,
+          renders: []
+        };
+      }
+      sync = window.globeMapSync;
+
+      
+      if (sync.renders.length === 0) {
+        sync.rotate = centerRotate;
+        sync.centerRotate = centerRotate;
+      }
+    } else {
+      
+      sync = {
         rotate: centerRotate,
         centerRotate: centerRotate,
         renders: []
       };
-    }
-    const sync = window.globeMapSync;
-
-    
-    if (sync.renders.length === 0) {
-      sync.rotate = centerRotate;
-      sync.centerRotate = centerRotate;
     }
 
     if (!window.globeLandData) {
@@ -324,14 +336,41 @@ no matter what representation you give them.</p><h1 id=great-circle-arcs><a href
       };
 
       
-      if (polygons.features.length > 0) {
-        marks.push(Plot.geo(polygons, {
+      const dashedPolygons = {
+        type: 'FeatureCollection',
+        features: polygons.features.filter(f => f.properties?.strokeDasharray)
+      };
+      const solidPolygons = {
+        type: 'FeatureCollection',
+        features: polygons.features.filter(f => !f.properties?.strokeDasharray)
+      };
+
+      
+      if (solidPolygons.features.length > 0) {
+        marks.push(Plot.geo(solidPolygons, {
           fill: d => d.properties?.fill || 'red',
           fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
           stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
           strokeWidth: d => d.properties?.strokeWidth ?? 1,
           strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
         }));
+      }
+
+      
+      if (dashedPolygons.features.length > 0) {
+        marks.push(Plot.geo(dashedPolygons, {
+          fill: d => d.properties?.fill || 'red',
+          fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
+          stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
+          strokeWidth: d => d.properties?.strokeWidth ?? 1,
+          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
+        }));
+      }
+
+      
+      const dashedPolyInfo = dashedPolygons.features.map(f => ({
+        dasharray: f.properties?.strokeDasharray
+      }));
 
         
         if (arrowStep > 0) {
@@ -339,6 +378,8 @@ no matter what representation you give them.</p><h1 id=great-circle-arcs><a href
           
           rawData.features.forEach(f => {
             if (f.geometry.type !== 'Polygon' && f.geometry.type !== 'MultiPolygon') return;
+            
+            if (f.properties?.strokeDasharray) return;
             const stroke = f.properties?.stroke || f.properties?.fill || 'red';
             const strokeWidth = f.properties?.strokeWidth ?? 1;
             const rings = f.geometry.type === 'Polygon'
@@ -361,7 +402,6 @@ no matter what representation you give them.</p><h1 id=great-circle-arcs><a href
             });
           });
         }
-      }
 
       
       if (lines.features.length > 0) {
@@ -373,17 +413,20 @@ no matter what representation you give them.</p><h1 id=great-circle-arcs><a href
 
         
         lines.features.forEach(f => {
-          if (f.properties?.arrow) {
+          const step = f.properties?.arrowStep ?? (f.properties?.arrow ? 1 : 0);
+          if (step > 0) {
             const coords = f.geometry.coordinates;
             for (let i = 0; i < coords.length - 1; i++) {
-              const interpolate = d3.geoInterpolate(coords[i], coords[i + 1]);
-              marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
-                x: d => d[0],
-                y: d => d[1],
-                markerEnd: 'arrow',
-                stroke: f.properties?.stroke || 'darkred',
-                strokeWidth: f.properties?.strokeWidth ?? 2
-              }));
+              if (i % step === 0) {
+                const interpolate = d3.geoInterpolate(coords[i], coords[i + 1]);
+                marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
+                  x: d => d[0],
+                  y: d => d[1],
+                  markerEnd: 'arrow',
+                  stroke: f.properties?.stroke || 'darkred',
+                  strokeWidth: f.properties?.strokeWidth ?? 2
+                }));
+              }
             }
           }
         });
@@ -412,6 +455,16 @@ no matter what representation you give them.</p><h1 id=great-circle-arcs><a href
 
       container.innerHTML = '';
       container.appendChild(svg);
+
+      
+      dashedPolyInfo.forEach(info => {
+        svg.querySelectorAll('path').forEach(path => {
+          if (path.getAttribute('fill') === 'none') {
+            path.setAttribute('stroke-dasharray', info.dasharray);
+          }
+        });
+      });
+
       if (isGlobe) {
         attachDrag(svg);
       }
@@ -551,6 +604,7 @@ that&rsquo;s less than 180 degrees:</p><p><div class=globe-container id=globe-gm
     const isGlobe = projection === "orthographic";
     const maxWidth =  600 ;
     const arrowStep =  0 ;
+    const shouldSync =  true ;
 
     const container = document.getElementById('globe-gm4');
     const getSize = () => {
@@ -585,19 +639,30 @@ that&rsquo;s less than 180 degrees:</p><p><div class=globe-container id=globe-gm
     const localState = { width: size.width, height: size.height };
 
     
-    if (!window.globeMapSync) {
-      window.globeMapSync = {
+    let sync;
+    if (shouldSync) {
+      
+      if (!window.globeMapSync) {
+        window.globeMapSync = {
+          rotate: centerRotate,
+          centerRotate: centerRotate,
+          renders: []
+        };
+      }
+      sync = window.globeMapSync;
+
+      
+      if (sync.renders.length === 0) {
+        sync.rotate = centerRotate;
+        sync.centerRotate = centerRotate;
+      }
+    } else {
+      
+      sync = {
         rotate: centerRotate,
         centerRotate: centerRotate,
         renders: []
       };
-    }
-    const sync = window.globeMapSync;
-
-    
-    if (sync.renders.length === 0) {
-      sync.rotate = centerRotate;
-      sync.centerRotate = centerRotate;
     }
 
     if (!window.globeLandData) {
@@ -639,14 +704,41 @@ that&rsquo;s less than 180 degrees:</p><p><div class=globe-container id=globe-gm
       };
 
       
-      if (polygons.features.length > 0) {
-        marks.push(Plot.geo(polygons, {
+      const dashedPolygons = {
+        type: 'FeatureCollection',
+        features: polygons.features.filter(f => f.properties?.strokeDasharray)
+      };
+      const solidPolygons = {
+        type: 'FeatureCollection',
+        features: polygons.features.filter(f => !f.properties?.strokeDasharray)
+      };
+
+      
+      if (solidPolygons.features.length > 0) {
+        marks.push(Plot.geo(solidPolygons, {
           fill: d => d.properties?.fill || 'red',
           fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
           stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
           strokeWidth: d => d.properties?.strokeWidth ?? 1,
           strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
         }));
+      }
+
+      
+      if (dashedPolygons.features.length > 0) {
+        marks.push(Plot.geo(dashedPolygons, {
+          fill: d => d.properties?.fill || 'red',
+          fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
+          stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
+          strokeWidth: d => d.properties?.strokeWidth ?? 1,
+          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
+        }));
+      }
+
+      
+      const dashedPolyInfo = dashedPolygons.features.map(f => ({
+        dasharray: f.properties?.strokeDasharray
+      }));
 
         
         if (arrowStep > 0) {
@@ -654,6 +746,8 @@ that&rsquo;s less than 180 degrees:</p><p><div class=globe-container id=globe-gm
           
           rawData.features.forEach(f => {
             if (f.geometry.type !== 'Polygon' && f.geometry.type !== 'MultiPolygon') return;
+            
+            if (f.properties?.strokeDasharray) return;
             const stroke = f.properties?.stroke || f.properties?.fill || 'red';
             const strokeWidth = f.properties?.strokeWidth ?? 1;
             const rings = f.geometry.type === 'Polygon'
@@ -676,7 +770,6 @@ that&rsquo;s less than 180 degrees:</p><p><div class=globe-container id=globe-gm
             });
           });
         }
-      }
 
       
       if (lines.features.length > 0) {
@@ -688,17 +781,20 @@ that&rsquo;s less than 180 degrees:</p><p><div class=globe-container id=globe-gm
 
         
         lines.features.forEach(f => {
-          if (f.properties?.arrow) {
+          const step = f.properties?.arrowStep ?? (f.properties?.arrow ? 1 : 0);
+          if (step > 0) {
             const coords = f.geometry.coordinates;
             for (let i = 0; i < coords.length - 1; i++) {
-              const interpolate = d3.geoInterpolate(coords[i], coords[i + 1]);
-              marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
-                x: d => d[0],
-                y: d => d[1],
-                markerEnd: 'arrow',
-                stroke: f.properties?.stroke || 'darkred',
-                strokeWidth: f.properties?.strokeWidth ?? 2
-              }));
+              if (i % step === 0) {
+                const interpolate = d3.geoInterpolate(coords[i], coords[i + 1]);
+                marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
+                  x: d => d[0],
+                  y: d => d[1],
+                  markerEnd: 'arrow',
+                  stroke: f.properties?.stroke || 'darkred',
+                  strokeWidth: f.properties?.strokeWidth ?? 2
+                }));
+              }
             }
           }
         });
@@ -727,6 +823,16 @@ that&rsquo;s less than 180 degrees:</p><p><div class=globe-container id=globe-gm
 
       container.innerHTML = '';
       container.appendChild(svg);
+
+      
+      dashedPolyInfo.forEach(info => {
+        svg.querySelectorAll('path').forEach(path => {
+          if (path.getAttribute('fill') === 'none') {
+            path.setAttribute('stroke-dasharray', info.dasharray);
+          }
+        });
+      });
+
       if (isGlobe) {
         attachDrag(svg);
       }
@@ -866,6 +972,7 @@ The arc changes direction and goes around the globe in the other direction.</p><
     const isGlobe = projection === "orthographic";
     const maxWidth =  1000 ;
     const arrowStep =  0 ;
+    const shouldSync =  true ;
 
     const container = document.getElementById('globe-gm6');
     const getSize = () => {
@@ -900,19 +1007,30 @@ The arc changes direction and goes around the globe in the other direction.</p><
     const localState = { width: size.width, height: size.height };
 
     
-    if (!window.globeMapSync) {
-      window.globeMapSync = {
+    let sync;
+    if (shouldSync) {
+      
+      if (!window.globeMapSync) {
+        window.globeMapSync = {
+          rotate: centerRotate,
+          centerRotate: centerRotate,
+          renders: []
+        };
+      }
+      sync = window.globeMapSync;
+
+      
+      if (sync.renders.length === 0) {
+        sync.rotate = centerRotate;
+        sync.centerRotate = centerRotate;
+      }
+    } else {
+      
+      sync = {
         rotate: centerRotate,
         centerRotate: centerRotate,
         renders: []
       };
-    }
-    const sync = window.globeMapSync;
-
-    
-    if (sync.renders.length === 0) {
-      sync.rotate = centerRotate;
-      sync.centerRotate = centerRotate;
     }
 
     if (!window.globeLandData) {
@@ -954,14 +1072,41 @@ The arc changes direction and goes around the globe in the other direction.</p><
       };
 
       
-      if (polygons.features.length > 0) {
-        marks.push(Plot.geo(polygons, {
+      const dashedPolygons = {
+        type: 'FeatureCollection',
+        features: polygons.features.filter(f => f.properties?.strokeDasharray)
+      };
+      const solidPolygons = {
+        type: 'FeatureCollection',
+        features: polygons.features.filter(f => !f.properties?.strokeDasharray)
+      };
+
+      
+      if (solidPolygons.features.length > 0) {
+        marks.push(Plot.geo(solidPolygons, {
           fill: d => d.properties?.fill || 'red',
           fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
           stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
           strokeWidth: d => d.properties?.strokeWidth ?? 1,
           strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
         }));
+      }
+
+      
+      if (dashedPolygons.features.length > 0) {
+        marks.push(Plot.geo(dashedPolygons, {
+          fill: d => d.properties?.fill || 'red',
+          fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
+          stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
+          strokeWidth: d => d.properties?.strokeWidth ?? 1,
+          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
+        }));
+      }
+
+      
+      const dashedPolyInfo = dashedPolygons.features.map(f => ({
+        dasharray: f.properties?.strokeDasharray
+      }));
 
         
         if (arrowStep > 0) {
@@ -969,6 +1114,8 @@ The arc changes direction and goes around the globe in the other direction.</p><
           
           rawData.features.forEach(f => {
             if (f.geometry.type !== 'Polygon' && f.geometry.type !== 'MultiPolygon') return;
+            
+            if (f.properties?.strokeDasharray) return;
             const stroke = f.properties?.stroke || f.properties?.fill || 'red';
             const strokeWidth = f.properties?.strokeWidth ?? 1;
             const rings = f.geometry.type === 'Polygon'
@@ -991,7 +1138,6 @@ The arc changes direction and goes around the globe in the other direction.</p><
             });
           });
         }
-      }
 
       
       if (lines.features.length > 0) {
@@ -1003,17 +1149,20 @@ The arc changes direction and goes around the globe in the other direction.</p><
 
         
         lines.features.forEach(f => {
-          if (f.properties?.arrow) {
+          const step = f.properties?.arrowStep ?? (f.properties?.arrow ? 1 : 0);
+          if (step > 0) {
             const coords = f.geometry.coordinates;
             for (let i = 0; i < coords.length - 1; i++) {
-              const interpolate = d3.geoInterpolate(coords[i], coords[i + 1]);
-              marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
-                x: d => d[0],
-                y: d => d[1],
-                markerEnd: 'arrow',
-                stroke: f.properties?.stroke || 'darkred',
-                strokeWidth: f.properties?.strokeWidth ?? 2
-              }));
+              if (i % step === 0) {
+                const interpolate = d3.geoInterpolate(coords[i], coords[i + 1]);
+                marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
+                  x: d => d[0],
+                  y: d => d[1],
+                  markerEnd: 'arrow',
+                  stroke: f.properties?.stroke || 'darkred',
+                  strokeWidth: f.properties?.strokeWidth ?? 2
+                }));
+              }
             }
           }
         });
@@ -1042,6 +1191,16 @@ The arc changes direction and goes around the globe in the other direction.</p><
 
       container.innerHTML = '';
       container.appendChild(svg);
+
+      
+      dashedPolyInfo.forEach(info => {
+        svg.querySelectorAll('path').forEach(path => {
+          if (path.getAttribute('fill') === 'none') {
+            path.setAttribute('stroke-dasharray', info.dasharray);
+          }
+        });
+      });
+
       if (isGlobe) {
         attachDrag(svg);
       }
@@ -1179,6 +1338,7 @@ The arc changes direction and goes around the globe in the other direction.</p><
     const isGlobe = projection === "orthographic";
     const maxWidth =  600 ;
     const arrowStep =  0 ;
+    const shouldSync =  true ;
 
     const container = document.getElementById('globe-gm8');
     const getSize = () => {
@@ -1213,19 +1373,30 @@ The arc changes direction and goes around the globe in the other direction.</p><
     const localState = { width: size.width, height: size.height };
 
     
-    if (!window.globeMapSync) {
-      window.globeMapSync = {
+    let sync;
+    if (shouldSync) {
+      
+      if (!window.globeMapSync) {
+        window.globeMapSync = {
+          rotate: centerRotate,
+          centerRotate: centerRotate,
+          renders: []
+        };
+      }
+      sync = window.globeMapSync;
+
+      
+      if (sync.renders.length === 0) {
+        sync.rotate = centerRotate;
+        sync.centerRotate = centerRotate;
+      }
+    } else {
+      
+      sync = {
         rotate: centerRotate,
         centerRotate: centerRotate,
         renders: []
       };
-    }
-    const sync = window.globeMapSync;
-
-    
-    if (sync.renders.length === 0) {
-      sync.rotate = centerRotate;
-      sync.centerRotate = centerRotate;
     }
 
     if (!window.globeLandData) {
@@ -1267,14 +1438,41 @@ The arc changes direction and goes around the globe in the other direction.</p><
       };
 
       
-      if (polygons.features.length > 0) {
-        marks.push(Plot.geo(polygons, {
+      const dashedPolygons = {
+        type: 'FeatureCollection',
+        features: polygons.features.filter(f => f.properties?.strokeDasharray)
+      };
+      const solidPolygons = {
+        type: 'FeatureCollection',
+        features: polygons.features.filter(f => !f.properties?.strokeDasharray)
+      };
+
+      
+      if (solidPolygons.features.length > 0) {
+        marks.push(Plot.geo(solidPolygons, {
           fill: d => d.properties?.fill || 'red',
           fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
           stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
           strokeWidth: d => d.properties?.strokeWidth ?? 1,
           strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
         }));
+      }
+
+      
+      if (dashedPolygons.features.length > 0) {
+        marks.push(Plot.geo(dashedPolygons, {
+          fill: d => d.properties?.fill || 'red',
+          fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
+          stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
+          strokeWidth: d => d.properties?.strokeWidth ?? 1,
+          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
+        }));
+      }
+
+      
+      const dashedPolyInfo = dashedPolygons.features.map(f => ({
+        dasharray: f.properties?.strokeDasharray
+      }));
 
         
         if (arrowStep > 0) {
@@ -1282,6 +1480,8 @@ The arc changes direction and goes around the globe in the other direction.</p><
           
           rawData.features.forEach(f => {
             if (f.geometry.type !== 'Polygon' && f.geometry.type !== 'MultiPolygon') return;
+            
+            if (f.properties?.strokeDasharray) return;
             const stroke = f.properties?.stroke || f.properties?.fill || 'red';
             const strokeWidth = f.properties?.strokeWidth ?? 1;
             const rings = f.geometry.type === 'Polygon'
@@ -1304,7 +1504,6 @@ The arc changes direction and goes around the globe in the other direction.</p><
             });
           });
         }
-      }
 
       
       if (lines.features.length > 0) {
@@ -1316,17 +1515,20 @@ The arc changes direction and goes around the globe in the other direction.</p><
 
         
         lines.features.forEach(f => {
-          if (f.properties?.arrow) {
+          const step = f.properties?.arrowStep ?? (f.properties?.arrow ? 1 : 0);
+          if (step > 0) {
             const coords = f.geometry.coordinates;
             for (let i = 0; i < coords.length - 1; i++) {
-              const interpolate = d3.geoInterpolate(coords[i], coords[i + 1]);
-              marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
-                x: d => d[0],
-                y: d => d[1],
-                markerEnd: 'arrow',
-                stroke: f.properties?.stroke || 'darkred',
-                strokeWidth: f.properties?.strokeWidth ?? 2
-              }));
+              if (i % step === 0) {
+                const interpolate = d3.geoInterpolate(coords[i], coords[i + 1]);
+                marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
+                  x: d => d[0],
+                  y: d => d[1],
+                  markerEnd: 'arrow',
+                  stroke: f.properties?.stroke || 'darkred',
+                  strokeWidth: f.properties?.strokeWidth ?? 2
+                }));
+              }
             }
           }
         });
@@ -1355,6 +1557,16 @@ The arc changes direction and goes around the globe in the other direction.</p><
 
       container.innerHTML = '';
       container.appendChild(svg);
+
+      
+      dashedPolyInfo.forEach(info => {
+        svg.querySelectorAll('path').forEach(path => {
+          if (path.getAttribute('fill') === 'none') {
+            path.setAttribute('stroke-dasharray', info.dasharray);
+          }
+        });
+      });
+
       if (isGlobe) {
         attachDrag(svg);
       }
@@ -1494,6 +1706,7 @@ point to break up the any arcs that would otherwise be
     const isGlobe = projection === "orthographic";
     const maxWidth =  1000 ;
     const arrowStep =  0 ;
+    const shouldSync =  true ;
 
     const container = document.getElementById('globe-gma');
     const getSize = () => {
@@ -1528,19 +1741,30 @@ point to break up the any arcs that would otherwise be
     const localState = { width: size.width, height: size.height };
 
     
-    if (!window.globeMapSync) {
-      window.globeMapSync = {
+    let sync;
+    if (shouldSync) {
+      
+      if (!window.globeMapSync) {
+        window.globeMapSync = {
+          rotate: centerRotate,
+          centerRotate: centerRotate,
+          renders: []
+        };
+      }
+      sync = window.globeMapSync;
+
+      
+      if (sync.renders.length === 0) {
+        sync.rotate = centerRotate;
+        sync.centerRotate = centerRotate;
+      }
+    } else {
+      
+      sync = {
         rotate: centerRotate,
         centerRotate: centerRotate,
         renders: []
       };
-    }
-    const sync = window.globeMapSync;
-
-    
-    if (sync.renders.length === 0) {
-      sync.rotate = centerRotate;
-      sync.centerRotate = centerRotate;
     }
 
     if (!window.globeLandData) {
@@ -1582,14 +1806,41 @@ point to break up the any arcs that would otherwise be
       };
 
       
-      if (polygons.features.length > 0) {
-        marks.push(Plot.geo(polygons, {
+      const dashedPolygons = {
+        type: 'FeatureCollection',
+        features: polygons.features.filter(f => f.properties?.strokeDasharray)
+      };
+      const solidPolygons = {
+        type: 'FeatureCollection',
+        features: polygons.features.filter(f => !f.properties?.strokeDasharray)
+      };
+
+      
+      if (solidPolygons.features.length > 0) {
+        marks.push(Plot.geo(solidPolygons, {
           fill: d => d.properties?.fill || 'red',
           fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
           stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
           strokeWidth: d => d.properties?.strokeWidth ?? 1,
           strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
         }));
+      }
+
+      
+      if (dashedPolygons.features.length > 0) {
+        marks.push(Plot.geo(dashedPolygons, {
+          fill: d => d.properties?.fill || 'red',
+          fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
+          stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
+          strokeWidth: d => d.properties?.strokeWidth ?? 1,
+          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
+        }));
+      }
+
+      
+      const dashedPolyInfo = dashedPolygons.features.map(f => ({
+        dasharray: f.properties?.strokeDasharray
+      }));
 
         
         if (arrowStep > 0) {
@@ -1597,6 +1848,8 @@ point to break up the any arcs that would otherwise be
           
           rawData.features.forEach(f => {
             if (f.geometry.type !== 'Polygon' && f.geometry.type !== 'MultiPolygon') return;
+            
+            if (f.properties?.strokeDasharray) return;
             const stroke = f.properties?.stroke || f.properties?.fill || 'red';
             const strokeWidth = f.properties?.strokeWidth ?? 1;
             const rings = f.geometry.type === 'Polygon'
@@ -1619,7 +1872,6 @@ point to break up the any arcs that would otherwise be
             });
           });
         }
-      }
 
       
       if (lines.features.length > 0) {
@@ -1631,17 +1883,20 @@ point to break up the any arcs that would otherwise be
 
         
         lines.features.forEach(f => {
-          if (f.properties?.arrow) {
+          const step = f.properties?.arrowStep ?? (f.properties?.arrow ? 1 : 0);
+          if (step > 0) {
             const coords = f.geometry.coordinates;
             for (let i = 0; i < coords.length - 1; i++) {
-              const interpolate = d3.geoInterpolate(coords[i], coords[i + 1]);
-              marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
-                x: d => d[0],
-                y: d => d[1],
-                markerEnd: 'arrow',
-                stroke: f.properties?.stroke || 'darkred',
-                strokeWidth: f.properties?.strokeWidth ?? 2
-              }));
+              if (i % step === 0) {
+                const interpolate = d3.geoInterpolate(coords[i], coords[i + 1]);
+                marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
+                  x: d => d[0],
+                  y: d => d[1],
+                  markerEnd: 'arrow',
+                  stroke: f.properties?.stroke || 'darkred',
+                  strokeWidth: f.properties?.strokeWidth ?? 2
+                }));
+              }
             }
           }
         });
@@ -1670,6 +1925,16 @@ point to break up the any arcs that would otherwise be
 
       container.innerHTML = '';
       container.appendChild(svg);
+
+      
+      dashedPolyInfo.forEach(info => {
+        svg.querySelectorAll('path').forEach(path => {
+          if (path.getAttribute('fill') === 'none') {
+            path.setAttribute('stroke-dasharray', info.dasharray);
+          }
+        });
+      });
+
       if (isGlobe) {
         attachDrag(svg);
       }
@@ -1807,6 +2072,7 @@ point to break up the any arcs that would otherwise be
     const isGlobe = projection === "orthographic";
     const maxWidth =  600 ;
     const arrowStep =  0 ;
+    const shouldSync =  true ;
 
     const container = document.getElementById('globe-gmc');
     const getSize = () => {
@@ -1841,19 +2107,30 @@ point to break up the any arcs that would otherwise be
     const localState = { width: size.width, height: size.height };
 
     
-    if (!window.globeMapSync) {
-      window.globeMapSync = {
+    let sync;
+    if (shouldSync) {
+      
+      if (!window.globeMapSync) {
+        window.globeMapSync = {
+          rotate: centerRotate,
+          centerRotate: centerRotate,
+          renders: []
+        };
+      }
+      sync = window.globeMapSync;
+
+      
+      if (sync.renders.length === 0) {
+        sync.rotate = centerRotate;
+        sync.centerRotate = centerRotate;
+      }
+    } else {
+      
+      sync = {
         rotate: centerRotate,
         centerRotate: centerRotate,
         renders: []
       };
-    }
-    const sync = window.globeMapSync;
-
-    
-    if (sync.renders.length === 0) {
-      sync.rotate = centerRotate;
-      sync.centerRotate = centerRotate;
     }
 
     if (!window.globeLandData) {
@@ -1895,14 +2172,41 @@ point to break up the any arcs that would otherwise be
       };
 
       
-      if (polygons.features.length > 0) {
-        marks.push(Plot.geo(polygons, {
+      const dashedPolygons = {
+        type: 'FeatureCollection',
+        features: polygons.features.filter(f => f.properties?.strokeDasharray)
+      };
+      const solidPolygons = {
+        type: 'FeatureCollection',
+        features: polygons.features.filter(f => !f.properties?.strokeDasharray)
+      };
+
+      
+      if (solidPolygons.features.length > 0) {
+        marks.push(Plot.geo(solidPolygons, {
           fill: d => d.properties?.fill || 'red',
           fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
           stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
           strokeWidth: d => d.properties?.strokeWidth ?? 1,
           strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
         }));
+      }
+
+      
+      if (dashedPolygons.features.length > 0) {
+        marks.push(Plot.geo(dashedPolygons, {
+          fill: d => d.properties?.fill || 'red',
+          fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
+          stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
+          strokeWidth: d => d.properties?.strokeWidth ?? 1,
+          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
+        }));
+      }
+
+      
+      const dashedPolyInfo = dashedPolygons.features.map(f => ({
+        dasharray: f.properties?.strokeDasharray
+      }));
 
         
         if (arrowStep > 0) {
@@ -1910,6 +2214,8 @@ point to break up the any arcs that would otherwise be
           
           rawData.features.forEach(f => {
             if (f.geometry.type !== 'Polygon' && f.geometry.type !== 'MultiPolygon') return;
+            
+            if (f.properties?.strokeDasharray) return;
             const stroke = f.properties?.stroke || f.properties?.fill || 'red';
             const strokeWidth = f.properties?.strokeWidth ?? 1;
             const rings = f.geometry.type === 'Polygon'
@@ -1932,7 +2238,6 @@ point to break up the any arcs that would otherwise be
             });
           });
         }
-      }
 
       
       if (lines.features.length > 0) {
@@ -1944,17 +2249,20 @@ point to break up the any arcs that would otherwise be
 
         
         lines.features.forEach(f => {
-          if (f.properties?.arrow) {
+          const step = f.properties?.arrowStep ?? (f.properties?.arrow ? 1 : 0);
+          if (step > 0) {
             const coords = f.geometry.coordinates;
             for (let i = 0; i < coords.length - 1; i++) {
-              const interpolate = d3.geoInterpolate(coords[i], coords[i + 1]);
-              marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
-                x: d => d[0],
-                y: d => d[1],
-                markerEnd: 'arrow',
-                stroke: f.properties?.stroke || 'darkred',
-                strokeWidth: f.properties?.strokeWidth ?? 2
-              }));
+              if (i % step === 0) {
+                const interpolate = d3.geoInterpolate(coords[i], coords[i + 1]);
+                marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
+                  x: d => d[0],
+                  y: d => d[1],
+                  markerEnd: 'arrow',
+                  stroke: f.properties?.stroke || 'darkred',
+                  strokeWidth: f.properties?.strokeWidth ?? 2
+                }));
+              }
             }
           }
         });
@@ -1983,6 +2291,16 @@ point to break up the any arcs that would otherwise be
 
       container.innerHTML = '';
       container.appendChild(svg);
+
+      
+      dashedPolyInfo.forEach(info => {
+        svg.querySelectorAll('path').forEach(path => {
+          if (path.getAttribute('fill') === 'none') {
+            path.setAttribute('stroke-dasharray', info.dasharray);
+          }
+        });
+      });
+
       if (isGlobe) {
         attachDrag(svg);
       }
