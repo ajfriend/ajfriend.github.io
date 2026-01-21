@@ -239,6 +239,8 @@ Usage:
           // Use rawData (before ring reversal) to get correct winding direction for arrows
           rawData.features.forEach(f => {
             if (f.geometry.type !== 'Polygon' && f.geometry.type !== 'MultiPolygon') return;
+            // Skip dashed polygons
+            if (f.properties?.strokeDasharray) return;
             const stroke = f.properties?.stroke || f.properties?.fill || 'red';
             const strokeWidth = f.properties?.strokeWidth ?? 1;
             const rings = f.geometry.type === 'Polygon'

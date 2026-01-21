@@ -472,10 +472,10 @@ eyeball norm:
 
 
 <div style="display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 1rem; row-gap: 0; max-width: 800px; margin: 0 auto;">
-{{< globe_map data="data/holes_0.json" width="400" >}}
-{{< globe_map data="data/holes_1.json" width="400" >}}
-{{< globe_map data="data/holes_2.json" width="400" >}}
-{{< globe_map data="data/holes_3.json" width="400" >}}
+{{< globe_map data="data/holes_0.json" width="400" arrowStep="3" >}}
+{{< globe_map data="data/holes_1.json" width="400" arrowStep="3" >}}
+{{< globe_map data="data/holes_2.json" width="400" arrowStep="3" >}}
+{{< globe_map data="data/holes_3.json" width="400" arrowStep="3" >}}
 </div>
 
 We critically depend on the orientation of the loops here.
