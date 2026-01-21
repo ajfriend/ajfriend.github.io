@@ -150,27 +150,7 @@ cells = [
     '8966dbda907ffff',
 ]
 
-edges = u.cells_to_edges(cells)
 
-# List of edges to "join".
-edges_to_join = [
-    '11966dbc36dbffff',
-    '11966dbda827ffff',
-    '11966dbda903ffff',
-    '11966dbda943ffff',
-    '11966dbda947ffff',
-    '13966dbdabd7ffff',
-    '13966dbda82fffff',
-    '13966dbdab87ffff',
-    '11966dbda903ffff',
-    '11966dbdab97ffff',
-    '12966dbc36d7ffff',
-    '12966dbdabbbffff',
-    '11966dbdab93ffff',
-    '12966dbda943ffff',
-    '11966dbda973ffff',
-    '13966dbdabbbffff',
-]
 
 # --- Plotting ---
 
@@ -217,7 +197,7 @@ make_plot('figs/conn_comp_boundary_only.svg', cells, edges_to_join=all_pairs, se
 make_plot('figs/conn_comp_all.svg', cells, edges_to_join=[], seed=42, show_colors=True)
 
 # Partial join, with background colors
-partial_pairs = all_pairs[:len(edges_to_join)]
+partial_pairs = all_pairs[:16]
 make_plot('figs/conn_comp_joined.svg', cells, edges_to_join=partial_pairs, seed=44, show_colors=True)
 
 # Boundary edges only, with background colors
