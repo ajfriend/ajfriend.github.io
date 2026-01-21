@@ -3,7 +3,7 @@
 {{- $alt := .Get "alt" | default "" -}}
 {{- $caption := .Get "caption" | default "" -}}
 <figure style="text-align: center;">
-  <img src="{{ $src }}" alt="{{ $alt }}" style="max-width: {{ $width }};">
+  <img src="{{ $src }}" alt="{{ $alt }}" style="width: 100%; max-width: {{ $width }};">
   {{- if $caption }}
   <p class="caption">{{ $caption }}</p>
   {{- end }}
