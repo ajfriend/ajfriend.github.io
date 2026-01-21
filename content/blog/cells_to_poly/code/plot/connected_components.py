@@ -186,7 +186,7 @@ def make_plot(filename, cells, edges_to_join=[], seed=42, show_colors=True):
 
 
 all_edges = u.cells_to_edges(cells)
-all_pairs = [t[0] for t in u.get_pair_tuples(all_edges)]
+all_pairs = sorted([t[0] for t in u.get_pair_tuples(all_edges)])
 random.seed(45)
 random.shuffle(all_pairs)
 
