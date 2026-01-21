@@ -255,6 +255,6 @@ def plot_all(cells, cuts, order_seed, color_seed):
         make_plot(f'figs/conn_comp_colors_{i}.svg', cells, all_pairs[:cut], colors)
 
 # 133, 138, 142
-plot_all(cells, cuts=[10, 16, 28, 35], order_seed=49, color_seed=145)
+plot_all(cells, cuts=[10, 16, 28, 35], order_seed=49, color_seed=148)
 
 
