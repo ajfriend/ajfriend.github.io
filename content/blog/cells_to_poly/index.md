@@ -472,13 +472,17 @@ eyeball norm:
 
 
 <div style="display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 1rem; row-gap: 0; max-width: 800px; margin: 0 auto;">
-{{< globe_map data="data/holes_0.json" width="400" arrowStep="3" >}}
-{{< globe_map data="data/holes_1.json" width="400" arrowStep="3" >}}
-{{< globe_map data="data/holes_2.json" width="400" arrowStep="3" >}}
-{{< globe_map data="data/holes_3.json" width="400" arrowStep="3" >}}
+{{< globe_map data="data/holes_3.json" arrowStep="3" >}}
+{{< globe_map data="data/holes_1.json" arrowStep="3" >}}
+{{< globe_map data="data/holes_2.json" arrowStep="3" >}}
+{{< globe_map data="data/holes_0.json" arrowStep="3" >}}
 </div>
+{{< caption >}}The loops (dark red), ordered by their enclosed area (light red).
+Full polygon (dashed grey) for reference. The orientation of the loops (arrows) has the first three enclose most of the globe; the smallest area corresponds to the "natural" outer loop.{{< /caption >}}
 
 We critically depend on the orientation of the loops here.
+
+note that the area calculation depends on "ideal" spherical polgyons (note my post), and all the outputs here will respect that, in particular because no H3 edge is more than 180 degrees, so we can cross the antimeridian or have large loops without problems.
 
 In reality, we need to ensure that we are computing the unsigned area.
 We might compute a signed area, but let's avoid. Details in this other post.
