@@ -453,7 +453,7 @@ There are four loops of edges here. Eyeballing, it is easy for us to pick out
 which one we think *should* be the outer loop---but how do we determine that algorithmically? Let's look at a more extreme example of two loops close to the equator, encircling the entire globe:
 
 {{< globe_map data="data/equator.json" width="500" sync="false" >}}
-{{< caption >}}It can be unclear which loop is the "correct" outer loop. In this case, the choice is basically arbitrary; we get exactly the same spherical polygon with either choice.{{< /caption >}}
+{{< caption >}}It can be unclear which loop of a polygon is the "correct" outer loop. In this case, the choice is basically arbitrary: we get exactly the same spherical polygon with either choice.{{< /caption >}}
 
 We can assume that we know these two loops are part of the same polygon based on
 the connected components calculation, and the orientation of the loops indicates that the interior of the polygon includes the equator (if you're on the surface of the globe, walking along a loop in the direction of the arrows, the interior is to your left---the right-hand rule), so we know that this object is a polygon with one outer loop and one hole. But which one is which?
@@ -561,6 +561,8 @@ In [uber/h3 #1113](https://github.com/uber/h3/pull/1113), the primary function `
 5. **Create MultiPolygon** (`createMultiPolygon`): Walk the sorted loops, grouping consecutive loops with the same root into polygons. The first loop becomes the outer; the rest become holes. Finally, sort polygons by outer loop area (descending) so the largest polygon comes first.
 
 # (TODO) Bonus: The Gosper Curve
+
+(should this just be a separate post?)
 
 The algorithm above processes every edge of every input cell. But if a group of cells can be [compacted](https://h3geo.org/docs/api/hierarchy#compactcells) into a single coarser cell, we don't need to process all those internal edges---we only need the outer boundary of the compacted cell. That boundary follows the [Gosper curve](https://en.wikipedia.org/wiki/Gosper_curve) (a.k.a. flowsnake), which is the fractal shape traced by H3 cell boundaries.
 

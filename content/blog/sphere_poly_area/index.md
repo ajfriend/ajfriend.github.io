@@ -62,6 +62,11 @@ Here, $a$ and $b$ are the arc lengths of two sides of the spherical triangle (me
 
 # Special case: polar triangle
 
+To compute the area of a polygon, we sum the signed areas of triangles formed by each edge and a reference point. Using the south pole as the reference point simplifies the math. Counter-clockwise triangles contribute positive area (red), clockwise triangles contribute negative area (blue). Where they overlap, the areas cancel out, leaving only the polygon's interior.
+
+{{< globe_triangles data="data/hexagon_na.json" rotate="[-60, -40, 0]" >}}
+{{< caption >}}A hexagon near the tip of South America. Each edge forms a triangle with the south pole. Red triangles (CCW) add area; blue triangles (CW) subtract. The net sum gives the polygon's area.{{< /caption >}}
+
 We can form a special case where the point $C$ is the south pole, so
 $(\text{lat}_c, \text{lng}_c) = (\phi_c, \theta_c) = \left(-\frac{\pi}{2}, 0 \right)$.
 

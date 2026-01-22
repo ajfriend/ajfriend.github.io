@@ -1,0 +1,303 @@
+{{/*
+Globe Triangles Shortcode - Visualize spherical polygon area calculation
+
+Shows a polygon and the triangles formed by each edge with the south pole.
+Counter-clockwise triangles are red, clockwise are blue.
+Overlapping areas appear purple due to transparency.
+
+Parameters:
+  - data: Path to GeoJSON file with a Polygon geometry
+  - width: Max width in pixels (default: 600)
+  - rotate: Initial rotation [lng, lat, tilt]
+*/}}
+{{- $id := .Get "id" | default (printf "gt%x" .Ordinal) -}}
+{{- $dataFile := .Get "data" -}}
+{{- $width := .Get "width" | default "600" | int -}}
+{{- $rotate := .Get "rotate" -}}
+
+{{- $resource := .Page.Resources.GetMatch $dataFile -}}
+{{- $data := "" -}}
+{{- if $resource -}}
+  {{- $data = transform.Unmarshal $resource -}}
+{{- end -}}
+
+<div style="max-width: {{ $width }}px; width: 100%; margin: 2em auto;">
+  <div class="globe-container" id="globe-{{ $id }}" style="width: 100%; aspect-ratio: 1;"></div>
+  <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+    <span>Triangles:</span>
+    <input type="range" id="slider-{{ $id }}" min="0" value="0" style="flex: 1;">
+    <span id="slider-value-{{ $id }}">0</span>
+  </div>
+</div>
+
+<script type="module">
+  import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
+  import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
+  import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
+
+  (async function() {
+    const rawData = {{ $data }};
+    const maxWidth = {{ $width }};
+    const container = document.getElementById('globe-{{ $id }}');
+
+    // Extract polygon coordinates
+    let coords;
+    if (rawData.type === 'FeatureCollection') {
+      coords = rawData.features[0].geometry.coordinates[0];
+    } else if (rawData.type === 'Feature') {
+      coords = rawData.geometry.coordinates[0];
+    } else if (rawData.type === 'Polygon') {
+      coords = rawData.coordinates[0];
+    }
+
+    // South pole
+    const southPole = [0, -90];
+
+    // Convert lat/lng to 3D cartesian for orientation calculation
+    function toCartesian([lng, lat]) {
+      const phi = lng * Math.PI / 180;
+      const theta = lat * Math.PI / 180;
+      return [
+        Math.cos(theta) * Math.cos(phi),
+        Math.cos(theta) * Math.sin(phi),
+        Math.sin(theta)
+      ];
+    }
+
+    // Cross product
+    function cross(a, b) {
+      return [
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0]
+      ];
+    }
+
+    // Dot product
+    function dot(a, b) {
+      return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    }
+
+    // Determine if triangle (a, b, c) is counter-clockwise when viewed from outside sphere
+    // Returns true if CCW (positive area), false if CW (negative area)
+    function isCounterClockwise(a, b, c) {
+      const va = toCartesian(a);
+      const vb = toCartesian(b);
+      const vc = toCartesian(c);
+      // Cross product of (b-a) x (c-a), dot with a (outward normal approximation)
+      // Actually, for spherical: sign of determinant [va, vb, vc]
+      const crossAB = cross(va, vb);
+      return dot(crossAB, vc) > 0;
+    }
+
+    // Build triangles from polygon edges to south pole
+    const triangles = [];
+    for (let i = 0; i < coords.length - 1; i++) {
+      const v1 = coords[i];
+      const v2 = coords[i + 1];
+      const ccw = isCounterClockwise(v1, v2, southPole);
+      triangles.push({
+        coords: [v1, v2, southPole, v1], // Close the triangle
+        ccw: ccw
+      });
+    }
+
+    // Set up slider
+    const slider = document.getElementById('slider-{{ $id }}');
+    const sliderValue = document.getElementById('slider-value-{{ $id }}');
+    slider.max = triangles.length;
+    slider.value = triangles.length;
+    sliderValue.textContent = triangles.length;
+    let numTrianglesToShow = triangles.length;
+
+    // Compute centroid for initial rotation
+    const inputRotate = {{ if $rotate }}{{ $rotate | safeJS }}{{ else }}null{{ end }};
+    const allPoints = coords;
+    const centroid = d3.geoCentroid({ type: 'MultiPoint', coordinates: allPoints });
+    const centerRotate = inputRotate
+      ? [-inputRotate[0], -inputRotate[1], inputRotate[2] ?? 0]
+      : [-centroid[0], -centroid[1], 0];
+
+    const getSize = () => {
+      const width = container.offsetWidth || container.clientWidth;
+      const w = width > 0 ? Math.min(maxWidth, width) : maxWidth;
+      return { width: w, height: w };
+    };
+
+    const size = getSize();
+    const localState = { width: size.width, height: size.height };
+
+    // Shared rotation state
+    if (!window.globeMapSync) {
+      window.globeMapSync = {
+        rotate: centerRotate,
+        centerRotate: centerRotate,
+        renders: []
+      };
+    }
+    const sync = window.globeMapSync;
+    if (sync.renders.length === 0) {
+      sync.rotate = centerRotate;
+      sync.centerRotate = centerRotate;
+    }
+
+    if (!window.globeLandData) {
+      const landTopo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
+      window.globeLandData = feature(landTopo, landTopo.objects.land);
+    }
+    const land = window.globeLandData;
+
+    function render() {
+      const size = getSize();
+      localState.width = size.width;
+      localState.height = size.height;
+
+      const marks = [
+        Plot.geo(land, { stroke: '#88b', fill: 'none', strokeWidth: 0.8, strokeOpacity: 0.8 }),
+        Plot.graticule({ strokeOpacity: 0.06 }),
+        Plot.sphere({ strokeWidth: 2 })
+      ];
+
+      // Plot triangles - CCW in blue, CW in red
+      // Always plot the small triangle (not the rest of the globe)
+      // D3 expects opposite winding, so:
+      // - CCW triangles (positive area): reverse to get small triangle in D3
+      // - CW triangles (negative area): keep as-is to get small triangle in D3
+      for (let i = 0; i < numTrianglesToShow; i++) {
+        const tri = triangles[i];
+        const coordsForD3 = tri.ccw
+          ? tri.coords.slice().reverse()  // CCW -> reverse for D3
+          : tri.coords;                    // CW -> keep for D3 (shows small region)
+        const triGeo = {
+          type: 'Polygon',
+          coordinates: [coordsForD3]
+        };
+        marks.push(Plot.geo(triGeo, {
+          fill: tri.ccw ? '#dc3545' : '#3273dc',
+          fillOpacity: 0.3,
+          stroke: tri.ccw ? '#dc3545' : '#3273dc',
+          strokeWidth: 0.5,
+          strokeOpacity: 0.5
+        }));
+      }
+
+      // Plot polygon outline in grey on top
+      const polyGeo = {
+        type: 'LineString',
+        coordinates: coords
+      };
+      marks.push(Plot.geo(polyGeo, {
+        stroke: '#333',
+        strokeWidth: 2.5
+      }));
+
+      // Mark the south pole
+      marks.push(Plot.geo({ type: 'Point', coordinates: southPole }, {
+        fill: '#333',
+        r: 5
+      }));
+
+      const svg = Plot.plot({
+        width: localState.width,
+        height: localState.height,
+        projection: { type: 'orthographic', rotate: sync.rotate, inset: 1 },
+        marks
+      });
+
+      container.innerHTML = '';
+      container.appendChild(svg);
+      attachDrag(svg);
+    }
+
+    window.addEventListener('resize', render);
+
+    slider.addEventListener('input', () => {
+      numTrianglesToShow = parseInt(slider.value);
+      sliderValue.textContent = numTrianglesToShow;
+      render();
+    });
+
+    // Versor math for globe rotation (same as globe_map)
+    const versor = {
+      cartesian: function(e) {
+        const l = e[0] * Math.PI / 180, p = e[1] * Math.PI / 180, cp = Math.cos(p);
+        return [cp * Math.cos(l), cp * Math.sin(l), Math.sin(p)];
+      },
+      rotation: function(q) {
+        return [
+          Math.atan2(2 * (q[0] * q[1] + q[2] * q[3]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])) * 180 / Math.PI,
+          Math.asin(Math.max(-1, Math.min(1, 2 * (q[0] * q[2] - q[3] * q[1])))) * 180 / Math.PI,
+          Math.atan2(2 * (q[0] * q[3] + q[1] * q[2]), 1 - 2 * (q[2] * q[2] + q[3] * q[3])) * 180 / Math.PI
+        ];
+      },
+      delta: function(v0, v1) {
+        const w = this.cross(v0, v1), l = Math.sqrt(this.dot(w, w));
+        if (!l) return [1, 0, 0, 0];
+        const t = Math.acos(Math.max(-1, Math.min(1, this.dot(v0, v1)))) / 2, s = Math.sin(t);
+        return [Math.cos(t), w[2] / l * s, -w[1] / l * s, w[0] / l * s];
+      },
+      multiply: function(a, b) {
+        return [
+          a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3],
+          a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2],
+          a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1],
+          a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0]
+        ];
+      },
+      from: function(r) {
+        const l = r[0] / 2 * Math.PI / 180, p = r[1] / 2 * Math.PI / 180, g = r[2] / 2 * Math.PI / 180;
+        const sl = Math.sin(l), cl = Math.cos(l);
+        const sp = Math.sin(p), cp = Math.cos(p);
+        const sg = Math.sin(g), cg = Math.cos(g);
+        return [
+          cl * cp * cg + sl * sp * sg,
+          sl * cp * cg - cl * sp * sg,
+          cl * sp * cg + sl * cp * sg,
+          cl * cp * sg - sl * sp * cg
+        ];
+      },
+      cross: function(a, b) { return [a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]]; },
+      dot: function(a, b) { return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; }
+    };
+
+    function attachDrag(svg) {
+      const projection = d3.geoOrthographic()
+        .rotate(sync.rotate)
+        .translate([localState.width / 2, localState.height / 2])
+        .scale(Math.min(localState.width, localState.height) / 2 - 1);
+
+      let v0, q0, r0;
+
+      const drag = d3.drag()
+        .on('start', (event) => {
+          projection.rotate(sync.rotate).translate([localState.width / 2, localState.height / 2]).scale(Math.min(localState.width, localState.height) / 2 - 1);
+          const inv = projection.invert([event.x, event.y]);
+          if (inv) {
+            v0 = versor.cartesian(inv);
+            r0 = sync.rotate;
+            q0 = versor.from(r0);
+          }
+        })
+        .on('drag', (event) => {
+          if (!v0) return;
+          projection.rotate(r0);
+          const inv = projection.invert([event.x, event.y]);
+          if (!inv) return;
+          const v1 = versor.cartesian(inv);
+          const delta = versor.delta(v0, v1);
+          const q1 = versor.multiply(q0, delta);
+          sync.rotate = versor.rotation(q1);
+          sync.renders.forEach(r => r());
+        });
+
+      d3.select(svg).call(drag);
+      d3.select(svg).on('dblclick', () => {
+        sync.rotate = sync.centerRotate.slice();
+        sync.renders.forEach(r => r());
+      });
+    }
+
+    sync.renders.push(render);
+    render();
+  })();
+</script>
