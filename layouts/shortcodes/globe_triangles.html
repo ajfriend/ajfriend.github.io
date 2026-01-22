@@ -25,8 +25,10 @@ Parameters:
   <div class="globe-container" id="globe-{{ $id }}" style="width: 100%; aspect-ratio: 1;"></div>
   <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
     <span>Triangles:</span>
+    <button id="dec-{{ $id }}" style="width: 2rem; height: 2rem; font-size: 1.2rem; cursor: pointer;">−</button>
     <input type="range" id="slider-{{ $id }}" min="0" value="0" style="flex: 1;">
-    <span id="slider-value-{{ $id }}">0</span>
+    <button id="inc-{{ $id }}" style="width: 2rem; height: 2rem; font-size: 1.2rem; cursor: pointer;">+</button>
+    <span id="slider-value-{{ $id }}" style="min-width: 2ch; text-align: center;">0</span>
   </div>
 </div>
 
@@ -215,6 +217,27 @@ Parameters:
       numTrianglesToShow = parseInt(slider.value);
       sliderValue.textContent = numTrianglesToShow;
       render();
+    });
+
+    const decBtn = document.getElementById('dec-{{ $id }}');
+    const incBtn = document.getElementById('inc-{{ $id }}');
+
+    decBtn.addEventListener('click', () => {
+      if (numTrianglesToShow > 0) {
+        numTrianglesToShow--;
+        slider.value = numTrianglesToShow;
+        sliderValue.textContent = numTrianglesToShow;
+        render();
+      }
+    });
+
+    incBtn.addEventListener('click', () => {
+      if (numTrianglesToShow < triangles.length) {
+        numTrianglesToShow++;
+        slider.value = numTrianglesToShow;
+        sliderValue.textContent = numTrianglesToShow;
+        render();
+      }
     });
 
     // Versor math for globe rotation (same as globe_map)
