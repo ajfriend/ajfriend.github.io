@@ -5,7 +5,7 @@ toc: true
 ---
 
 **Note**: This post is currently a quick-and-dirty attempt at explaining the algorithm
-behind [cellsToMultiPolygon core algorithm #1113 · uber/h3](https://github.com/uber/h3/pull/1113). My plan is to grow this into a
+behind the PR [uber/h3 #1113](https://github.com/uber/h3/pull/1113). My plan is to grow this into a
 proper blog post with more context, background, etc.
 
 I also have a Python version of this algorithm shared at https://github.com/ajfriend/h3c2p
@@ -14,15 +14,15 @@ I also have a Python version of this algorithm shared at https://github.com/ajfr
 # Goal: H3 cells to spherical polygons
 
 A collection of [H3 cells](https://h3geo.org/) describes a subset of the globe,
-and a common operation is to translate that set of cells into spherical polygons
-(e.g., a [GeoJSON](https://geojson.org/) `MultiPolygon`) outlining the same region.
+and an operation we often want to do is to translate that set into an alternative representation of that region as a collection of spherical polygons
+(e.g., a [GeoJSON](https://geojson.org/) `MultiPolygon`).
 
 <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1rem;">
 {{< globe_map data="data/intro_cells.json" width="400" >}}
 <span style="font-size: 2rem;">→</span>
 {{< globe_map data="data/intro_poly.json" width="400" arrowStep="3" >}}
 </div>
-{{< caption >}}A set of H3 cells maps to three polygons; two with no holes, and one with three holes. Drag the globe to rotate; double click to reset.{{< /caption >}}
+{{< caption >}}A set of H3 cells maps to three polygons; two with no holes, and one with three holes. Outer loops are oriented counter-clockwise and holes are oriented clockwise. Drag the globe to rotate; double click to reset.{{< /caption >}}
 
 Alternatively, in code, the translation might look like:
 
@@ -50,7 +50,7 @@ cells = [
   "coordinates": [
     [[[-179.1, 43.3], ...]],
     [[[-137.1, 34.7], ...]],
-    [[[-147.8, 9.6], ...]]
+    [[[-147.8, 9.60], ...]]
   ]
 }
 ```
@@ -67,18 +67,24 @@ I wrote up my thoughts on ["ideal" spherical polygons in another post](/blog/sph
 - polygons have one "outer" loop, with points oriented in counter-clockwise order, and zero or more "inner" loops, with points going clockwise (see the image above)
 - we can handle "large" cell sets, where resulting polygons may cross the antimeridian, enclose the poles, or be larger than a hemisphere
 
-# H3 cells and edges
+# Components of H3 cells
 
 How do we do this translation? Let's start by considering components of
 H3 cells and what we can do with them.
 
-Cells are already polygons themselves. So how do you build a big polygon from smaller ones? Pull them apart and put the pieces back together! We have a couple of options: 1) vertices, 2) h3 vertices, 3) edges.
+Cells are already polygons themselves. So how do you build a big polygon from smaller ones? Pull them apart and put the pieces back together! For what we can break these H3 cells down to, we have a couple of options:
+
+1. H3 cell lat/lng vertices (continuous)
+2. H3 [vertex mode](https://h3geo.org/docs/library/index/vertex) (discrete)
+3. H3 [directed edge mode](https://h3geo.org/docs/api/uniedge) (discrete).
 
 For any H3 cell, we can get the simple polygon of lat/lng points that describe it. In the H3 C library or in the bindings, you can get those points
-with the [`cellToBoundary()`](https://h3geo.org/docs/api/indexing#celltoboundary) function. We *could* operate on those points, gathering them for each cell, and using them to construct the MultiPolygon boundary, but this **continuous** approach would involve floating point comparisons and error tolerances.
-As an alternative, we might look for a **discrete** approach, with discrete objects that are either present or not, can be hashed, and compared for exact, unambiguous equality. The **directed edges** that make up the H3 cell boundary are a great candidate.
+with the [`cellToBoundary()`](https://h3geo.org/docs/api/indexing#celltoboundary) function. We *could* operate on those points, gathering them for each cell, and using them to construct the `MultiPolygon` boundary, but this **continuous** approach would involve floating point comparisons and error tolerances.
+As an alternative, we might look for a **discrete** approach, with discrete objects that are either present or not, can be hashed, and compared for exact, unambiguous equality. The directed edges that make up the H3 cell boundary are a great candidate. We could also probably work with H3 vertex mode, but as
+you'll see below, the ability to "reverse" directed edges allows for some very
+natural operations, so that's what we'll use.
 
-## Directed edge preliminaries
+# Directed edge preliminaries
 
 In H3, a directed edge can be thought of as the boundary between two adjacent cells. Each edge has an **origin** cell and a **destination** cell, which we can
 provide to [`cellsToDirectedEdge()`](https://h3geo.org/docs/api/uniedge#cellstodirectededge) to get the edge index.
@@ -105,7 +111,7 @@ loop of a spherical polygon.
 
 However, the order of the edges is important. Note that
 [`originToDirectedEdges()`](https://h3geo.org/docs/api/uniedge#origintodirectededges) doesn't automatically return directed edges
-in counter-clockwise order, but we can permute them so that that's the case---and the same permutation works for every H3 cell. We'll get into using
+in counter-clockwise order, but we *can* permute them so that that is the case---and the same permutation works for every H3 cell. We'll get into using
 the ordering later on, but for now I'll just note that we hard code the permutation in the PR with something like
 
 ```c
@@ -122,7 +128,7 @@ shrink the directed edges towards the center of their origin cell:
 We'll refer to an edge and its reversed edge a **symmetric pair**.
 
 
-# General idea: remove symmetric pairs
+# Main idea: remove symmetric pairs
 
 That last image suggest an idea: for a set of cells $C$, if we get the set of all
 of the directed edges with origins belonging to $C$, we can then remove all
@@ -139,7 +145,7 @@ Note that, so far, we've just described how to get the **set** of boundary edges
 There's no notion yet of how we make sure the lat/lng points in the outer boundary are in counter-clockwise order, how we handle holes, or how we figure
 out which edges are part of which loop or polygon. We'll get to that below,
 but first we'll discuss the cancellation logic. (But do notice that if the edges *were* put in the correct order, we would have our desired counter-clockwise loop
-for this polygon's outer looop.)
+for this polygon's outer loop.)
 
 ## Example: one hole
 
