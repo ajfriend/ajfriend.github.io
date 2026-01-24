@@ -8,7 +8,7 @@ toc: true
 behind [cellsToMultiPolygon core algorithm #1113 · uber/h3](https://github.com/uber/h3/pull/1113). My plan is to grow this into a
 proper blog post with more context, background, etc.
 
-TODO: note the python implementation
+I also have a Python version of this algorithm shared at https://github.com/ajfriend/h3c2p
 
 
 # Goal: H3 cells to spherical polygons
