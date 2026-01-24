@@ -59,14 +59,14 @@ $$
 Here, $a$ and $b$ are the arc lengths of two sides of the spherical triangle (measured in radians on the unit sphere), and $C$ is the angle between them. $E$ is the spherical excess, which is equal to the surface area of the triangle on the unit sphere.
 
 
-
+TODO: what's the cone thing that's happening here?
 
 # Special case: polar triangle
 
-To compute the area of a polygon, we sum the signed areas of triangles formed by each edge and a reference point. Using the south pole as the reference point simplifies the math. Counter-clockwise triangles contribute positive area (red), clockwise triangles contribute negative area (blue). Where they overlap, the areas cancel out, leaving only the polygon's interior.
+To compute the area of a polygon, we sum the signed areas of triangles formed by each edge and a reference point. Using the south pole as the reference point simplifies the math. Counter-clockwise triangles contribute positive area (blue), clockwise triangles contribute negative area (red). Where they overlap, the areas cancel out, leaving only the polygon's interior.
 
 {{< globe_triangles data="data/hexagon_na.json" rotate="[-60, -40, 0]" >}}
-{{< caption >}}A hexagon near the tip of South America. Each edge forms a triangle with the south pole. Red triangles (CCW) add area; blue triangles (CW) subtract. The net sum gives the polygon's area.{{< /caption >}}
+{{< caption >}}A hexagon near the tip of South America. Each edge forms a triangle with the south pole. Blue triangles (CCW) add area; red triangles (CW) subtract. The net sum gives the polygon's area.{{< /caption >}}
 
 {{< globe_triangles data="data/c_shape.json" rotate="[-45, -45, 0]" >}}
 {{< caption >}}A C-shaped polygon in the South Atlantic. The concave shape creates a mix of positive and negative triangles that cancel in the interior.{{< /caption >}}

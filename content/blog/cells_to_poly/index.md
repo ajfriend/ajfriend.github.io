@@ -441,6 +441,8 @@ We identify each connected component by one arbitrary edge ID—specifically, th
 
 # Which loop is "outside"?
 
+(where `parent` is a pointer in a linked list and finds the root. and `rank` is a quantity that is used to keep the tree balanced)
+
 To recap up to this point, we've described how we can eliminate internal edges
 to get the polygon boundaries, how we can maintain the orientation of the loops,
 and how we keep traack of which loops belong to which polygon.
@@ -559,6 +561,12 @@ In [uber/h3 #1113](https://github.com/uber/h3/pull/1113), the primary function `
 4. **Create SortableLoopSet** (`createSortableLoopSet`): Walk the remaining (non-removed) arcs to extract loops. For each loop, compute its area with `geoLoopAreaRads2()` and record its component root. Sort all loops by (component, area) so loops of each polygon are contiguous, with smallest-area loop first.
 
 5. **Create MultiPolygon** (`createMultiPolygon`): Walk the sorted loops, grouping consecutive loops with the same root into polygons. The first loop becomes the outer; the rest become holes. Finally, sort polygons by outer loop area (descending) so the largest polygon comes first.
+
+# Performance and improvements
+
+- about 4x faster on large sets (TODO: provide benchmarks)
+- fixes bugs in previous implementation (due to discrete edge processing vs floating point comparisons)
+- enables global polygons; that is, output polygons can be bigger than a hemisphere, or cross the antimeridian or poles without any problems
 
 # (TODO) Bonus: The Gosper Curve
 

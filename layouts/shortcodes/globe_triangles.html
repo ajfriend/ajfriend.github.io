@@ -2,7 +2,7 @@
 Globe Triangles Shortcode - Visualize spherical polygon area calculation
 
 Shows a polygon and the triangles formed by each edge with the south pole.
-Counter-clockwise triangles are red, clockwise are blue.
+Counter-clockwise triangles are blue, clockwise are red.
 Overlapping areas appear purple due to transparency.
 
 Parameters:
@@ -175,9 +175,9 @@ Parameters:
           coordinates: [coordsForD3]
         };
         marks.push(Plot.geo(triGeo, {
-          fill: tri.ccw ? '#dc3545' : '#3273dc',
+          fill: tri.ccw ? '#3273dc' : '#dc3545',
           fillOpacity: 0.3,
-          stroke: tri.ccw ? '#dc3545' : '#3273dc',
+          stroke: tri.ccw ? '#3273dc' : '#dc3545',
           strokeWidth: 0.5,
           strokeOpacity: 0.5
         }));
