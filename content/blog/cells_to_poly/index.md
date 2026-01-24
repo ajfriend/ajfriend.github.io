@@ -545,7 +545,7 @@ A few other details round out the implementation:
 
 **Input validation.** The function checks for duplicate input cells (which would cause incorrect edge cancellation) and returns `E_DUPLICATE_INPUT` if any are found.
 
-# Full algorithm summary
+# Overview: Algorithm and code
 
 In [uber/h3 #1113](https://github.com/uber/h3/pull/1113), the primary function `cellsToMultiPolygon()` proceeds through five stages:
 
@@ -564,14 +564,22 @@ In [uber/h3 #1113](https://github.com/uber/h3/pull/1113), the primary function `
 
 # Performance and improvements
 
-- about 4x faster on large sets (TODO: provide benchmarks)
-- fixes bugs in previous implementation (due to discrete edge processing vs floating point comparisons)
-- enables global polygons; that is, output polygons can be bigger than a hemisphere, or cross the antimeridian or poles without any problems
+- On large cell sets with many internal edges, this new algorithm is **[roughly 4x faster](https://github.com/uber/h3/pull/1113#issuecomment-3712443984)** than the existing implementation (with additional speedups expected after implementing the Gosper Curve optimization---see below).
+- The new algorithm **fixes bugs** that we were running into previously due to floating point comparison issues: [#1048](https://github.com/uber/h3/issues/1048), [#1049](https://github.com/uber/h3/issues/1049), [#1051](https://github.com/uber/h3/issues/1051).
+- This algorithm **enables outputting "global" polygons** that, for example, are larger than a hemisphere, cross the antimeridian, or encircle the poles.
 
-# (TODO) Bonus: The Gosper Curve
+# Next up: The Gosper Island
 
-(should this just be a separate post?)
+Can we make this even faster?
 
-The algorithm above processes every edge of every input cell. But if a group of cells can be [compacted](https://h3geo.org/docs/api/hierarchy#compactcells) into a single coarser cell, we don't need to process all those internal edges---we only need the outer boundary of the compacted cell. That boundary follows the [Gosper curve](https://en.wikipedia.org/wiki/Gosper_curve) (a.k.a. flowsnake), which is the fractal shape traced by H3 cell boundaries.
+The algorithm above processes every edge of every input cell. But what if
+there were scenarios where we could skip most of that processing?
+
+If a group of cells can be [compacted](https://h3geo.org/docs/highlights/indexing) into a single coarser cell, it is possible to get just the edges of that group
+of cells directly, without needing to cancel out the internal edges. This plugs
+directly into our existing logic, because, for each compacted cell, we just initialize with this new type of ring of edges.
+
+The fractal shape traced by out by the uncompated children boundary
+is called a [Gosper island](https://en.wikipedia.org/wiki/Gosper_curve) or "flowsnake" (as opposed to the [Koch snowflake](https://en.wikipedia.org/wiki/Koch_snowflake)).
 
 This optimization is planned for [uber/h3 #1114](https://github.com/uber/h3/pull/1114) and should provide significant speedups for large, compactible cell sets.
