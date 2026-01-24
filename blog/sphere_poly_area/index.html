@@ -9,7 +9,7 @@ that may be larger than a hemisphere, contain the north or south pole, or cross
 the antimeridian. Drag around the plot below to see an example:"><meta name=keywords content><meta property="og:url" content="https://ajfriend.com/blog/sphere_poly_area/"><meta property="og:site_name" content="AJ Friend"><meta property="og:title" content="[WIP] Computing Spherical Polygon Areas"><meta property="og:description" content="The H3 library provides a hexagonal geospatial grid system, and being a geospatial library, one of the things we want to be able to do is to compute the surface areas of polygons on the sphere. This post will go through the math behind the spherical polygon area calculation that we use, which I mostly learned about through the D3 library’s area calculation code.
 This algorithm is robust enough to handle many tricky polygons, including ones that may be larger than a hemisphere, contain the north or south pole, or cross the antimeridian. Drag around the plot below to see an example:"><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2026-01-03T00:00:00+00:00"><meta property="article:modified_time" content="2026-01-03T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="[WIP] Computing Spherical Polygon Areas"><meta name=twitter:description content="The H3 library provides a hexagonal geospatial grid system, and being a geospatial library, one of the things we want to be able to do is to compute the surface areas of polygons on the sphere. This post will go through the math behind the spherical polygon area calculation that we use, which I mostly learned about through the D3 library’s area calculation code.
 This algorithm is robust enough to handle many tricky polygons, including ones that may be larger than a hemisphere, contain the north or south pole, or cross the antimeridian. Drag around the plot below to see an example:"><meta itemprop=name content="[WIP] Computing Spherical Polygon Areas"><meta itemprop=description content="The H3 library provides a hexagonal geospatial grid system, and being a geospatial library, one of the things we want to be able to do is to compute the surface areas of polygons on the sphere. This post will go through the math behind the spherical polygon area calculation that we use, which I mostly learned about through the D3 library’s area calculation code.
-This algorithm is robust enough to handle many tricky polygons, including ones that may be larger than a hemisphere, contain the north or south pole, or cross the antimeridian. Drag around the plot below to see an example:"><meta itemprop=datePublished content="2026-01-03T00:00:00+00:00"><meta itemprop=dateModified content="2026-01-03T00:00:00+00:00"><meta itemprop=wordCount content="387"><meta name=referrer content="no-referrer-when-downgrade"><style>:root{--width:720px;--font-main:Verdana, sans-serif;--font-secondary:Verdana, sans-serif;--font-scale:1em;--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--blockquote-color:#222}@media(prefers-color-scheme:dark){:root{--background-color:#01242e;--heading-color:#eee;--text-color:#ddd;--link-color:#8cc2dd;--visited-color:#8b6fcb;--blockquote-color:#ccc}}body{font-family:var(--font-secondary);font-size:var(--font-scale);margin:auto;padding:20px;max-width:var(--width);text-align:left;background-color:var(--background-color);word-wrap:break-word;overflow-wrap:break-word;line-height:1.5;color:var(--text-color)}h1,h2,h3,h4,h5,h6{font-family:var(--font-main);color:var(--heading-color)}a{color:var(--link-color);cursor:pointer;text-decoration:none}a:hover{text-decoration:underline}nav a{margin-right:8px}strong,b{color:var(--heading-color)}button{margin:0;cursor:pointer}time{font-family:monospace;font-style:normal;font-size:15px}main{line-height:1.6}table{width:100%}hr{border:0;border-top:1px dashed}img{max-width:100%}code{font-family:monospace;padding:2px;border-radius:3px}blockquote{border-left:1px solid #999;color:var(--blockquote-color);padding-left:20px;font-style:italic}footer{padding:25px 0;text-align:center}.title:hover{text-decoration:none}.title h1{font-size:1.5em}.inline{width:auto!important}.highlight,.code{border-radius:3px;margin-block-start:1em;margin-block-end:1em;overflow-x:auto}ul.blog-posts{list-style-type:none;padding:unset}ul.blog-posts li{display:flex}ul.blog-posts li span{flex:0 0 130px}ul.blog-posts li a:visited{color:var(--visited-color)}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css integrity=sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+ crossorigin=anonymous><style>:root{--width:900px}p.caption{text-align:center;font-size:small;font-style:italic;margin-top:-1rem}h1.page-title{font-size:2.2rem;color:#111;margin-bottom:.2rem;border-bottom:2px solid #3273dc;padding-bottom:.3rem}main h1,main h2,main h3,main h4,main h5,main h6{font-weight:600;margin-top:2rem;margin-bottom:1rem}main h1{font-size:1.8rem}main h2{font-size:1.4rem}main h3{font-size:1.2rem}nav.toc{background:#f8f8f8;padding:1rem 1.5rem;margin-bottom:2rem;border-radius:4px}nav.toc h2{margin-top:0;font-size:1.1rem}nav.toc ul{margin:0;padding-left:1.5rem}nav.toc li{margin:.3rem 0}nav.toc a{text-decoration:none}nav.toc a:hover{text-decoration:underline}.highlight{background:#f6f8fa;border:1px solid #e1e4e8;border-radius:6px;margin:1.5rem 0;overflow-x:auto}.highlight pre{margin:0;padding:.1rem 1rem;background:0 0}.highlight code{font-size:.9rem;line-height:1.5;font-family:sf mono,Consolas,liberation mono,Menlo,monospace}.highlight .ln{color:#999;margin-right:1rem;user-select:none}code:not(.highlight code){background:#f0f0f0;padding:.15rem .4rem;border-radius:3px;font-size:.88em;font-family:sf mono,Consolas,liberation mono,Menlo,monospace}@media(prefers-color-scheme:dark){:root{--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--blockquote-color:#222}}.anchor-link{text-decoration:none;color:#999;margin-right:.5em}.anchor-link:hover{color:#333;text-decoration:underline}</style></head><body><header><a href=/ class=title><h2>AJ Friend</h2></a><nav><a href=/>Home</a>
+This algorithm is robust enough to handle many tricky polygons, including ones that may be larger than a hemisphere, contain the north or south pole, or cross the antimeridian. Drag around the plot below to see an example:"><meta itemprop=datePublished content="2026-01-03T00:00:00+00:00"><meta itemprop=dateModified content="2026-01-03T00:00:00+00:00"><meta itemprop=wordCount content="516"><meta name=referrer content="no-referrer-when-downgrade"><style>:root{--width:720px;--font-main:Verdana, sans-serif;--font-secondary:Verdana, sans-serif;--font-scale:1em;--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--blockquote-color:#222}@media(prefers-color-scheme:dark){:root{--background-color:#01242e;--heading-color:#eee;--text-color:#ddd;--link-color:#8cc2dd;--visited-color:#8b6fcb;--blockquote-color:#ccc}}body{font-family:var(--font-secondary);font-size:var(--font-scale);margin:auto;padding:20px;max-width:var(--width);text-align:left;background-color:var(--background-color);word-wrap:break-word;overflow-wrap:break-word;line-height:1.5;color:var(--text-color)}h1,h2,h3,h4,h5,h6{font-family:var(--font-main);color:var(--heading-color)}a{color:var(--link-color);cursor:pointer;text-decoration:none}a:hover{text-decoration:underline}nav a{margin-right:8px}strong,b{color:var(--heading-color)}button{margin:0;cursor:pointer}time{font-family:monospace;font-style:normal;font-size:15px}main{line-height:1.6}table{width:100%}hr{border:0;border-top:1px dashed}img{max-width:100%}code{font-family:monospace;padding:2px;border-radius:3px}blockquote{border-left:1px solid #999;color:var(--blockquote-color);padding-left:20px;font-style:italic}footer{padding:25px 0;text-align:center}.title:hover{text-decoration:none}.title h1{font-size:1.5em}.inline{width:auto!important}.highlight,.code{border-radius:3px;margin-block-start:1em;margin-block-end:1em;overflow-x:auto}ul.blog-posts{list-style-type:none;padding:unset}ul.blog-posts li{display:flex}ul.blog-posts li span{flex:0 0 130px}ul.blog-posts li a:visited{color:var(--visited-color)}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css integrity=sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+ crossorigin=anonymous><style>:root{--width:900px}p.caption{text-align:center;font-size:small;font-style:italic;margin-top:-1rem}h1.page-title{font-size:2.2rem;color:#111;margin-bottom:.2rem;border-bottom:2px solid #3273dc;padding-bottom:.3rem}main h1,main h2,main h3,main h4,main h5,main h6{font-weight:600;margin-top:2rem;margin-bottom:1rem}main h1{font-size:1.8rem}main h2{font-size:1.4rem}main h3{font-size:1.2rem}nav.toc{background:#f8f8f8;padding:1rem 1.5rem;margin-bottom:2rem;border-radius:4px}nav.toc h2{margin-top:0;font-size:1.1rem}nav.toc ul{margin:0;padding-left:1.5rem}nav.toc li{margin:.3rem 0}nav.toc a{text-decoration:none}nav.toc a:hover{text-decoration:underline}.highlight{background:#f6f8fa;border:1px solid #e1e4e8;border-radius:6px;margin:1.5rem 0;overflow-x:auto}.highlight pre{margin:0;padding:.1rem 1rem;background:0 0}.highlight code{font-size:.9rem;line-height:1.5;font-family:sf mono,Consolas,liberation mono,Menlo,monospace}.highlight .ln{color:#999;margin-right:1rem;user-select:none}code:not(.highlight code){background:#f0f0f0;padding:.15rem .4rem;border-radius:3px;font-size:.88em;font-family:sf mono,Consolas,liberation mono,Menlo,monospace}@media(prefers-color-scheme:dark){:root{--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--blockquote-color:#222}}.anchor-link{text-decoration:none;color:#999;margin-right:.5em}.anchor-link:hover{color:#333;text-decoration:underline}</style></head><body><header><a href=/ class=title><h2>AJ Friend</h2></a><nav><a href=/>Home</a>
 <a href=/blog>Blog</a>
 <a href=/software>Software</a>
 <a href=/notes>Notes</a></nav></header><main><h1 class=page-title>[WIP] Computing Spherical Polygon Areas</h1><p><i><time datetime=2026-01-03>2026-01-03</time></i></p><content><script src=https://cdn.jsdelivr.net/npm/d3@7></script><p>The <a href=https://github.com/uber/h3/>H3</a> library provides a hexagonal
@@ -153,7 +153,597 @@ Todhunter&rsquo;s Spherical Trigonomotry<sup id=fnref:1><a href=#fn:1 class=foot
 <span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:.4306em></span><span class="mord mathnormal">a</span></span></span></span> and
 <span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:.6944em></span><span class="mord mathnormal">b</span></span></span></span> are the arc lengths of two sides of the spherical triangle (measured in radians on the unit sphere), and
 <span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:.6833em></span><span class="mord mathnormal" style=margin-right:.07153em>C</span></span></span></span> is the angle between them.
-<span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:.6833em></span><span class="mord mathnormal" style=margin-right:.05764em>E</span></span></span></span> is the spherical excess, which is equal to the surface area of the triangle on the unit sphere.</p><h1 id=special-case-polar-triangle><a href=#special-case-polar-triangle class=anchor-link>#</a>Special case: polar triangle</h1><p>We can form a special case where the point
+<span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:.6833em></span><span class="mord mathnormal" style=margin-right:.05764em>E</span></span></span></span> is the spherical excess, which is equal to the surface area of the triangle on the unit sphere.</p><p>TODO: what&rsquo;s the cone thing that&rsquo;s happening here?</p><h1 id=special-case-polar-triangle><a href=#special-case-polar-triangle class=anchor-link>#</a>Special case: polar triangle</h1><p>To compute the area of a polygon, we sum the signed areas of triangles formed by each edge and a reference point. Using the south pole as the reference point simplifies the math. Counter-clockwise triangles contribute positive area (blue), clockwise triangles contribute negative area (red). Where they overlap, the areas cancel out, leaving only the polygon&rsquo;s interior.</p><p><div style="max-width:600px;width:100%;margin:2em auto"><div class=globe-container id=globe-gt1 style=width:100%;aspect-ratio:1></div><div style=display:flex;align-items:center;gap:.5rem;margin-top:.5rem><span>Triangles:</span>
+<button id=dec-gt1 style=width:2rem;height:2rem;font-size:1.2rem;cursor:pointer>−</button>
+<input type=range id=slider-gt1 min=0 value=0 style=flex:1>
+<button id=inc-gt1 style=width:2rem;height:2rem;font-size:1.2rem;cursor:pointer>+</button>
+<span id=slider-value-gt1 style=min-width:2ch;text-align:center>0</span></div></div><script type=module>
+  import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
+  import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
+  import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
+
+  (async function() {
+    const rawData = {"coordinates":[[[-50,-20],[-62,-19],[-75,-20],[-85,-22],[-95,-25],[-100,-30],[-105,-35],[-103,-40],[-100,-45],[-90,-50],[-80,-55],[-65,-59],[-50,-62],[-35,-64],[-20,-65],[-8,-63],[5,-60],[10,-55],[15,-50],[13,-44],[10,-38],[0,-32],[-10,-28],[-20,-24],[-30,-22],[-40,-21],[-50,-20]]],"type":"Polygon"};
+    const maxWidth =  600 ;
+    const container = document.getElementById('globe-gt1');
+
+    
+    let coords;
+    if (rawData.type === 'FeatureCollection') {
+      coords = rawData.features[0].geometry.coordinates[0];
+    } else if (rawData.type === 'Feature') {
+      coords = rawData.geometry.coordinates[0];
+    } else if (rawData.type === 'Polygon') {
+      coords = rawData.coordinates[0];
+    }
+
+    
+    const southPole = [0, -90];
+
+    
+    function toCartesian([lng, lat]) {
+      const phi = lng * Math.PI / 180;
+      const theta = lat * Math.PI / 180;
+      return [
+        Math.cos(theta) * Math.cos(phi),
+        Math.cos(theta) * Math.sin(phi),
+        Math.sin(theta)
+      ];
+    }
+
+    
+    function cross(a, b) {
+      return [
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0]
+      ];
+    }
+
+    
+    function dot(a, b) {
+      return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    }
+
+    
+    
+    function isCounterClockwise(a, b, c) {
+      const va = toCartesian(a);
+      const vb = toCartesian(b);
+      const vc = toCartesian(c);
+      
+      
+      const crossAB = cross(va, vb);
+      return dot(crossAB, vc) > 0;
+    }
+
+    
+    const triangles = [];
+    for (let i = 0; i < coords.length - 1; i++) {
+      const v1 = coords[i];
+      const v2 = coords[i + 1];
+      const ccw = isCounterClockwise(v1, v2, southPole);
+      triangles.push({
+        coords: [v1, v2, southPole, v1], 
+        ccw: ccw
+      });
+    }
+
+    
+    const slider = document.getElementById('slider-gt1');
+    const sliderValue = document.getElementById('slider-value-gt1');
+    slider.max = triangles.length;
+    slider.value = triangles.length;
+    sliderValue.textContent = triangles.length;
+    let numTrianglesToShow = triangles.length;
+
+    
+    const inputRotate = [-60, -40, 0];
+    const allPoints = coords;
+    const centroid = d3.geoCentroid({ type: 'MultiPoint', coordinates: allPoints });
+    const centerRotate = inputRotate
+      ? [-inputRotate[0], -inputRotate[1], inputRotate[2] ?? 0]
+      : [-centroid[0], -centroid[1], 0];
+
+    const getSize = () => {
+      const width = container.offsetWidth || container.clientWidth;
+      const w = width > 0 ? Math.min(maxWidth, width) : maxWidth;
+      return { width: w, height: w };
+    };
+
+    const size = getSize();
+    const localState = { width: size.width, height: size.height };
+
+    
+    if (!window.globeMapSync) {
+      window.globeMapSync = {
+        rotate: centerRotate,
+        centerRotate: centerRotate,
+        renders: []
+      };
+    }
+    const sync = window.globeMapSync;
+    if (sync.renders.length === 0) {
+      sync.rotate = centerRotate;
+      sync.centerRotate = centerRotate;
+    }
+
+    if (!window.globeLandData) {
+      const landTopo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
+      window.globeLandData = feature(landTopo, landTopo.objects.land);
+    }
+    const land = window.globeLandData;
+
+    function render() {
+      const size = getSize();
+      localState.width = size.width;
+      localState.height = size.height;
+
+      const marks = [
+        Plot.geo(land, { stroke: '#88b', fill: 'none', strokeWidth: 0.8, strokeOpacity: 0.8 }),
+        Plot.graticule({ strokeOpacity: 0.06 }),
+        Plot.sphere({ strokeWidth: 2 })
+      ];
+
+      
+      
+      
+      
+      
+      for (let i = 0; i < numTrianglesToShow; i++) {
+        const tri = triangles[i];
+        const coordsForD3 = tri.ccw
+          ? tri.coords.slice().reverse()  
+          : tri.coords;                    
+        const triGeo = {
+          type: 'Polygon',
+          coordinates: [coordsForD3]
+        };
+        marks.push(Plot.geo(triGeo, {
+          fill: tri.ccw ? '#3273dc' : '#dc3545',
+          fillOpacity: 0.3,
+          stroke: tri.ccw ? '#3273dc' : '#dc3545',
+          strokeWidth: 0.5,
+          strokeOpacity: 0.5
+        }));
+      }
+
+      
+      const polyGeo = {
+        type: 'LineString',
+        coordinates: coords
+      };
+      marks.push(Plot.geo(polyGeo, {
+        stroke: '#333',
+        strokeWidth: 2.5
+      }));
+
+      
+      marks.push(Plot.geo({ type: 'Point', coordinates: southPole }, {
+        fill: '#333',
+        r: 5
+      }));
+
+      const svg = Plot.plot({
+        width: localState.width,
+        height: localState.height,
+        projection: { type: 'orthographic', rotate: sync.rotate, inset: 1 },
+        marks
+      });
+
+      container.innerHTML = '';
+      container.appendChild(svg);
+      attachDrag(svg);
+    }
+
+    window.addEventListener('resize', render);
+
+    slider.addEventListener('input', () => {
+      numTrianglesToShow = parseInt(slider.value);
+      sliderValue.textContent = numTrianglesToShow;
+      render();
+    });
+
+    const decBtn = document.getElementById('dec-gt1');
+    const incBtn = document.getElementById('inc-gt1');
+
+    decBtn.addEventListener('click', () => {
+      if (numTrianglesToShow > 0) {
+        numTrianglesToShow--;
+        slider.value = numTrianglesToShow;
+        sliderValue.textContent = numTrianglesToShow;
+        render();
+      }
+    });
+
+    incBtn.addEventListener('click', () => {
+      if (numTrianglesToShow < triangles.length) {
+        numTrianglesToShow++;
+        slider.value = numTrianglesToShow;
+        sliderValue.textContent = numTrianglesToShow;
+        render();
+      }
+    });
+
+    
+    const versor = {
+      cartesian: function(e) {
+        const l = e[0] * Math.PI / 180, p = e[1] * Math.PI / 180, cp = Math.cos(p);
+        return [cp * Math.cos(l), cp * Math.sin(l), Math.sin(p)];
+      },
+      rotation: function(q) {
+        return [
+          Math.atan2(2 * (q[0] * q[1] + q[2] * q[3]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])) * 180 / Math.PI,
+          Math.asin(Math.max(-1, Math.min(1, 2 * (q[0] * q[2] - q[3] * q[1])))) * 180 / Math.PI,
+          Math.atan2(2 * (q[0] * q[3] + q[1] * q[2]), 1 - 2 * (q[2] * q[2] + q[3] * q[3])) * 180 / Math.PI
+        ];
+      },
+      delta: function(v0, v1) {
+        const w = this.cross(v0, v1), l = Math.sqrt(this.dot(w, w));
+        if (!l) return [1, 0, 0, 0];
+        const t = Math.acos(Math.max(-1, Math.min(1, this.dot(v0, v1)))) / 2, s = Math.sin(t);
+        return [Math.cos(t), w[2] / l * s, -w[1] / l * s, w[0] / l * s];
+      },
+      multiply: function(a, b) {
+        return [
+          a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3],
+          a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2],
+          a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1],
+          a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0]
+        ];
+      },
+      from: function(r) {
+        const l = r[0] / 2 * Math.PI / 180, p = r[1] / 2 * Math.PI / 180, g = r[2] / 2 * Math.PI / 180;
+        const sl = Math.sin(l), cl = Math.cos(l);
+        const sp = Math.sin(p), cp = Math.cos(p);
+        const sg = Math.sin(g), cg = Math.cos(g);
+        return [
+          cl * cp * cg + sl * sp * sg,
+          sl * cp * cg - cl * sp * sg,
+          cl * sp * cg + sl * cp * sg,
+          cl * cp * sg - sl * sp * cg
+        ];
+      },
+      cross: function(a, b) { return [a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]]; },
+      dot: function(a, b) { return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; }
+    };
+
+    function attachDrag(svg) {
+      const projection = d3.geoOrthographic()
+        .rotate(sync.rotate)
+        .translate([localState.width / 2, localState.height / 2])
+        .scale(Math.min(localState.width, localState.height) / 2 - 1);
+
+      let v0, q0, r0;
+
+      const drag = d3.drag()
+        .on('start', (event) => {
+          projection.rotate(sync.rotate).translate([localState.width / 2, localState.height / 2]).scale(Math.min(localState.width, localState.height) / 2 - 1);
+          const inv = projection.invert([event.x, event.y]);
+          if (inv) {
+            v0 = versor.cartesian(inv);
+            r0 = sync.rotate;
+            q0 = versor.from(r0);
+          }
+        })
+        .on('drag', (event) => {
+          if (!v0) return;
+          projection.rotate(r0);
+          const inv = projection.invert([event.x, event.y]);
+          if (!inv) return;
+          const v1 = versor.cartesian(inv);
+          const delta = versor.delta(v0, v1);
+          const q1 = versor.multiply(q0, delta);
+          sync.rotate = versor.rotation(q1);
+          sync.renders.forEach(r => r());
+        });
+
+      d3.select(svg).call(drag);
+      d3.select(svg).on('dblclick', () => {
+        sync.rotate = sync.centerRotate.slice();
+        sync.renders.forEach(r => r());
+      });
+    }
+
+    sync.renders.push(render);
+    render();
+  })();
+</script><p class=caption>A hexagon near the tip of South America. Each edge forms a triangle with the south pole. Blue triangles (CCW) add area; red triangles (CW) subtract. The net sum gives the polygon's area.</p></p><p><div style="max-width:600px;width:100%;margin:2em auto"><div class=globe-container id=globe-gt3 style=width:100%;aspect-ratio:1></div><div style=display:flex;align-items:center;gap:.5rem;margin-top:.5rem><span>Triangles:</span>
+<button id=dec-gt3 style=width:2rem;height:2rem;font-size:1.2rem;cursor:pointer>−</button>
+<input type=range id=slider-gt3 min=0 value=0 style=flex:1>
+<button id=inc-gt3 style=width:2rem;height:2rem;font-size:1.2rem;cursor:pointer>+</button>
+<span id=slider-value-gt3 style=min-width:2ch;text-align:center>0</span></div></div><script type=module>
+  import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
+  import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
+  import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
+
+  (async function() {
+    const rawData = {"coordinates":[[[-25,-25],[-35,-22],[-45,-22],[-55,-25],[-63,-30],[-68,-38],[-70,-47],[-68,-56],[-63,-64],[-55,-69],[-45,-72],[-35,-72],[-25,-69],[-30,-62],[-38,-60],[-45,-56],[-48,-47],[-45,-38],[-38,-34],[-30,-32],[-25,-25]]],"type":"Polygon"};
+    const maxWidth =  600 ;
+    const container = document.getElementById('globe-gt3');
+
+    
+    let coords;
+    if (rawData.type === 'FeatureCollection') {
+      coords = rawData.features[0].geometry.coordinates[0];
+    } else if (rawData.type === 'Feature') {
+      coords = rawData.geometry.coordinates[0];
+    } else if (rawData.type === 'Polygon') {
+      coords = rawData.coordinates[0];
+    }
+
+    
+    const southPole = [0, -90];
+
+    
+    function toCartesian([lng, lat]) {
+      const phi = lng * Math.PI / 180;
+      const theta = lat * Math.PI / 180;
+      return [
+        Math.cos(theta) * Math.cos(phi),
+        Math.cos(theta) * Math.sin(phi),
+        Math.sin(theta)
+      ];
+    }
+
+    
+    function cross(a, b) {
+      return [
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0]
+      ];
+    }
+
+    
+    function dot(a, b) {
+      return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    }
+
+    
+    
+    function isCounterClockwise(a, b, c) {
+      const va = toCartesian(a);
+      const vb = toCartesian(b);
+      const vc = toCartesian(c);
+      
+      
+      const crossAB = cross(va, vb);
+      return dot(crossAB, vc) > 0;
+    }
+
+    
+    const triangles = [];
+    for (let i = 0; i < coords.length - 1; i++) {
+      const v1 = coords[i];
+      const v2 = coords[i + 1];
+      const ccw = isCounterClockwise(v1, v2, southPole);
+      triangles.push({
+        coords: [v1, v2, southPole, v1], 
+        ccw: ccw
+      });
+    }
+
+    
+    const slider = document.getElementById('slider-gt3');
+    const sliderValue = document.getElementById('slider-value-gt3');
+    slider.max = triangles.length;
+    slider.value = triangles.length;
+    sliderValue.textContent = triangles.length;
+    let numTrianglesToShow = triangles.length;
+
+    
+    const inputRotate = [-45, -45, 0];
+    const allPoints = coords;
+    const centroid = d3.geoCentroid({ type: 'MultiPoint', coordinates: allPoints });
+    const centerRotate = inputRotate
+      ? [-inputRotate[0], -inputRotate[1], inputRotate[2] ?? 0]
+      : [-centroid[0], -centroid[1], 0];
+
+    const getSize = () => {
+      const width = container.offsetWidth || container.clientWidth;
+      const w = width > 0 ? Math.min(maxWidth, width) : maxWidth;
+      return { width: w, height: w };
+    };
+
+    const size = getSize();
+    const localState = { width: size.width, height: size.height };
+
+    
+    if (!window.globeMapSync) {
+      window.globeMapSync = {
+        rotate: centerRotate,
+        centerRotate: centerRotate,
+        renders: []
+      };
+    }
+    const sync = window.globeMapSync;
+    if (sync.renders.length === 0) {
+      sync.rotate = centerRotate;
+      sync.centerRotate = centerRotate;
+    }
+
+    if (!window.globeLandData) {
+      const landTopo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
+      window.globeLandData = feature(landTopo, landTopo.objects.land);
+    }
+    const land = window.globeLandData;
+
+    function render() {
+      const size = getSize();
+      localState.width = size.width;
+      localState.height = size.height;
+
+      const marks = [
+        Plot.geo(land, { stroke: '#88b', fill: 'none', strokeWidth: 0.8, strokeOpacity: 0.8 }),
+        Plot.graticule({ strokeOpacity: 0.06 }),
+        Plot.sphere({ strokeWidth: 2 })
+      ];
+
+      
+      
+      
+      
+      
+      for (let i = 0; i < numTrianglesToShow; i++) {
+        const tri = triangles[i];
+        const coordsForD3 = tri.ccw
+          ? tri.coords.slice().reverse()  
+          : tri.coords;                    
+        const triGeo = {
+          type: 'Polygon',
+          coordinates: [coordsForD3]
+        };
+        marks.push(Plot.geo(triGeo, {
+          fill: tri.ccw ? '#3273dc' : '#dc3545',
+          fillOpacity: 0.3,
+          stroke: tri.ccw ? '#3273dc' : '#dc3545',
+          strokeWidth: 0.5,
+          strokeOpacity: 0.5
+        }));
+      }
+
+      
+      const polyGeo = {
+        type: 'LineString',
+        coordinates: coords
+      };
+      marks.push(Plot.geo(polyGeo, {
+        stroke: '#333',
+        strokeWidth: 2.5
+      }));
+
+      
+      marks.push(Plot.geo({ type: 'Point', coordinates: southPole }, {
+        fill: '#333',
+        r: 5
+      }));
+
+      const svg = Plot.plot({
+        width: localState.width,
+        height: localState.height,
+        projection: { type: 'orthographic', rotate: sync.rotate, inset: 1 },
+        marks
+      });
+
+      container.innerHTML = '';
+      container.appendChild(svg);
+      attachDrag(svg);
+    }
+
+    window.addEventListener('resize', render);
+
+    slider.addEventListener('input', () => {
+      numTrianglesToShow = parseInt(slider.value);
+      sliderValue.textContent = numTrianglesToShow;
+      render();
+    });
+
+    const decBtn = document.getElementById('dec-gt3');
+    const incBtn = document.getElementById('inc-gt3');
+
+    decBtn.addEventListener('click', () => {
+      if (numTrianglesToShow > 0) {
+        numTrianglesToShow--;
+        slider.value = numTrianglesToShow;
+        sliderValue.textContent = numTrianglesToShow;
+        render();
+      }
+    });
+
+    incBtn.addEventListener('click', () => {
+      if (numTrianglesToShow < triangles.length) {
+        numTrianglesToShow++;
+        slider.value = numTrianglesToShow;
+        sliderValue.textContent = numTrianglesToShow;
+        render();
+      }
+    });
+
+    
+    const versor = {
+      cartesian: function(e) {
+        const l = e[0] * Math.PI / 180, p = e[1] * Math.PI / 180, cp = Math.cos(p);
+        return [cp * Math.cos(l), cp * Math.sin(l), Math.sin(p)];
+      },
+      rotation: function(q) {
+        return [
+          Math.atan2(2 * (q[0] * q[1] + q[2] * q[3]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])) * 180 / Math.PI,
+          Math.asin(Math.max(-1, Math.min(1, 2 * (q[0] * q[2] - q[3] * q[1])))) * 180 / Math.PI,
+          Math.atan2(2 * (q[0] * q[3] + q[1] * q[2]), 1 - 2 * (q[2] * q[2] + q[3] * q[3])) * 180 / Math.PI
+        ];
+      },
+      delta: function(v0, v1) {
+        const w = this.cross(v0, v1), l = Math.sqrt(this.dot(w, w));
+        if (!l) return [1, 0, 0, 0];
+        const t = Math.acos(Math.max(-1, Math.min(1, this.dot(v0, v1)))) / 2, s = Math.sin(t);
+        return [Math.cos(t), w[2] / l * s, -w[1] / l * s, w[0] / l * s];
+      },
+      multiply: function(a, b) {
+        return [
+          a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3],
+          a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2],
+          a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1],
+          a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0]
+        ];
+      },
+      from: function(r) {
+        const l = r[0] / 2 * Math.PI / 180, p = r[1] / 2 * Math.PI / 180, g = r[2] / 2 * Math.PI / 180;
+        const sl = Math.sin(l), cl = Math.cos(l);
+        const sp = Math.sin(p), cp = Math.cos(p);
+        const sg = Math.sin(g), cg = Math.cos(g);
+        return [
+          cl * cp * cg + sl * sp * sg,
+          sl * cp * cg - cl * sp * sg,
+          cl * sp * cg + sl * cp * sg,
+          cl * cp * sg - sl * sp * cg
+        ];
+      },
+      cross: function(a, b) { return [a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]]; },
+      dot: function(a, b) { return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; }
+    };
+
+    function attachDrag(svg) {
+      const projection = d3.geoOrthographic()
+        .rotate(sync.rotate)
+        .translate([localState.width / 2, localState.height / 2])
+        .scale(Math.min(localState.width, localState.height) / 2 - 1);
+
+      let v0, q0, r0;
+
+      const drag = d3.drag()
+        .on('start', (event) => {
+          projection.rotate(sync.rotate).translate([localState.width / 2, localState.height / 2]).scale(Math.min(localState.width, localState.height) / 2 - 1);
+          const inv = projection.invert([event.x, event.y]);
+          if (inv) {
+            v0 = versor.cartesian(inv);
+            r0 = sync.rotate;
+            q0 = versor.from(r0);
+          }
+        })
+        .on('drag', (event) => {
+          if (!v0) return;
+          projection.rotate(r0);
+          const inv = projection.invert([event.x, event.y]);
+          if (!inv) return;
+          const v1 = versor.cartesian(inv);
+          const delta = versor.delta(v0, v1);
+          const q1 = versor.multiply(q0, delta);
+          sync.rotate = versor.rotation(q1);
+          sync.renders.forEach(r => r());
+        });
+
+      d3.select(svg).call(drag);
+      d3.select(svg).on('dblclick', () => {
+        sync.rotate = sync.centerRotate.slice();
+        sync.renders.forEach(r => r());
+      });
+    }
+
+    sync.renders.push(render);
+    render();
+  })();
+</script><p class=caption>A C-shaped polygon in the South Atlantic. The concave shape creates a mix of positive and negative triangles that cancel in the interior.</p></p><p>We can form a special case where the point
 <span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:.6833em></span><span class="mord mathnormal" style=margin-right:.07153em>C</span></span></span></span> is the south pole, so
 <span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:1em;vertical-align:-.25em></span><span class=mopen>(</span><span class=mord><span class="mord text"><span class=mord>lat</span></span><span class=msupsub><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:.1514em><span style=top:-2.55em;margin-right:.05em><span class=pstrut style=height:2.7em></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:.15em><span></span></span></span></span></span></span><span class=mpunct>,</span><span class=mspace style=margin-right:.1667em></span><span class=mord><span class="mord text"><span class=mord>lng</span></span><span class=msupsub><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:.0573em><span style=top:-2.4559em;margin-right:.05em><span class=pstrut style=height:2.7em></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:.2441em><span></span></span></span></span></span></span><span class=mclose>)</span><span class=mspace style=margin-right:.2778em></span><span class=mrel>=</span><span class=mspace style=margin-right:.2778em></span></span><span class=base><span class=strut style=height:1em;vertical-align:-.25em></span><span class=mopen>(</span><span class=mord><span class="mord mathnormal">ϕ</span><span class=msupsub><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:.1514em><span style=top:-2.55em;margin-left:0;margin-right:.05em><span class=pstrut style=height:2.7em></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:.15em><span></span></span></span></span></span></span><span class=mpunct>,</span><span class=mspace style=margin-right:.1667em></span><span class=mord><span class="mord mathnormal" style=margin-right:.02778em>θ</span><span class=msupsub><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:.1514em><span style=top:-2.55em;margin-left:-.0278em;margin-right:.05em><span class=pstrut style=height:2.7em></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:.15em><span></span></span></span></span></span></span><span class=mclose>)</span><span class=mspace style=margin-right:.2778em></span><span class=mrel>=</span><span class=mspace style=margin-right:.2778em></span></span><span class=base><span class=strut style=height:1.2em;vertical-align:-.35em></span><span class=minner><span class="mopen delimcenter" style=top:0><span class="delimsizing size1">(</span></span><span class=mord>−</span><span class=mord><span class="mopen nulldelimiter"></span><span class=mfrac><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:.6954em><span style=top:-2.655em><span class=pstrut style=height:3em></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2</span></span></span></span><span style=top:-3.23em><span class=pstrut style=height:3em></span><span class=frac-line style=border-bottom-width:.04em></span></span><span style=top:-3.394em><span class=pstrut style=height:3em></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style=margin-right:.03588em>π</span></span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:.345em><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class=mpunct>,</span><span class=mspace style=margin-right:.1667em></span><span class=mord>0</span><span class="mclose delimcenter" style=top:0><span class="delimsizing size1">)</span></span></span></span></span></span>.</p><p>The angle at
 <span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:.6833em></span><span class="mord mathnormal" style=margin-right:.07153em>C</span></span></span></span> is just the difference between the longitudes:
