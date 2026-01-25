@@ -12,10 +12,10 @@ I also have a Python version of this algorithm shared at https://github.com/ajfr
 I also have a Python version of this algorithm shared at https://github.com/ajfriend/h3c2p
 #Goal: H3 cells to spherical polygons A collection of H3 cells describes a subset of the globe, and an operation we often want to do is to translate that set into an alternative representation of that region as a collection of spherical polygons (e.g., a GeoJSON MultiPolygon)."><meta itemprop=name content="[WIP] Making H3's cells-to-polygon faster"><meta itemprop=description content="Note: This post is currently a quick-and-dirty attempt at explaining the algorithm behind the PR uber/h3 #1113. My plan is to grow this into a proper blog post with more context, background, etc.
 I also have a Python version of this algorithm shared at https://github.com/ajfriend/h3c2p
-#Goal: H3 cells to spherical polygons A collection of H3 cells describes a subset of the globe, and an operation we often want to do is to translate that set into an alternative representation of that region as a collection of spherical polygons (e.g., a GeoJSON MultiPolygon)."><meta itemprop=datePublished content="2026-01-24T00:00:00+00:00"><meta itemprop=dateModified content="2026-01-24T00:00:00+00:00"><meta itemprop=wordCount content="4346"><meta name=referrer content="no-referrer-when-downgrade"><style>:root{--width:720px;--font-main:Verdana, sans-serif;--font-secondary:Verdana, sans-serif;--font-scale:1em;--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--blockquote-color:#222}@media(prefers-color-scheme:dark){:root{--background-color:#01242e;--heading-color:#eee;--text-color:#ddd;--link-color:#8cc2dd;--visited-color:#8b6fcb;--blockquote-color:#ccc}}body{font-family:var(--font-secondary);font-size:var(--font-scale);margin:auto;padding:20px;max-width:var(--width);text-align:left;background-color:var(--background-color);word-wrap:break-word;overflow-wrap:break-word;line-height:1.5;color:var(--text-color)}h1,h2,h3,h4,h5,h6{font-family:var(--font-main);color:var(--heading-color)}a{color:var(--link-color);cursor:pointer;text-decoration:none}a:hover{text-decoration:underline}nav a{margin-right:8px}strong,b{color:var(--heading-color)}button{margin:0;cursor:pointer}time{font-family:monospace;font-style:normal;font-size:15px}main{line-height:1.6}table{width:100%}hr{border:0;border-top:1px dashed}img{max-width:100%}code{font-family:monospace;padding:2px;border-radius:3px}blockquote{border-left:1px solid #999;color:var(--blockquote-color);padding-left:20px;font-style:italic}footer{padding:25px 0;text-align:center}.title:hover{text-decoration:none}.title h1{font-size:1.5em}.inline{width:auto!important}.highlight,.code{border-radius:3px;margin-block-start:1em;margin-block-end:1em;overflow-x:auto}ul.blog-posts{list-style-type:none;padding:unset}ul.blog-posts li{display:flex}ul.blog-posts li span{flex:0 0 130px}ul.blog-posts li a:visited{color:var(--visited-color)}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css integrity=sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+ crossorigin=anonymous><style>:root{--width:900px}p.caption{text-align:center;font-size:small;font-style:italic;margin-top:-1rem}h1.page-title{font-size:2.2rem;color:#111;margin-bottom:.2rem;border-bottom:2px solid #3273dc;padding-bottom:.3rem}main h1,main h2,main h3,main h4,main h5,main h6{font-weight:600;margin-top:2rem;margin-bottom:1rem}main h1{font-size:1.8rem}main h2{font-size:1.4rem}main h3{font-size:1.2rem}nav.toc{background:#f8f8f8;padding:1rem 1.5rem;margin-bottom:2rem;border-radius:4px}nav.toc h2{margin-top:0;font-size:1.1rem}nav.toc ul{margin:0;padding-left:1.5rem}nav.toc li{margin:.3rem 0}nav.toc a{text-decoration:none}nav.toc a:hover{text-decoration:underline}.highlight{background:#f6f8fa;border:1px solid #e1e4e8;border-radius:6px;margin:1.5rem 0;overflow-x:auto}.highlight pre{margin:0;padding:.1rem 1rem;background:0 0}.highlight code{font-size:.9rem;line-height:1.5;font-family:sf mono,Consolas,liberation mono,Menlo,monospace}.highlight .ln{color:#999;margin-right:1rem;user-select:none}code:not(.highlight code){background:#f0f0f0;padding:.15rem .4rem;border-radius:3px;font-size:.88em;font-family:sf mono,Consolas,liberation mono,Menlo,monospace}@media(prefers-color-scheme:dark){:root{--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--blockquote-color:#222}}.anchor-link{text-decoration:none;color:#999;margin-right:.5em}.anchor-link:hover{color:#333;text-decoration:underline}</style></head><body><header><a href=/ class=title><h2>AJ Friend</h2></a><nav><a href=/>Home</a>
+#Goal: H3 cells to spherical polygons A collection of H3 cells describes a subset of the globe, and an operation we often want to do is to translate that set into an alternative representation of that region as a collection of spherical polygons (e.g., a GeoJSON MultiPolygon)."><meta itemprop=datePublished content="2026-01-24T00:00:00+00:00"><meta itemprop=dateModified content="2026-01-24T00:00:00+00:00"><meta itemprop=wordCount content="4631"><meta name=referrer content="no-referrer-when-downgrade"><style>:root{--width:720px;--font-main:Verdana, sans-serif;--font-secondary:Verdana, sans-serif;--font-scale:1em;--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--blockquote-color:#222}@media(prefers-color-scheme:dark){:root{--background-color:#01242e;--heading-color:#eee;--text-color:#ddd;--link-color:#8cc2dd;--visited-color:#8b6fcb;--blockquote-color:#ccc}}body{font-family:var(--font-secondary);font-size:var(--font-scale);margin:auto;padding:20px;max-width:var(--width);text-align:left;background-color:var(--background-color);word-wrap:break-word;overflow-wrap:break-word;line-height:1.5;color:var(--text-color)}h1,h2,h3,h4,h5,h6{font-family:var(--font-main);color:var(--heading-color)}a{color:var(--link-color);cursor:pointer;text-decoration:none}a:hover{text-decoration:underline}nav a{margin-right:8px}strong,b{color:var(--heading-color)}button{margin:0;cursor:pointer}time{font-family:monospace;font-style:normal;font-size:15px}main{line-height:1.6}table{width:100%}hr{border:0;border-top:1px dashed}img{max-width:100%}code{font-family:monospace;padding:2px;border-radius:3px}blockquote{border-left:1px solid #999;color:var(--blockquote-color);padding-left:20px;font-style:italic}footer{padding:25px 0;text-align:center}.title:hover{text-decoration:none}.title h1{font-size:1.5em}.inline{width:auto!important}.highlight,.code{border-radius:3px;margin-block-start:1em;margin-block-end:1em;overflow-x:auto}ul.blog-posts{list-style-type:none;padding:unset}ul.blog-posts li{display:flex}ul.blog-posts li span{flex:0 0 130px}ul.blog-posts li a:visited{color:var(--visited-color)}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css integrity=sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+ crossorigin=anonymous><style>:root{--width:900px}p.caption{text-align:center;font-size:small;font-style:italic;margin-top:-1rem}h1.page-title{font-size:2.2rem;color:#111;margin-bottom:.2rem;border-bottom:2px solid #3273dc;padding-bottom:.3rem}main h1,main h2,main h3,main h4,main h5,main h6{font-weight:600;margin-top:2rem;margin-bottom:1rem}main h1{font-size:1.8rem}main h2{font-size:1.4rem}main h3{font-size:1.2rem}nav.toc{background:#f8f8f8;padding:1rem 1.5rem;margin-bottom:2rem;border-radius:4px}nav.toc h2{margin-top:0;font-size:1.1rem}nav.toc ul{margin:0;padding-left:1.5rem}nav.toc li{margin:.3rem 0}nav.toc a{text-decoration:none}nav.toc a:hover{text-decoration:underline}.highlight{background:#f6f8fa;border:1px solid #e1e4e8;border-radius:6px;margin:1.5rem 0;overflow-x:auto}.highlight pre{margin:0;padding:.1rem 1rem;background:0 0}.highlight code{font-size:.9rem;line-height:1.5;font-family:sf mono,Consolas,liberation mono,Menlo,monospace}.highlight .ln{color:#999;margin-right:1rem;user-select:none}code:not(.highlight code){background:#f0f0f0;padding:.15rem .4rem;border-radius:3px;font-size:.88em;font-family:sf mono,Consolas,liberation mono,Menlo,monospace}@media(prefers-color-scheme:dark){:root{--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--blockquote-color:#222}}.anchor-link{text-decoration:none;color:#999;margin-right:.5em}.anchor-link:hover{color:#333;text-decoration:underline}</style></head><body><header><a href=/ class=title><h2>AJ Friend</h2></a><nav><a href=/>Home</a>
 <a href=/blog>Blog</a>
 <a href=/software>Software</a>
-<a href=/notes>Notes</a></nav></header><main><h1 class=page-title>[WIP] Making H3's cells-to-polygon faster</h1><p><i><time datetime=2026-01-24>2026-01-24</time></i></p><nav class=toc><h2>Contents</h2><nav id=TableOfContents><ul><li><a href=#goal-h3-cells-to-spherical-polygons>Goal: H3 cells to spherical polygons</a></li><li><a href=#components-of-h3-cells>Components of H3 cells</a></li><li><a href=#directed-edge-preliminaries>Directed edge preliminaries</a></li><li><a href=#main-idea-remove-symmetric-pairs>Main idea: remove symmetric pairs</a><ul><li><a href=#example-one-hole>Example: one hole</a></li><li><a href=#implementation-notes-hash-table>Implementation notes: hash table</a><ul><li><a href=#python>Python</a></li><li><a href=#c>C</a></li></ul></li></ul></li><li><a href=#loops-of-edges>Loops of edges</a><ul><li><a href=#loop-surgery>Loop surgery</a><ul><li><a href=#example-four-cells>Example: four cells</a></li><li><a href=#example-disk>Example: disk</a></li><li><a href=#example-hole>Example: hole</a></li></ul></li><li><a href=#implementation-notes-doubly-linked-loops>Implementation notes: doubly-linked loops</a></li></ul></li><li><a href=#connected-components-partition-loops-into-polygons>Connected components partition loops into polygons</a><ul><li><a href=#implementation-notes-union-find>Implementation notes: union-find</a></li></ul></li><li><a href=#which-loop-is-outside>Which loop is &ldquo;outside&rdquo;?</a><ul><li><a href=#implementation-notes>Implementation notes</a></li></ul></li><li><a href=#overview-algorithm-and-code>Overview: Algorithm and code</a></li><li><a href=#performance-and-improvements>Performance and improvements</a></li><li><a href=#next-up-the-gosper-island>Next up: The Gosper Island</a></li></ul></nav></nav><content><p><strong>Note</strong>: This post is currently a quick-and-dirty attempt at explaining the algorithm
+<a href=/notes>Notes</a></nav></header><main><h1 class=page-title>[WIP] Making H3's cells-to-polygon faster</h1><p><i><time datetime=2026-01-24>2026-01-24</time></i></p><nav class=toc><h2>Contents</h2><nav id=TableOfContents><ul><li><a href=#goal-h3-cells-to-spherical-polygons>Goal: H3 cells to spherical polygons</a></li><li><a href=#components-of-h3-cells>Components of H3 cells</a></li><li><a href=#directed-edge-preliminaries>Directed edge preliminaries</a></li><li><a href=#main-idea-remove-symmetric-pairs>Main idea: remove symmetric pairs</a><ul><li><a href=#example-one-hole>Example: one hole</a></li><li><a href=#implementation-notes-hash-table>Implementation notes: hash table</a><ul><li><a href=#python>Python</a></li><li><a href=#c>C</a></li></ul></li></ul></li><li><a href=#loops-of-edges>Loops of edges</a><ul><li><a href=#loop-surgery>Loop surgery</a><ul><li><a href=#example-four-cells>Example: four cells</a></li><li><a href=#example-disk>Example: disk</a></li><li><a href=#example-hole>Example: hole</a></li></ul></li><li><a href=#implementation-notes-doubly-linked-loops>Implementation notes: doubly-linked loops</a></li></ul></li><li><a href=#connected-components-partition-loops-into-polygons>Connected components partition loops into polygons</a><ul><li><a href=#implementation-notes-union-find>Implementation notes: union-find</a></li></ul></li><li><a href=#which-loop-is-outside>Which loop is &ldquo;outside&rdquo;?</a><ul><li><a href=#implementation-notes>Implementation notes</a></li></ul></li><li><a href=#polygons-to-multipolygons>Polygons to MultiPolygons</a></li><li><a href=#overview-algorithm-and-code>Overview: Algorithm and code</a></li><li><a href=#performance-and-improvements>Performance and improvements</a></li><li><a href=#next-up-the-gosper-island>Next up: The Gosper Island</a></li></ul></nav></nav><content><p><strong>Note</strong>: This post is currently a quick-and-dirty attempt at explaining the algorithm
 behind the PR <a href=https://github.com/uber/h3/pull/1113>uber/h3 #1113</a>. My plan is to grow this into a
 proper blog post with more context, background, etc.</p><p>I also have a Python version of this algorithm shared at <a href=https://github.com/ajfriend/h3c2p>https://github.com/ajfriend/h3c2p</a></p><h1 id=goal-h3-cells-to-spherical-polygons><a href=#goal-h3-cells-to-spherical-polygons class=anchor-link>#</a>Goal: H3 cells to spherical polygons</h1><p>A collection of <a href=https://h3geo.org/>H3 cells</a> describes a subset of the globe,
 and an operation we often want to do is to translate that set into an alternative representation of that region as a collection of spherical polygons
@@ -769,7 +769,7 @@ and an operation we often want to do is to translate that set into an alternativ
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div></div></div><p>GeoJSON is just one format we can use for describing spherical polygons,
 but the algorithm we cover here is applicable
-to any similar format, and its easy to translate between them.
+to any similar format, and it&rsquo;s easy to translate between them.
 I wrote up my thoughts on <a href=/blog/sphere_poly/>&ldquo;ideal&rdquo; spherical polygons in another post</a>, but to summarize, we want to output spherical polygons such that:</p><ul><li>polygons consist of ordered loops of points on a sphere (lon/lat points)</li><li>polygons have one &ldquo;outer&rdquo; loop, with points oriented in counter-clockwise order, and zero or more &ldquo;inner&rdquo; loops, with points going clockwise (see the image above)</li><li>we can handle &ldquo;large&rdquo; cell sets, where resulting polygons may cross the antimeridian, enclose the poles, or be larger than a hemisphere</li></ul><h1 id=components-of-h3-cells><a href=#components-of-h3-cells class=anchor-link>#</a>Components of H3 cells</h1><p>How do we do this translation? Let&rsquo;s start by considering components of
 H3 cells and what we can do with them.</p><p>Cells are already polygons themselves. So how do you build a big polygon from smaller ones? Pull them apart and put the pieces back together! For what we can break these H3 cells down to, we have a couple of options:</p><ol><li>H3 cell lat/lng vertices (continuous)</li><li>H3 <a href=https://h3geo.org/docs/library/index/vertex>vertex mode</a> (discrete)</li><li>H3 <a href=https://h3geo.org/docs/api/uniedge>directed edge mode</a> (discrete).</li></ol><p>For any H3 cell, we can get the simple polygon of lat/lng points that describe it. In the H3 C library or in the bindings, you can get those points
 with the <a href=https://h3geo.org/docs/api/indexing#celltoboundary><code>cellToBoundary()</code></a> function. We <em>could</em> operate on those points, gathering them for each cell, and using them to construct the <code>MultiPolygon</code> boundary, but this <strong>continuous</strong> approach would involve floating point comparisons and error tolerances.
@@ -782,14 +782,14 @@ with the origin cell on the left (from the arrow&rsquo;s perspective.)</p><p><fi
 that GeoJSON conforms to</a>. That is,
 if we take the edges in order and extract their lat/lng points, we get a sequence
 of points in counter-clockwise order around the cell. Note that the last
-point of an edge is the first point of the following edge.</p><figure style=text-align:center><img src=code/figs/single_cell_directed_edges.svg alt style=width:100%;max-width:400px></figure><p>Note that this almost acheives our goal (at least for a single cell): we can recover a list of lat/lng points in counter-clockwise order denoting the outer
+point of an edge is the first point of the following edge.</p><figure style=text-align:center><img src=code/figs/single_cell_directed_edges.svg alt style=width:100%;max-width:400px></figure><p>Note that this almost achieves our goal (at least for a single cell): we can recover a list of lat/lng points in counter-clockwise order denoting the outer
 loop of a spherical polygon.</p><p>However, the order of the edges is important. Note that
 <a href=https://h3geo.org/docs/api/uniedge#origintodirectededges><code>originToDirectedEdges()</code></a> doesn&rsquo;t automatically return directed edges
 in counter-clockwise order, but we <em>can</em> permute them so that that is the case&mdash;and the same permutation works for every H3 cell. We&rsquo;ll get into using
 the ordering later on, but for now I&rsquo;ll just note that we hard code the permutation in the PR with something like</p><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#007020;font-weight:700>static</span> <span style=color:#007020;font-weight:700>const</span> <span style=color:#902000>uint8_t</span> idxh[<span style=color:#40a070>6</span>] <span style=color:#666>=</span> {<span style=color:#40a070>0</span>, <span style=color:#40a070>4</span>, <span style=color:#40a070>3</span>, <span style=color:#40a070>5</span>, <span style=color:#40a070>1</span>, <span style=color:#40a070>2</span>};  <span style=color:#60a0b0;font-style:italic>// hexagons
 </span></span></span><span style=display:flex><span><span style=color:#007020;font-weight:700>static</span> <span style=color:#007020;font-weight:700>const</span> <span style=color:#902000>uint8_t</span> idxp[<span style=color:#40a070>5</span>] <span style=color:#666>=</span> {<span style=color:#40a070>0</span>, <span style=color:#40a070>1</span>, <span style=color:#40a070>3</span>, <span style=color:#40a070>2</span>, <span style=color:#40a070>4</span>};     <span style=color:#60a0b0;font-style:italic>// pentagons
 </span></span></span></code></pre></div><p>Whenever we&rsquo;re plotting more than one cell, edges will overlap with their opposites. To visually distinguish them in most of the plots below, we&rsquo;ll
-shrink the directed edges towards the center of their origin cell:</p><p><figure style=text-align:center><img src=code/figs/two_cells_edges.svg alt style=width:100%;max-width:400px></figure><p class=caption>Two cells (blue) with their associated directed edges (black/red) shrunk towards the centers to avoid overlaps. Note the symmetric pair of opposite edges (red).</p></p><p>We&rsquo;ll refer to an edge and its reversed edge a <strong>symmetric pair</strong>.</p><h1 id=main-idea-remove-symmetric-pairs><a href=#main-idea-remove-symmetric-pairs class=anchor-link>#</a>Main idea: remove symmetric pairs</h1><p>That last image suggest an idea: for a set of cells
+shrink the directed edges towards the center of their origin cell:</p><p><figure style=text-align:center><img src=code/figs/two_cells_edges.svg alt style=width:100%;max-width:400px></figure><p class=caption>Two cells (blue) with their associated directed edges (black/red) shrunk towards the centers to avoid overlaps. Note the symmetric pair of opposite edges (red).</p></p><p>We&rsquo;ll refer to an edge and its reversed edge as a <strong>symmetric pair</strong>.</p><h1 id=main-idea-remove-symmetric-pairs><a href=#main-idea-remove-symmetric-pairs class=anchor-link>#</a>Main idea: remove symmetric pairs</h1><p>That last image suggests an idea: for a set of cells
 <span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:.6833em></span><span class="mord mathnormal" style=margin-right:.07153em>C</span></span></span></span>, if we get the set of all
 of the directed edges with origins belonging to
 <span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:.6833em></span><span class="mord mathnormal" style=margin-right:.07153em>C</span></span></span></span>, we can then remove all
@@ -802,7 +802,7 @@ We start with 6 cells, with a center cell missing, and consider the full set of
 their edges:<figure style=text-align:center><img src=code/figs/ring_0.svg alt style=width:100%;max-width:400px></figure><p class=caption>Initial set of edges from six cells, with a central cell missing. Loops initially all counter-clockwise.</p></p><p>Eliminating all symmetric pairs except for one leaves us with a single loop in
 counter-clockwise order. (This figure doesn&rsquo;t represent the actual locations of the edge endpoints since we&rsquo;ve shrunk them, so it&rsquo;s true that this loop is degenerate in the sense that the symmetric pair of edges exactly overlap one another, but we&rsquo;re OK with that for this intermediate state, since they&rsquo;re about to be removed anyway.)<figure style=text-align:center><img src=code/figs/ring_1.svg alt style=width:100%;max-width:400px></figure><p class=caption>A (geometrically) degenerate, but intermediate counter-clockwise loop.</p></p><p>When the final symmetric pair is removed, we&rsquo;re left with two rings of edges: one outer loop in counter-clockwise order and one inner loop in clockwise order, denoting the hole missing from the polygon:<figure style=text-align:center><img src=code/figs/ring_2.svg alt style=width:100%;max-width:400px></figure><p class=caption>An outer loop (counter-clockwise) and one hole loop (clockwise).</p></p><p>The next major sections describe how we recover the additional information
 we need (beyond just the unordered set of edges) to describe the polygon.</p><h2 id=implementation-notes-hash-table><a href=#implementation-notes-hash-table class=anchor-link>##</a>Implementation notes: hash table</h2><h3 id=python><a href=#python class=anchor-link>###</a>Python</h3><p>In Python, just getting the set of cells and canceling out the symmetric
-pairs is pretty trivial. I would look something like:</p><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#007020;font-weight:700>import</span> <span style=color:#0e84b5;font-weight:700>h3</span>
+pairs is pretty trivial. It would look something like:</p><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#007020;font-weight:700>import</span> <span style=color:#0e84b5;font-weight:700>h3</span>
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>edges <span style=color:#666>=</span> {
 </span></span><span style=display:flex><span>    e
@@ -837,7 +837,7 @@ and hashes all the edges for quick random lookup.</p><p>For some <code>Arc</code
 </span></span><span style=display:flex><span>Arc <span style=color:#666>*</span>b <span style=color:#666>=</span> <span style=color:#06287e>findArc</span>(arcset, reversedEdge);
 </span></span></code></pre></div><p>We use a simple linear probing scheme with <code>numBuckets = 10 * numArcs</code> to keep collisions low. In the future, an improved algorithm could use less memory without sacrificing lookup speed. (Suggestions welcome!)</p><p>After initializing the <code>ArcSet</code>, we can perform the edge cancellation with the C function <code>cancelArcPairs()</code>, which roughly follows the pseudocode:</p><ol><li>loop through the <code>Arc</code>s (that haven&rsquo;t been removed yet) via the <code>ArcSet.arcs</code> array</li><li>for each <code>Arc</code>, <code>a</code>, compute its reversed edge like <code>e_b = reverseDirectedEdge(a.id)</code></li><li>find the corresponding <code>Arc</code> via the hash table with <code>Arc *b = findArc(arcset, e_b)</code></li><li>with both <code>Arc</code>s in hand, we can mark both as removed:<div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span>a<span style=color:#666>-&gt;</span>isRemoved <span style=color:#666>=</span> <span style=color:#007020>true</span>;
 </span></span><span style=display:flex><span>b<span style=color:#666>-&gt;</span>isRemoved <span style=color:#666>=</span> <span style=color:#007020>true</span>;
-</span></span></code></pre></div></li><li>Note that we do some additional work around loops and connected components, but we&rsquo;ll cover that in the upcoming sections.</li></ol><p>The edges remaining afer cancellation (those with <code>isRemoved = false</code>) are the
+</span></span></code></pre></div></li><li>Note that we do some additional work around loops and connected components, but we&rsquo;ll cover that in the upcoming sections.</li></ol><p>The edges remaining after cancellation (those with <code>isRemoved = false</code>) are the
 ones that make up the polygon boundaries.
 But note that this logic just amounts to keeping track of the <strong>set</strong> of
 boundary edges. Next, we&rsquo;ll discuss the additional structure we need
@@ -855,7 +855,7 @@ so that each individual cell corresponds to a separate doubly-linked loop
 of edges/<code>Arcs</code>.</p><p>Now, <code>ArcSet</code> starts in a state where we have a set of valid doubly-linked loops.
 The big idea is, with each edge pair cancellation, to <strong>maintain that valid
 state of linked loops</strong>.</p><p>For example, if we were to start with two neighboring cells, with two disjoint loops, the <code>ArcSet</code> would initially correspond to this picture:</p><figure style=text-align:center><img src=code/figs/two_cells_before.svg alt style=width:100%;max-width:400px><p class=caption>Initial state of edges for two cells.</p></figure><p>After canceling the pair of edges, the <code>ArcSet</code> would look like this:</p><figure style=text-align:center><img src=code/figs/two_cells_after.svg alt style=width:100%;max-width:600px><p class=caption>After canceling pairs of edges.</p></figure><p>Note that the edges stay in a counter-clockwise loop. But how do we update the
-doubly-linked loops?</p><h2 id=loop-surgery><a href=#loop-surgery class=anchor-link>##</a>Loop surgery</h2><p>When canceling a symmetric pair of edges <code>a</code> and <code>b</code>, we splice them out by reconnecting their neighbors.</p><p>The edges in the loops are initially chained like:</p><span class=katex-display><span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:3em;vertical-align:-1.25em></span><span class=mord><span class=mtable><span class=col-align-r><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:1.75em><span style=top:-3.91em><span class=pstrut style=height:3em></span><span class=mord><span class=mord><span class="mord mathnormal">a</span><span class=msupsub><span class=vlist-t><span class=vlist-r><span class=vlist style=height:.8213em><span style=top:-3.113em;margin-right:.05em><span class=pstrut style=height:2.7em></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">−</span></span></span></span></span></span></span></span></span></span><span style=top:-2.41em><span class=pstrut style=height:3em></span><span class=mord><span class=mord><span class="mord mathnormal">b</span><span class=msupsub><span class=vlist-t><span class=vlist-r><span class=vlist style=height:.8213em><span style=top:-3.113em;margin-right:.05em><span class=pstrut style=height:2.7em></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">−</span></span></span></span></span></span></span></span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.25em><span></span></span></span></span></span><span class=col-align-l><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:1.75em><span style=top:-3.91em><span class=pstrut style=height:3em></span><span class=mord><span class=mord></span><span class=mspace style=margin-right:.2778em></span><span class=mrel>→</span><span class=mspace style=margin-right:.2778em></span><span class="mord mathnormal">a</span><span class=mspace style=margin-right:.2778em></span><span class=mrel>→</span><span class=mspace style=margin-right:.2778em></span><span class=mord><span class="mord mathnormal">a</span><span class=msupsub><span class=vlist-t><span class=vlist-r><span class=vlist style=height:.8213em><span style=top:-3.113em;margin-right:.05em><span class=pstrut style=height:2.7em></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">+</span></span></span></span></span></span></span></span></span></span><span style=top:-2.41em><span class=pstrut style=height:3em></span><span class=mord><span class=mord></span><span class=mspace style=margin-right:.2778em></span><span class=mrel>→</span><span class=mspace style=margin-right:.2778em></span><span class="mord mathnormal">b</span><span class=mspace style=margin-right:.2778em></span><span class=mrel>→</span><span class=mspace style=margin-right:.2778em></span><span class=mord><span class="mord mathnormal">b</span><span class=msupsub><span class=vlist-t><span class=vlist-r><span class=vlist style=height:.8213em><span style=top:-3.113em;margin-right:.05em><span class=pstrut style=height:2.7em></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">+</span></span></span></span></span></span></span></span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.25em><span></span></span></span></span></span></span></span></span></span></span></span><p>which we can also see in the two cell diagram:</p><p><figure style=text-align:center><img src=code/figs/two_cells_before_labels.svg alt style=width:100%;max-width:400px></figure><p class=caption>Two loops and the relevant edges before surgery.</p></p><p>After removing edges <code>a</code> and <code>b</code>, we recconect their surrounding edges like
+doubly-linked loops?</p><h2 id=loop-surgery><a href=#loop-surgery class=anchor-link>##</a>Loop surgery</h2><p>When canceling a symmetric pair of edges <code>a</code> and <code>b</code>, we splice them out by reconnecting their neighbors.</p><p>The edges in the loops are initially chained like:</p><span class=katex-display><span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:3em;vertical-align:-1.25em></span><span class=mord><span class=mtable><span class=col-align-r><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:1.75em><span style=top:-3.91em><span class=pstrut style=height:3em></span><span class=mord><span class=mord><span class="mord mathnormal">a</span><span class=msupsub><span class=vlist-t><span class=vlist-r><span class=vlist style=height:.8213em><span style=top:-3.113em;margin-right:.05em><span class=pstrut style=height:2.7em></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">−</span></span></span></span></span></span></span></span></span></span><span style=top:-2.41em><span class=pstrut style=height:3em></span><span class=mord><span class=mord><span class="mord mathnormal">b</span><span class=msupsub><span class=vlist-t><span class=vlist-r><span class=vlist style=height:.8213em><span style=top:-3.113em;margin-right:.05em><span class=pstrut style=height:2.7em></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">−</span></span></span></span></span></span></span></span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.25em><span></span></span></span></span></span><span class=col-align-l><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:1.75em><span style=top:-3.91em><span class=pstrut style=height:3em></span><span class=mord><span class=mord></span><span class=mspace style=margin-right:.2778em></span><span class=mrel>→</span><span class=mspace style=margin-right:.2778em></span><span class="mord mathnormal">a</span><span class=mspace style=margin-right:.2778em></span><span class=mrel>→</span><span class=mspace style=margin-right:.2778em></span><span class=mord><span class="mord mathnormal">a</span><span class=msupsub><span class=vlist-t><span class=vlist-r><span class=vlist style=height:.8213em><span style=top:-3.113em;margin-right:.05em><span class=pstrut style=height:2.7em></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">+</span></span></span></span></span></span></span></span></span></span><span style=top:-2.41em><span class=pstrut style=height:3em></span><span class=mord><span class=mord></span><span class=mspace style=margin-right:.2778em></span><span class=mrel>→</span><span class=mspace style=margin-right:.2778em></span><span class="mord mathnormal">b</span><span class=mspace style=margin-right:.2778em></span><span class=mrel>→</span><span class=mspace style=margin-right:.2778em></span><span class=mord><span class="mord mathnormal">b</span><span class=msupsub><span class=vlist-t><span class=vlist-r><span class=vlist style=height:.8213em><span style=top:-3.113em;margin-right:.05em><span class=pstrut style=height:2.7em></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">+</span></span></span></span></span></span></span></span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.25em><span></span></span></span></span></span></span></span></span></span></span></span><p>which we can also see in the two cell diagram:</p><p><figure style=text-align:center><img src=code/figs/two_cells_before_labels.svg alt style=width:100%;max-width:400px></figure><p class=caption>Two loops and the relevant edges before surgery.</p></p><p>After removing edges <code>a</code> and <code>b</code>, we reconnect their surrounding edges like
 the following, which merges the two loops into one counter-clockwise loop,
 updating the doubly-linked list appropriately.</p><span class=katex-display><span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:3em;vertical-align:-1.25em></span><span class=mord><span class=mtable><span class=col-align-r><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:1.75em><span style=top:-3.91em><span class=pstrut style=height:3em></span><span class=mord><span class=mord><span class="mord mathnormal">a</span><span class=msupsub><span class=vlist-t><span class=vlist-r><span class=vlist style=height:.8213em><span style=top:-3.113em;margin-right:.05em><span class=pstrut style=height:2.7em></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">−</span></span></span></span></span></span></span></span></span></span><span style=top:-2.41em><span class=pstrut style=height:3em></span><span class=mord><span class=mord><span class="mord mathnormal">b</span><span class=msupsub><span class=vlist-t><span class=vlist-r><span class=vlist style=height:.8213em><span style=top:-3.113em;margin-right:.05em><span class=pstrut style=height:2.7em></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">−</span></span></span></span></span></span></span></span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.25em><span></span></span></span></span></span><span class=col-align-l><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:1.75em><span style=top:-3.91em><span class=pstrut style=height:3em></span><span class=mord><span class=mord></span><span class=mspace style=margin-right:.2778em></span><span class=mrel>→</span><span class=mspace style=margin-right:.2778em></span><span class=mord><span class="mord mathnormal">b</span><span class=msupsub><span class=vlist-t><span class=vlist-r><span class=vlist style=height:.8213em><span style=top:-3.113em;margin-right:.05em><span class=pstrut style=height:2.7em></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">+</span></span></span></span></span></span></span></span></span></span><span style=top:-2.41em><span class=pstrut style=height:3em></span><span class=mord><span class=mord></span><span class=mspace style=margin-right:.2778em></span><span class=mrel>→</span><span class=mspace style=margin-right:.2778em></span><span class=mord><span class="mord mathnormal">a</span><span class=msupsub><span class=vlist-t><span class=vlist-r><span class=vlist style=height:.8213em><span style=top:-3.113em;margin-right:.05em><span class=pstrut style=height:2.7em></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">+</span></span></span></span></span></span></span></span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.25em><span></span></span></span></span></span></span></span></span></span></span></span><p><figure style=text-align:center><img src=code/figs/two_cells_after_labels.svg alt style=width:100%;max-width:400px></figure><p class=caption>The resulting single loop after surgery.</p></p><p>In the C code, this looks like the following, where <code>a</code> and <code>b</code> are <code>Arc</code> structs:</p><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span>a<span style=color:#666>-&gt;</span>next<span style=color:#666>-&gt;</span>prev <span style=color:#666>=</span> b<span style=color:#666>-&gt;</span>prev;
 </span></span><span style=display:flex><span>a<span style=color:#666>-&gt;</span>prev<span style=color:#666>-&gt;</span>next <span style=color:#666>=</span> b<span style=color:#666>-&gt;</span>next;
@@ -874,7 +874,7 @@ six loops total, across three polygons. But how can we determine the grouping?</
 of H3 cells, where cells are the nodes of an undirected graph, and there&rsquo;s an &ldquo;edge&rdquo; connecting them if they share a symmetric pair of H3 directed edges.
 And this should match our intuition: consider the three polygons in the example
 at the start of the post.</p><p>Also note that there is no notion of one polygon being &ldquo;inside&rdquo; or &ldquo;outside&rdquo; of
-another&mdash;they&rsquo;re just separate polygons.</p><p>Thus, our goal is to keep track of these connected components, and note which loops are in which component. Note that loops that don&rsquo;t touch can be in the same component because they&rsquo;re connected by a path of cells.</p><p>Algorithmically, we start with each cell being its own connected component. That is, all the edges of the cells initial loop start in the same component.
+another&mdash;they&rsquo;re just separate polygons.</p><p>Thus, our goal is to keep track of these connected components, and note which loops are in which component. Note that loops that don&rsquo;t touch can be in the same component because they&rsquo;re connected by a path of cells.</p><p>Algorithmically, we start with each cell being its own connected component. That is, all the edges of a cell&rsquo;s initial loop start in the same component.
 When we identify and remove a symmetric pair of edges, we merge their connected components. We keep track of the connected components with a <a href=https://en.wikipedia.org/wiki/Disjoint-set_data_structure>union-find data structure</a>.</p><p>Let&rsquo;s look at an example. Initially, each cell is its own component:</p><p><figure style=text-align:center><img src=code/figs/conn_comp_colors_0.svg alt style=width:100%;max-width:800px></figure><p class=caption>Each cell starts with its own, separate connected component consisting of its edges. We color the cells so that neighboring cells in separate components (at this stage of the algorithm) have different colors.</p></p><p>As we remove symmetric pairs, components start to merge:</p><p><figure style=text-align:center><img src=code/figs/conn_comp_colors_1.svg alt style=width:100%;max-width:800px></figure><p class=caption>Small multi-cell connected components start to appear.</p></p><p><figure style=text-align:center><img src=code/figs/conn_comp_colors_2.svg alt style=width:100%;max-width:800px></figure><p class=caption>Larger connected components appear. Note that there are many degenerate pairs
 which won't further affect the connected components, but will need to be removed
 before forming the boundary.</p></p><p><figure style=text-align:center><img src=code/figs/conn_comp_colors_3.svg alt style=width:100%;max-width:800px></figure><p class=caption>Larger regions get dominated by a few connected components.</p></p><p><figure style=text-align:center><img src=code/figs/conn_comp_colors_4.svg alt style=width:100%;max-width:800px></figure><p class=caption>Just a few stragglers left before we arrive at the final set of connected components and have all symmetric pairs removed.</p></p><p>After all symmetric pairs are removed, the remaining components correspond exactly to the polygons we want to output. Loops belonging to the same polygon (both outer and holes) share the same connected component:</p><p><figure style=text-align:center><img src=code/figs/conn_comp_colors_5.svg alt style=width:100%;max-width:800px></figure><p class=caption>After eliminating all symmetric pairs, three connected components remain, each corresponding to a polygon. The loops within each component form one polygon's outer boundary and holes.</p></p><p>Note that at this stage we know <em>which</em> loops belong together, but we don&rsquo;t yet know which loop is the outer boundary versus which are holes. We&rsquo;ll address that in the next section.</p><h2 id=implementation-notes-union-find><a href=#implementation-notes-union-find class=anchor-link>##</a>Implementation notes: union-find</h2><p>In <a href=https://github.com/uber/h3/pull/1113>uber/h3 #1113</a>, each <code>Arc</code> stores the relevant data:</p><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#007020;font-weight:700>typedef</span> <span style=color:#007020;font-weight:700>struct</span> Arc {
@@ -888,8 +888,8 @@ before forming the boundary.</p></p><p><figure style=text-align:center><img src=
 </span></span></code></pre></div><p>The <code>parent</code> and <code>rank</code> fields implement the <a href=https://en.wikipedia.org/wiki/Disjoint-set_data_structure>union-find data structure</a>. The <code>parent</code> points to
 the parent Arc in a tree data structure, where each &ldquo;root&rdquo; corresponds to a
 separate connected component. The <code>rank</code> is used when merging connected components to keep the tree balanced, making the operations fast.</p><p>Two functions handle the core operations:</p><ul><li><code>getRoot(Arc *arc)</code> finds the &ldquo;root&rdquo; of an <code>Arc</code>&rsquo;s connected component</li><li><code>unionArcs(Arc *a, Arc *b)</code> merges two components, using <code>rank</code> to keep the tree balanced</li></ul><p>When we cancel a symmetric pair of edges in <code>cancelArcPairs()</code>, we call <code>unionArcs()</code> to merge the components of the pair of edges.
-After all cancellations, edges/Arcs sharing the same &ldquo;root&rdquo; belong to the same polygon.</p><h1 id=which-loop-is-outside><a href=#which-loop-is-outside class=anchor-link>#</a>Which loop is &ldquo;outside&rdquo;?</h1><p>To recap up to this point, we&rsquo;ve described how we:</p><ul><li>eliminate internal edges to get the polygon boundaries,</li><li>maintain the orientations of the loops with doubly-linked lists, and</li><li>keep track of which loops belong to which polygon via connected components.</li></ul><p>But how do we determine which loop in a polygon is the outer and which are the holes? What might seem like an easy question is a litte more complicated. Consider the largest polygon from the previous example:</p><figure style=text-align:center><img src=code/figs/conn_comp_largest.svg alt style=width:100%;max-width:800px></figure><p>There are four loops of edges here. Eyeballing, it is easy for us to pick out
-which one we think <em>should</em> be the outer loop&mdash;but how do we determine that algorithmically? Let&rsquo;s look at a more extreme example of two loops close to the equator, encircling the entire globe:</p><p><div class=globe-container id=globe-gm32 style="max-width:500px;width:100%;aspect-ratio:1;margin:2em auto"></div><script type=module>
+After all cancellations, edges/Arcs sharing the same <code>root</code> belong to the same polygon.</p><h1 id=which-loop-is-outside><a href=#which-loop-is-outside class=anchor-link>#</a>Which loop is &ldquo;outside&rdquo;?</h1><p>To recap up to this point, we&rsquo;ve described how we:</p><ul><li>eliminate internal edges to get the polygon boundaries,</li><li>maintain the orientations of the loops with doubly-linked lists, and</li><li>keep track of which loops belong to which polygon via connected components.</li></ul><p>But how do we determine which loop in a polygon is the outer and which are the holes? What might seem like an easy question on the 2D plane is a little more complicated on the sphere. Consider the largest polygon from the previous example:</p><p><figure style=text-align:center><img src=code/figs/conn_comp_largest.svg alt style=width:100%;max-width:800px></figure><p class=caption>Which of the four loops of this polygon connected component should be the "outside" loop?</p></p><p>There are four loops of edges here. Eyeballing, it is easy for us to pick out
+which one we think <em>should</em> be the outer loop&mdash;but how do we determine that algorithmically? Let&rsquo;s look at a more extreme example of two loops close to the equator, encircling the entire globe:</p><p><div class=globe-container id=globe-gm33 style="max-width:500px;width:100%;aspect-ratio:1;margin:2em auto"></div><script type=module>
   import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
   import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
   import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
@@ -935,7 +935,7 @@ which one we think <em>should</em> be the outer loop&mdash;but how do we determi
     const arrowStep =  0 ;
     const shouldSync =  false ;
 
-    const container = document.getElementById('globe-gm32');
+    const container = document.getElementById('globe-gm33');
     const getSize = () => {
       const width = container.offsetWidth || container.clientWidth;
       const w = width > 0 ? Math.min(maxWidth, width) : maxWidth;
@@ -1256,382 +1256,17 @@ which one we think <em>should</em> be the outer loop&mdash;but how do we determi
     render();
   })();
 </script><p class=caption>It can be unclear which loop of a polygon is the "correct" outer loop. In this case, the choice is basically arbitrary: we get exactly the same spherical polygon with either choice.</p></p><p>We can assume that we know these two loops are part of the same polygon based on
-the connected components calculation, and the orientation of the loops indicates that the interior of the polygon includes the equator (if you&rsquo;re on the surface of the globe, walking along a loop in the direction of the arrows, the interior is to your left&mdash;the right-hand rule), so we know that this object is a polygon with one outer loop and one hole. But which one is which?</p><p>This is example is designed to make it harder to tell. And, honestly, the right answer is that there is no right answer! Selecting one loop or the other as the outer loop provides just as valid a spherical polygon. This is generally true for all spherical polygons: <strong>you can select any of the loops as the outer with the others as interior, and you maintain a valid spherical polygon that describes exactly the same region</strong>.</p><p>However, there&rsquo;s still an obious &ldquo;correct&rdquo; answer for smaller polygons (less than a hemisphere), which comes from the interpretation of the polygon if you plotted
+the connected components calculation, and the orientation of the loops indicates that the interior of the polygon includes the equator (if you&rsquo;re on the surface of the globe, walking along a loop in the direction of the arrows, the interior is to your left&mdash;the right-hand rule), so we know that this object is a polygon with one outer loop and one hole.</p><p>But which one is which?</p><p>This example is designed to make it hard to tell. And, honestly, the right answer is that there is no right answer! Selecting one loop or the other as the outer loop provides just as valid a spherical polygon. This is generally true for all spherical polygons: <strong>you can select any of the loops as the outer with the others as interior, and you maintain a valid spherical polygon that describes exactly the same region</strong>.</p><p>However, there&rsquo;s still an obvious &ldquo;correct&rdquo; answer for smaller polygons (less than a hemisphere), which comes from the interpretation of the polygon if you plotted
 it on a flat 2D projection. So while, technically, we can choose any loop to be the outer, we still want to choose the loop that matches this intuition, and
-is more likely to work with planar plotting libraries.</p><p>Luckily, there&rsquo;s a single rule that picks the &ldquo;correct&rdquo; answer for small polygons, and picks a reasonable option for the pathological &ldquo;global&rdquo; polygons like the equator example here.</p><div style="border-left:4px solid #3273dc;background:#3273dc11;padding:1em 1.2em;margin:1.5em 0;border-radius:0 4px 4px 0"><strong style=color:#3273dc;display:block;margin-bottom:.5em>Rule for selecting the outer loop of a polygon</strong><div>For each loop in the polygon, compute the (positive, unsigned) area enclosed by the loop, where &ldquo;enclosed&rdquo; is defined by the orientation of the loop and the right-hand rule. The outer loop is the one with smallest area; the rest are holes.</div></div><p>Let&rsquo;s apply it to the example from above, and see if we get the right answer. We have four loops to compute the area for. Area will be computed in units of
-eyeball norm:</p><div style="display:grid;grid-template-columns:repeat(2,1fr);column-gap:1rem;row-gap:0;max-width:800px;margin:0 auto"><div class=globe-container id=globe-gm35 style="max-width:600px;width:100%;aspect-ratio:1;margin:2em auto"></div><script type=module>
+is more likely to work with planar plotting libraries.</p><p>Luckily, there&rsquo;s a single rule that picks the &ldquo;correct&rdquo; answer for small polygons, and picks a reasonable option for the pathological &ldquo;global&rdquo; polygons like the equator example above:</p><div style="border-left:4px solid #3273dc;background:#3273dc11;padding:1em 1.2em;margin:1.5em 0;border-radius:0 4px 4px 0"><strong style=color:#3273dc;display:block;margin-bottom:.5em>Rule for selecting the outer loop of a polygon</strong><div>For each loop in the polygon, compute the (positive, unsigned) area enclosed by the loop, where &ldquo;enclosed&rdquo; is defined by the orientation of the loop and the right-hand rule. The outer loop is the one with smallest area; the rest are holes.</div></div><p>For details on computing areas of spherical polygons, <a href=/blog/sphere_poly_area/>see my notes here</a>. For this post, we can reduce our concern to computing the area enclosed by a simple <strong>loop</strong> and that:</p><ul><li>For a unit sphere, area is given in units of <code>rads^2</code> or <a href=https://en.wikipedia.org/wiki/Steradian>steradians</a>.</li><li>The area of any loop is between 0 (empty set) and
+<span class=katex><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:.6444em></span><span class=mord>4</span><span class="mord mathnormal" style=margin-right:.03588em>π</span></span></span></span> (the entire sphere).</li><li>We follow the right-hand rule to indicate that when following the direction of the loop, the inside is to the left. Note that we have a <strong>critical dependence on the loop orientation</strong>: small loops may enclose very little area or almost the entire sphere, depending on the orientation of the loop.</li></ul><p>Let&rsquo;s apply the selection rule to the example from above, and see if we get the right answer. <strong>We have four loops for which we need to compute the area</strong>.
+Note that for this example, the math details are unnecessary&mdash;you can just eyeball it:</p><div style="display:grid;grid-template-columns:repeat(2,1fr);column-gap:1rem;row-gap:0;max-width:800px;margin:0 auto"><div class=globe-container id=globe-gm36 style="max-width:600px;width:100%;aspect-ratio:1;margin:2em auto"></div><script type=module>
   import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
   import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
   import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
 
   (async function() {
     const rawData = {"features":[{"geometry":{"coordinates":[[[-179.170112546831,43.33462463706695],[179.9534193241767,38.728779390762334],[174.49688633843544,36.85680682151307],[174.02804175387834,32.1119243692579],[169.07436240121478,29.9547386287809],[168.91929058653923,25.257056432213375],[164.45727251367725,23.004725058862295],[164.53519134064652,18.52280839538614],[160.52670878987635,16.340968799924067],[160.7733897026288,12.194726726168003],[164.67056230846524,10.175448079467838],[164.7007803629394,8.237083943199265],[164.93539603741021,6.119591258608642],[168.3352524578736,4.467031609784524],[172.03418236939353,6.172978893164637],[175.46041201203371,4.248592317017825],[179.2171608248945,5.88992175431389],[-178.02519665249852,2.9040374505798114],[-174.31673738369324,3.8210244943304374],[-171.37544324872502,0.649870565576401],[-167.31261713417402,1.5147974903819574],[-164.25615857265893,-1.7743965588128086],[-159.93112334382027,-0.9446533902388665],[-156.8531091350144,-4.259065522271725],[-152.3980821982831,-3.4345808068957697],[-149.4028814909321,-6.672537737437516],[-144.9683236097968,-5.820413131280587],[-143.3961790952625,-1.706579969821454],[-138.95903110794228,-0.8353130739527114],[-137.3063271216714,3.372828505596593],[-132.96499017492758,4.158942627265325],[-131.26895225504,8.320295172124068],[-133.89520751564908,11.884131145297399],[-132.14080471892913,16.072271835802038],[-134.89965579269537,19.7532105149965],[-133.08381598345164,23.820431161854447],[-135.98689147817444,27.469138609544558],[-140.91889130500928,27.061192038819836],[-144.17342232410294,30.569950882968854],[-149.34707529879068,29.89183008460252],[-152.85043045733752,33.12732053866678],[-158.04649474959947,32.12156651323389],[-161.64707805135708,34.994006697107615],[-159.94762734735153,39.09941640444715],[-163.39292691687498,42.461841701752746],[-168.8876761772056,41.53861492567143],[-173.2513616288856,44.74985555511408],[-179.170112546831,43.33462463706695]],[[-157.6068486027842,20.259691594705036],[-156.08998858841755,24.696711258039056],[-151.04796662686522,25.669243623986258],[-147.69594788211106,22.16693900740581],[-142.7188705783351,22.885971422359724],[-139.6214919325493,19.2239309458196],[-141.37151007296615,14.881959131410003],[-138.42043748614526,11.22287623237951],[-140.12125038010964,6.870649308036964],[-144.72979242136543,6.045591181415267],[-146.33638072286848,1.6772949381945044],[-150.91862197114955,0.7969950664894166],[-154.0294052002189,4.260374459536214],[-158.59967491814012,3.335734857517349],[-161.77338167921764,6.766536253596436],[-160.44607430026895,11.231115019630433],[-163.71455965998953,14.623074892227512],[-162.39694129463984,19.114485874069658],[-157.6068486027842,20.259691594705036]],[[-178.95063664056067,17.74333218723816],[-175.45827111402537,15.285730312483953],[-176.35806599111405,11.05195584369349],[-178.23815999124182,10.46324037683843],[179.77693144202632,9.615942399155198],[176.28993210653294,11.794175727566111],[172.29426677728955,9.978189493251357],[168.53745793093609,12.10200548276957],[168.65279280829242,16.286127926718756],[172.88878640797157,18.30669067889132],[173.23062212965775,22.777763428069576],[177.84694371159145,24.75690942135447],[-178.22376950605553,22.092681232201556],[-178.95063664056067,17.74333218723816]],[[-175.56432922504848,35.741206971176496],[-170.27191812997154,37.14623592274974],[-166.5289282511271,33.96535450751626],[-167.88337203384341,29.62550789823012],[-172.64626329548403,28.20896181794974],[-176.54267313535857,31.148162090824524],[-175.56432922504848,35.741206971176496]]],"type":"Polygon"},"properties":{"fill":"none","stroke":"#999999","strokeDasharray":"4 2","strokeWidth":1},"type":"Feature"},{"geometry":{"coordinates":[[[-175.56432922504848,35.741206971176496],[-170.27191812997154,37.14623592274974],[-166.5289282511271,33.96535450751626],[-167.88337203384341,29.62550789823012],[-172.64626329548403,28.20896181794974],[-176.54267313535857,31.148162090824524],[-175.56432922504848,35.741206971176496]]],"type":"Polygon"},"properties":{"fill":"#dc3545","fillOpacity":0.3,"stroke":"#dc3545","strokeWidth":2},"type":"Feature"}],"type":"FeatureCollection"};
-
-    if (!rawData || !rawData.features) {
-      console.error('globe_map: Invalid or missing data');
-      return;
-    }
-
-    
-    const featureCollection = {
-      type: rawData.type,
-      features: rawData.features.map(f => {
-        if (f.geometry.type === 'Polygon') {
-          return {
-            ...f,
-            geometry: {
-              ...f.geometry,
-              coordinates: f.geometry.coordinates.map(ring => ring.slice().reverse())
-            }
-          };
-        } else if (f.geometry.type === 'MultiPolygon') {
-          return {
-            ...f,
-            geometry: {
-              ...f.geometry,
-              coordinates: f.geometry.coordinates.map(polygon =>
-                polygon.map(ring => ring.slice().reverse())
-              )
-            }
-          };
-        }
-        return f;
-      })
-    };
-
-    const projection = "orthographic";
-    const isGlobe = projection === "orthographic";
-    const maxWidth =  600 ;
-    const arrowStep =  3 ;
-    const shouldSync =  true ;
-
-    const container = document.getElementById('globe-gm35');
-    const getSize = () => {
-      const width = container.offsetWidth || container.clientWidth;
-      const w = width > 0 ? Math.min(maxWidth, width) : maxWidth;
-      return { width: w, height: isGlobe ? w : w / 2 };
-    };
-
-    
-    const inputRotate = null;
-    const allPoints = [];
-    rawData.features.forEach(f => {
-      if (f.geometry.type === 'Point') {
-        allPoints.push(f.geometry.coordinates);
-      } else if (f.geometry.type === 'LineString') {
-        allPoints.push(...f.geometry.coordinates);
-      } else if (f.geometry.type === 'Polygon') {
-        f.geometry.coordinates.forEach(ring => allPoints.push(...ring));
-      } else if (f.geometry.type === 'MultiPolygon') {
-        f.geometry.coordinates.forEach(polygon =>
-          polygon.forEach(ring => allPoints.push(...ring))
-        );
-      }
-    });
-    const centroid = allPoints.length > 0
-      ? d3.geoCentroid({ type: 'MultiPoint', coordinates: allPoints })
-      : [0, 0];
-    const centerRotate = inputRotate
-      ? [-inputRotate[0], -inputRotate[1], inputRotate[2] ?? 0]
-      : [-centroid[0], -centroid[1], 0];
-    const size = getSize();
-    const localState = { width: size.width, height: size.height };
-
-    
-    let sync;
-    if (shouldSync) {
-      
-      if (!window.globeMapSync) {
-        window.globeMapSync = {
-          rotate: centerRotate,
-          centerRotate: centerRotate,
-          renders: []
-        };
-      }
-      sync = window.globeMapSync;
-
-      
-      if (sync.renders.length === 0) {
-        sync.rotate = centerRotate;
-        sync.centerRotate = centerRotate;
-      }
-    } else {
-      
-      sync = {
-        rotate: centerRotate,
-        centerRotate: centerRotate,
-        renders: []
-      };
-    }
-
-    if (!window.globeLandData) {
-      const landTopo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
-      window.globeLandData = feature(landTopo, landTopo.objects.land);
-    }
-    const land = window.globeLandData;
-
-    function render() {
-      const size = getSize();
-      localState.width = size.width;
-      localState.height = size.height;
-
-      const marks = [
-        Plot.geo(land, { stroke: '#88b', fill: 'none', strokeWidth: 0.8, strokeOpacity: 0.8 }),
-        Plot.graticule({ strokeOpacity: 0.06 })
-      ];
-
-      if (isGlobe) {
-        marks.push(Plot.sphere({ strokeWidth: 2 }));
-      } else {
-        marks.push(Plot.frame({ strokeWidth: 1 }));
-      }
-
-      
-      const polygons = {
-        type: 'FeatureCollection',
-        features: featureCollection.features.filter(f =>
-          f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
-        )
-      };
-      const lines = {
-        type: 'FeatureCollection',
-        features: featureCollection.features.filter(f => f.geometry.type === 'LineString')
-      };
-      const points = {
-        type: 'FeatureCollection',
-        features: featureCollection.features.filter(f => f.geometry.type === 'Point')
-      };
-
-      
-      const dashedPolygons = {
-        type: 'FeatureCollection',
-        features: polygons.features.filter(f => f.properties?.strokeDasharray)
-      };
-      const solidPolygons = {
-        type: 'FeatureCollection',
-        features: polygons.features.filter(f => !f.properties?.strokeDasharray)
-      };
-
-      
-      if (solidPolygons.features.length > 0) {
-        marks.push(Plot.geo(solidPolygons, {
-          fill: d => d.properties?.fill || 'red',
-          fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
-          stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
-          strokeWidth: d => d.properties?.strokeWidth ?? 1,
-          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
-        }));
-      }
-
-      
-      if (dashedPolygons.features.length > 0) {
-        marks.push(Plot.geo(dashedPolygons, {
-          fill: d => d.properties?.fill || 'red',
-          fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
-          stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
-          strokeWidth: d => d.properties?.strokeWidth ?? 1,
-          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
-        }));
-      }
-
-      
-      const dashedPolyInfo = dashedPolygons.features.map(f => ({
-        dasharray: f.properties?.strokeDasharray
-      }));
-
-        
-        if (arrowStep > 0) {
-          let edgeIndex = 0;
-          
-          rawData.features.forEach(f => {
-            if (f.geometry.type !== 'Polygon' && f.geometry.type !== 'MultiPolygon') return;
-            
-            if (f.properties?.strokeDasharray) return;
-            const stroke = f.properties?.stroke || f.properties?.fill || 'red';
-            const strokeWidth = f.properties?.strokeWidth ?? 1;
-            const rings = f.geometry.type === 'Polygon'
-              ? f.geometry.coordinates
-              : f.geometry.coordinates.flat();
-            rings.forEach(ring => {
-              for (let i = 0; i < ring.length - 1; i++) {
-                if (edgeIndex % arrowStep === 0) {
-                  const interpolate = d3.geoInterpolate(ring[i], ring[i + 1]);
-                  marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
-                    x: d => d[0],
-                    y: d => d[1],
-                    markerEnd: 'arrow',
-                    stroke: 'darkred',
-                    strokeWidth: 1.5
-                  }));
-                }
-                edgeIndex++;
-              }
-            });
-          });
-        }
-
-      
-      if (lines.features.length > 0) {
-        marks.push(Plot.geo(lines, {
-          stroke: d => d.properties?.stroke || 'red',
-          strokeWidth: d => d.properties?.strokeWidth ?? 2.5,
-          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.9
-        }));
-
-        
-        lines.features.forEach(f => {
-          const step = f.properties?.arrowStep ?? (f.properties?.arrow ? 1 : 0);
-          if (step > 0) {
-            const coords = f.geometry.coordinates;
-            for (let i = 0; i < coords.length - 1; i++) {
-              if (i % step === 0) {
-                const interpolate = d3.geoInterpolate(coords[i], coords[i + 1]);
-                marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
-                  x: d => d[0],
-                  y: d => d[1],
-                  markerEnd: 'arrow',
-                  stroke: f.properties?.stroke || 'darkred',
-                  strokeWidth: f.properties?.strokeWidth ?? 2
-                }));
-              }
-            }
-          }
-        });
-      }
-
-      
-      points.features.forEach(f => {
-        marks.push(Plot.geo(f, {
-          fill: f.properties?.fill || 'red',
-          stroke: f.properties?.stroke || 'darkred',
-          strokeWidth: f.properties?.strokeWidth ?? 1,
-          r: f.properties?.r ?? 5
-        }));
-      });
-
-      const projectionConfig = isGlobe
-        ? { type: projection, rotate: sync.rotate, inset: 1 }
-        : { type: projection };
-
-      const svg = Plot.plot({
-        width: localState.width,
-        height: localState.height,
-        projection: projectionConfig,
-        marks
-      });
-
-      container.innerHTML = '';
-      container.appendChild(svg);
-
-      
-      dashedPolyInfo.forEach(info => {
-        svg.querySelectorAll('path').forEach(path => {
-          if (path.getAttribute('fill') === 'none') {
-            path.setAttribute('stroke-dasharray', info.dasharray);
-          }
-        });
-      });
-
-      if (isGlobe) {
-        attachDrag(svg);
-      }
-    }
-
-    window.addEventListener('resize', render);
-
-    
-    const versor = {
-      cartesian: function(e) {
-        const l = e[0] * Math.PI / 180, p = e[1] * Math.PI / 180, cp = Math.cos(p);
-        return [cp * Math.cos(l), cp * Math.sin(l), Math.sin(p)];
-      },
-      rotation: function(q) {
-        return [
-          Math.atan2(2 * (q[0] * q[1] + q[2] * q[3]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])) * 180 / Math.PI,
-          Math.asin(Math.max(-1, Math.min(1, 2 * (q[0] * q[2] - q[3] * q[1])))) * 180 / Math.PI,
-          Math.atan2(2 * (q[0] * q[3] + q[1] * q[2]), 1 - 2 * (q[2] * q[2] + q[3] * q[3])) * 180 / Math.PI
-        ];
-      },
-      delta: function(v0, v1) {
-        const w = this.cross(v0, v1), l = Math.sqrt(this.dot(w, w));
-        if (!l) return [1, 0, 0, 0];
-        const t = Math.acos(Math.max(-1, Math.min(1, this.dot(v0, v1)))) / 2, s = Math.sin(t);
-        return [Math.cos(t), w[2] / l * s, -w[1] / l * s, w[0] / l * s];
-      },
-      multiply: function(a, b) {
-        return [
-          a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3],
-          a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2],
-          a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1],
-          a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0]
-        ];
-      },
-      from: function(r) {
-        const l = r[0] / 2 * Math.PI / 180, p = r[1] / 2 * Math.PI / 180, g = r[2] / 2 * Math.PI / 180;
-        const sl = Math.sin(l), cl = Math.cos(l);
-        const sp = Math.sin(p), cp = Math.cos(p);
-        const sg = Math.sin(g), cg = Math.cos(g);
-        return [
-          cl * cp * cg + sl * sp * sg,
-          sl * cp * cg - cl * sp * sg,
-          cl * sp * cg + sl * cp * sg,
-          cl * cp * sg - sl * sp * cg
-        ];
-      },
-      cross: function(a, b) { return [a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]]; },
-      dot: function(a, b) { return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; }
-    };
-
-    function attachDrag(svg) {
-      const projection = d3.geoOrthographic()
-        .rotate(sync.rotate)
-        .translate([localState.width / 2, localState.height / 2])
-        .scale(Math.min(localState.width, localState.height) / 2 - 1);
-
-      let v0, q0, r0;
-
-      const drag = d3.drag()
-        .on('start', (event) => {
-          projection.rotate(sync.rotate).translate([localState.width / 2, localState.height / 2]).scale(Math.min(localState.width, localState.height) / 2 - 1);
-          const inv = projection.invert([event.x, event.y]);
-          if (inv) {
-            v0 = versor.cartesian(inv);
-            r0 = sync.rotate;
-            q0 = versor.from(r0);
-          }
-        })
-        .on('drag', (event) => {
-          if (!v0) return;
-          projection.rotate(r0);
-          const inv = projection.invert([event.x, event.y]);
-          if (!inv) return;
-          const v1 = versor.cartesian(inv);
-          const delta = versor.delta(v0, v1);
-          const q1 = versor.multiply(q0, delta);
-          sync.rotate = versor.rotation(q1);
-          
-          sync.renders.forEach(r => r());
-        });
-
-      d3.select(svg).call(drag);
-      d3.select(svg).on('dblclick', () => {
-        sync.rotate = sync.centerRotate.slice();
-        sync.renders.forEach(r => r());
-      });
-    }
-
-    
-    sync.renders.push(render);
-
-    render();
-  })();
-</script><div class=globe-container id=globe-gm36 style="max-width:600px;width:100%;aspect-ratio:1;margin:2em auto"></div><script type=module>
-  import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
-  import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
-  import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
-
-  (async function() {
-    const rawData = {"features":[{"geometry":{"coordinates":[[[-179.170112546831,43.33462463706695],[179.9534193241767,38.728779390762334],[174.49688633843544,36.85680682151307],[174.02804175387834,32.1119243692579],[169.07436240121478,29.9547386287809],[168.91929058653923,25.257056432213375],[164.45727251367725,23.004725058862295],[164.53519134064652,18.52280839538614],[160.52670878987635,16.340968799924067],[160.7733897026288,12.194726726168003],[164.67056230846524,10.175448079467838],[164.7007803629394,8.237083943199265],[164.93539603741021,6.119591258608642],[168.3352524578736,4.467031609784524],[172.03418236939353,6.172978893164637],[175.46041201203371,4.248592317017825],[179.2171608248945,5.88992175431389],[-178.02519665249852,2.9040374505798114],[-174.31673738369324,3.8210244943304374],[-171.37544324872502,0.649870565576401],[-167.31261713417402,1.5147974903819574],[-164.25615857265893,-1.7743965588128086],[-159.93112334382027,-0.9446533902388665],[-156.8531091350144,-4.259065522271725],[-152.3980821982831,-3.4345808068957697],[-149.4028814909321,-6.672537737437516],[-144.9683236097968,-5.820413131280587],[-143.3961790952625,-1.706579969821454],[-138.95903110794228,-0.8353130739527114],[-137.3063271216714,3.372828505596593],[-132.96499017492758,4.158942627265325],[-131.26895225504,8.320295172124068],[-133.89520751564908,11.884131145297399],[-132.14080471892913,16.072271835802038],[-134.89965579269537,19.7532105149965],[-133.08381598345164,23.820431161854447],[-135.98689147817444,27.469138609544558],[-140.91889130500928,27.061192038819836],[-144.17342232410294,30.569950882968854],[-149.34707529879068,29.89183008460252],[-152.85043045733752,33.12732053866678],[-158.04649474959947,32.12156651323389],[-161.64707805135708,34.994006697107615],[-159.94762734735153,39.09941640444715],[-163.39292691687498,42.461841701752746],[-168.8876761772056,41.53861492567143],[-173.2513616288856,44.74985555511408],[-179.170112546831,43.33462463706695]],[[-157.6068486027842,20.259691594705036],[-156.08998858841755,24.696711258039056],[-151.04796662686522,25.669243623986258],[-147.69594788211106,22.16693900740581],[-142.7188705783351,22.885971422359724],[-139.6214919325493,19.2239309458196],[-141.37151007296615,14.881959131410003],[-138.42043748614526,11.22287623237951],[-140.12125038010964,6.870649308036964],[-144.72979242136543,6.045591181415267],[-146.33638072286848,1.6772949381945044],[-150.91862197114955,0.7969950664894166],[-154.0294052002189,4.260374459536214],[-158.59967491814012,3.335734857517349],[-161.77338167921764,6.766536253596436],[-160.44607430026895,11.231115019630433],[-163.71455965998953,14.623074892227512],[-162.39694129463984,19.114485874069658],[-157.6068486027842,20.259691594705036]],[[-178.95063664056067,17.74333218723816],[-175.45827111402537,15.285730312483953],[-176.35806599111405,11.05195584369349],[-178.23815999124182,10.46324037683843],[179.77693144202632,9.615942399155198],[176.28993210653294,11.794175727566111],[172.29426677728955,9.978189493251357],[168.53745793093609,12.10200548276957],[168.65279280829242,16.286127926718756],[172.88878640797157,18.30669067889132],[173.23062212965775,22.777763428069576],[177.84694371159145,24.75690942135447],[-178.22376950605553,22.092681232201556],[-178.95063664056067,17.74333218723816]],[[-175.56432922504848,35.741206971176496],[-170.27191812997154,37.14623592274974],[-166.5289282511271,33.96535450751626],[-167.88337203384341,29.62550789823012],[-172.64626329548403,28.20896181794974],[-176.54267313535857,31.148162090824524],[-175.56432922504848,35.741206971176496]]],"type":"Polygon"},"properties":{"fill":"none","stroke":"#999999","strokeDasharray":"4 2","strokeWidth":1},"type":"Feature"},{"geometry":{"coordinates":[[[-157.6068486027842,20.259691594705036],[-156.08998858841755,24.696711258039056],[-151.04796662686522,25.669243623986258],[-147.69594788211106,22.16693900740581],[-142.7188705783351,22.885971422359724],[-139.6214919325493,19.2239309458196],[-141.37151007296615,14.881959131410003],[-138.42043748614526,11.22287623237951],[-140.12125038010964,6.870649308036964],[-144.72979242136543,6.045591181415267],[-146.33638072286848,1.6772949381945044],[-150.91862197114955,0.7969950664894166],[-154.0294052002189,4.260374459536214],[-158.59967491814012,3.335734857517349],[-161.77338167921764,6.766536253596436],[-160.44607430026895,11.231115019630433],[-163.71455965998953,14.623074892227512],[-162.39694129463984,19.114485874069658],[-157.6068486027842,20.259691594705036]]],"type":"Polygon"},"properties":{"fill":"#dc3545","fillOpacity":0.3,"stroke":"#dc3545","strokeWidth":2},"type":"Feature"}],"type":"FeatureCollection"};
 
     if (!rawData || !rawData.features) {
       console.error('globe_map: Invalid or missing data');
@@ -1997,7 +1632,7 @@ eyeball norm:</p><div style="display:grid;grid-template-columns:repeat(2,1fr);co
   import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
 
   (async function() {
-    const rawData = {"features":[{"geometry":{"coordinates":[[[-179.170112546831,43.33462463706695],[179.9534193241767,38.728779390762334],[174.49688633843544,36.85680682151307],[174.02804175387834,32.1119243692579],[169.07436240121478,29.9547386287809],[168.91929058653923,25.257056432213375],[164.45727251367725,23.004725058862295],[164.53519134064652,18.52280839538614],[160.52670878987635,16.340968799924067],[160.7733897026288,12.194726726168003],[164.67056230846524,10.175448079467838],[164.7007803629394,8.237083943199265],[164.93539603741021,6.119591258608642],[168.3352524578736,4.467031609784524],[172.03418236939353,6.172978893164637],[175.46041201203371,4.248592317017825],[179.2171608248945,5.88992175431389],[-178.02519665249852,2.9040374505798114],[-174.31673738369324,3.8210244943304374],[-171.37544324872502,0.649870565576401],[-167.31261713417402,1.5147974903819574],[-164.25615857265893,-1.7743965588128086],[-159.93112334382027,-0.9446533902388665],[-156.8531091350144,-4.259065522271725],[-152.3980821982831,-3.4345808068957697],[-149.4028814909321,-6.672537737437516],[-144.9683236097968,-5.820413131280587],[-143.3961790952625,-1.706579969821454],[-138.95903110794228,-0.8353130739527114],[-137.3063271216714,3.372828505596593],[-132.96499017492758,4.158942627265325],[-131.26895225504,8.320295172124068],[-133.89520751564908,11.884131145297399],[-132.14080471892913,16.072271835802038],[-134.89965579269537,19.7532105149965],[-133.08381598345164,23.820431161854447],[-135.98689147817444,27.469138609544558],[-140.91889130500928,27.061192038819836],[-144.17342232410294,30.569950882968854],[-149.34707529879068,29.89183008460252],[-152.85043045733752,33.12732053866678],[-158.04649474959947,32.12156651323389],[-161.64707805135708,34.994006697107615],[-159.94762734735153,39.09941640444715],[-163.39292691687498,42.461841701752746],[-168.8876761772056,41.53861492567143],[-173.2513616288856,44.74985555511408],[-179.170112546831,43.33462463706695]],[[-157.6068486027842,20.259691594705036],[-156.08998858841755,24.696711258039056],[-151.04796662686522,25.669243623986258],[-147.69594788211106,22.16693900740581],[-142.7188705783351,22.885971422359724],[-139.6214919325493,19.2239309458196],[-141.37151007296615,14.881959131410003],[-138.42043748614526,11.22287623237951],[-140.12125038010964,6.870649308036964],[-144.72979242136543,6.045591181415267],[-146.33638072286848,1.6772949381945044],[-150.91862197114955,0.7969950664894166],[-154.0294052002189,4.260374459536214],[-158.59967491814012,3.335734857517349],[-161.77338167921764,6.766536253596436],[-160.44607430026895,11.231115019630433],[-163.71455965998953,14.623074892227512],[-162.39694129463984,19.114485874069658],[-157.6068486027842,20.259691594705036]],[[-178.95063664056067,17.74333218723816],[-175.45827111402537,15.285730312483953],[-176.35806599111405,11.05195584369349],[-178.23815999124182,10.46324037683843],[179.77693144202632,9.615942399155198],[176.28993210653294,11.794175727566111],[172.29426677728955,9.978189493251357],[168.53745793093609,12.10200548276957],[168.65279280829242,16.286127926718756],[172.88878640797157,18.30669067889132],[173.23062212965775,22.777763428069576],[177.84694371159145,24.75690942135447],[-178.22376950605553,22.092681232201556],[-178.95063664056067,17.74333218723816]],[[-175.56432922504848,35.741206971176496],[-170.27191812997154,37.14623592274974],[-166.5289282511271,33.96535450751626],[-167.88337203384341,29.62550789823012],[-172.64626329548403,28.20896181794974],[-176.54267313535857,31.148162090824524],[-175.56432922504848,35.741206971176496]]],"type":"Polygon"},"properties":{"fill":"none","stroke":"#999999","strokeDasharray":"4 2","strokeWidth":1},"type":"Feature"},{"geometry":{"coordinates":[[[-178.95063664056067,17.74333218723816],[-175.45827111402537,15.285730312483953],[-176.35806599111405,11.05195584369349],[-178.23815999124182,10.46324037683843],[179.77693144202632,9.615942399155198],[176.28993210653294,11.794175727566111],[172.29426677728955,9.978189493251357],[168.53745793093609,12.10200548276957],[168.65279280829242,16.286127926718756],[172.88878640797157,18.30669067889132],[173.23062212965775,22.777763428069576],[177.84694371159145,24.75690942135447],[-178.22376950605553,22.092681232201556],[-178.95063664056067,17.74333218723816]]],"type":"Polygon"},"properties":{"fill":"#dc3545","fillOpacity":0.3,"stroke":"#dc3545","strokeWidth":2},"type":"Feature"}],"type":"FeatureCollection"};
+    const rawData = {"features":[{"geometry":{"coordinates":[[[-179.170112546831,43.33462463706695],[179.9534193241767,38.728779390762334],[174.49688633843544,36.85680682151307],[174.02804175387834,32.1119243692579],[169.07436240121478,29.9547386287809],[168.91929058653923,25.257056432213375],[164.45727251367725,23.004725058862295],[164.53519134064652,18.52280839538614],[160.52670878987635,16.340968799924067],[160.7733897026288,12.194726726168003],[164.67056230846524,10.175448079467838],[164.7007803629394,8.237083943199265],[164.93539603741021,6.119591258608642],[168.3352524578736,4.467031609784524],[172.03418236939353,6.172978893164637],[175.46041201203371,4.248592317017825],[179.2171608248945,5.88992175431389],[-178.02519665249852,2.9040374505798114],[-174.31673738369324,3.8210244943304374],[-171.37544324872502,0.649870565576401],[-167.31261713417402,1.5147974903819574],[-164.25615857265893,-1.7743965588128086],[-159.93112334382027,-0.9446533902388665],[-156.8531091350144,-4.259065522271725],[-152.3980821982831,-3.4345808068957697],[-149.4028814909321,-6.672537737437516],[-144.9683236097968,-5.820413131280587],[-143.3961790952625,-1.706579969821454],[-138.95903110794228,-0.8353130739527114],[-137.3063271216714,3.372828505596593],[-132.96499017492758,4.158942627265325],[-131.26895225504,8.320295172124068],[-133.89520751564908,11.884131145297399],[-132.14080471892913,16.072271835802038],[-134.89965579269537,19.7532105149965],[-133.08381598345164,23.820431161854447],[-135.98689147817444,27.469138609544558],[-140.91889130500928,27.061192038819836],[-144.17342232410294,30.569950882968854],[-149.34707529879068,29.89183008460252],[-152.85043045733752,33.12732053866678],[-158.04649474959947,32.12156651323389],[-161.64707805135708,34.994006697107615],[-159.94762734735153,39.09941640444715],[-163.39292691687498,42.461841701752746],[-168.8876761772056,41.53861492567143],[-173.2513616288856,44.74985555511408],[-179.170112546831,43.33462463706695]],[[-157.6068486027842,20.259691594705036],[-156.08998858841755,24.696711258039056],[-151.04796662686522,25.669243623986258],[-147.69594788211106,22.16693900740581],[-142.7188705783351,22.885971422359724],[-139.6214919325493,19.2239309458196],[-141.37151007296615,14.881959131410003],[-138.42043748614526,11.22287623237951],[-140.12125038010964,6.870649308036964],[-144.72979242136543,6.045591181415267],[-146.33638072286848,1.6772949381945044],[-150.91862197114955,0.7969950664894166],[-154.0294052002189,4.260374459536214],[-158.59967491814012,3.335734857517349],[-161.77338167921764,6.766536253596436],[-160.44607430026895,11.231115019630433],[-163.71455965998953,14.623074892227512],[-162.39694129463984,19.114485874069658],[-157.6068486027842,20.259691594705036]],[[-178.95063664056067,17.74333218723816],[-175.45827111402537,15.285730312483953],[-176.35806599111405,11.05195584369349],[-178.23815999124182,10.46324037683843],[179.77693144202632,9.615942399155198],[176.28993210653294,11.794175727566111],[172.29426677728955,9.978189493251357],[168.53745793093609,12.10200548276957],[168.65279280829242,16.286127926718756],[172.88878640797157,18.30669067889132],[173.23062212965775,22.777763428069576],[177.84694371159145,24.75690942135447],[-178.22376950605553,22.092681232201556],[-178.95063664056067,17.74333218723816]],[[-175.56432922504848,35.741206971176496],[-170.27191812997154,37.14623592274974],[-166.5289282511271,33.96535450751626],[-167.88337203384341,29.62550789823012],[-172.64626329548403,28.20896181794974],[-176.54267313535857,31.148162090824524],[-175.56432922504848,35.741206971176496]]],"type":"Polygon"},"properties":{"fill":"none","stroke":"#999999","strokeDasharray":"4 2","strokeWidth":1},"type":"Feature"},{"geometry":{"coordinates":[[[-157.6068486027842,20.259691594705036],[-156.08998858841755,24.696711258039056],[-151.04796662686522,25.669243623986258],[-147.69594788211106,22.16693900740581],[-142.7188705783351,22.885971422359724],[-139.6214919325493,19.2239309458196],[-141.37151007296615,14.881959131410003],[-138.42043748614526,11.22287623237951],[-140.12125038010964,6.870649308036964],[-144.72979242136543,6.045591181415267],[-146.33638072286848,1.6772949381945044],[-150.91862197114955,0.7969950664894166],[-154.0294052002189,4.260374459536214],[-158.59967491814012,3.335734857517349],[-161.77338167921764,6.766536253596436],[-160.44607430026895,11.231115019630433],[-163.71455965998953,14.623074892227512],[-162.39694129463984,19.114485874069658],[-157.6068486027842,20.259691594705036]]],"type":"Polygon"},"properties":{"fill":"#dc3545","fillOpacity":0.3,"stroke":"#dc3545","strokeWidth":2},"type":"Feature"}],"type":"FeatureCollection"};
 
     if (!rawData || !rawData.features) {
       console.error('globe_map: Invalid or missing data');
@@ -2363,7 +1998,7 @@ eyeball norm:</p><div style="display:grid;grid-template-columns:repeat(2,1fr);co
   import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
 
   (async function() {
-    const rawData = {"features":[{"geometry":{"coordinates":[[[-179.170112546831,43.33462463706695],[179.9534193241767,38.728779390762334],[174.49688633843544,36.85680682151307],[174.02804175387834,32.1119243692579],[169.07436240121478,29.9547386287809],[168.91929058653923,25.257056432213375],[164.45727251367725,23.004725058862295],[164.53519134064652,18.52280839538614],[160.52670878987635,16.340968799924067],[160.7733897026288,12.194726726168003],[164.67056230846524,10.175448079467838],[164.7007803629394,8.237083943199265],[164.93539603741021,6.119591258608642],[168.3352524578736,4.467031609784524],[172.03418236939353,6.172978893164637],[175.46041201203371,4.248592317017825],[179.2171608248945,5.88992175431389],[-178.02519665249852,2.9040374505798114],[-174.31673738369324,3.8210244943304374],[-171.37544324872502,0.649870565576401],[-167.31261713417402,1.5147974903819574],[-164.25615857265893,-1.7743965588128086],[-159.93112334382027,-0.9446533902388665],[-156.8531091350144,-4.259065522271725],[-152.3980821982831,-3.4345808068957697],[-149.4028814909321,-6.672537737437516],[-144.9683236097968,-5.820413131280587],[-143.3961790952625,-1.706579969821454],[-138.95903110794228,-0.8353130739527114],[-137.3063271216714,3.372828505596593],[-132.96499017492758,4.158942627265325],[-131.26895225504,8.320295172124068],[-133.89520751564908,11.884131145297399],[-132.14080471892913,16.072271835802038],[-134.89965579269537,19.7532105149965],[-133.08381598345164,23.820431161854447],[-135.98689147817444,27.469138609544558],[-140.91889130500928,27.061192038819836],[-144.17342232410294,30.569950882968854],[-149.34707529879068,29.89183008460252],[-152.85043045733752,33.12732053866678],[-158.04649474959947,32.12156651323389],[-161.64707805135708,34.994006697107615],[-159.94762734735153,39.09941640444715],[-163.39292691687498,42.461841701752746],[-168.8876761772056,41.53861492567143],[-173.2513616288856,44.74985555511408],[-179.170112546831,43.33462463706695]],[[-157.6068486027842,20.259691594705036],[-156.08998858841755,24.696711258039056],[-151.04796662686522,25.669243623986258],[-147.69594788211106,22.16693900740581],[-142.7188705783351,22.885971422359724],[-139.6214919325493,19.2239309458196],[-141.37151007296615,14.881959131410003],[-138.42043748614526,11.22287623237951],[-140.12125038010964,6.870649308036964],[-144.72979242136543,6.045591181415267],[-146.33638072286848,1.6772949381945044],[-150.91862197114955,0.7969950664894166],[-154.0294052002189,4.260374459536214],[-158.59967491814012,3.335734857517349],[-161.77338167921764,6.766536253596436],[-160.44607430026895,11.231115019630433],[-163.71455965998953,14.623074892227512],[-162.39694129463984,19.114485874069658],[-157.6068486027842,20.259691594705036]],[[-178.95063664056067,17.74333218723816],[-175.45827111402537,15.285730312483953],[-176.35806599111405,11.05195584369349],[-178.23815999124182,10.46324037683843],[179.77693144202632,9.615942399155198],[176.28993210653294,11.794175727566111],[172.29426677728955,9.978189493251357],[168.53745793093609,12.10200548276957],[168.65279280829242,16.286127926718756],[172.88878640797157,18.30669067889132],[173.23062212965775,22.777763428069576],[177.84694371159145,24.75690942135447],[-178.22376950605553,22.092681232201556],[-178.95063664056067,17.74333218723816]],[[-175.56432922504848,35.741206971176496],[-170.27191812997154,37.14623592274974],[-166.5289282511271,33.96535450751626],[-167.88337203384341,29.62550789823012],[-172.64626329548403,28.20896181794974],[-176.54267313535857,31.148162090824524],[-175.56432922504848,35.741206971176496]]],"type":"Polygon"},"properties":{"fill":"none","stroke":"#999999","strokeDasharray":"4 2","strokeWidth":1},"type":"Feature"},{"geometry":{"coordinates":[[[-179.170112546831,43.33462463706695],[179.9534193241767,38.728779390762334],[174.49688633843544,36.85680682151307],[174.02804175387834,32.1119243692579],[169.07436240121478,29.9547386287809],[168.91929058653923,25.257056432213375],[164.45727251367725,23.004725058862295],[164.53519134064652,18.52280839538614],[160.52670878987635,16.340968799924067],[160.7733897026288,12.194726726168003],[164.67056230846524,10.175448079467838],[164.7007803629394,8.237083943199265],[164.93539603741021,6.119591258608642],[168.3352524578736,4.467031609784524],[172.03418236939353,6.172978893164637],[175.46041201203371,4.248592317017825],[179.2171608248945,5.88992175431389],[-178.02519665249852,2.9040374505798114],[-174.31673738369324,3.8210244943304374],[-171.37544324872502,0.649870565576401],[-167.31261713417402,1.5147974903819574],[-164.25615857265893,-1.7743965588128086],[-159.93112334382027,-0.9446533902388665],[-156.8531091350144,-4.259065522271725],[-152.3980821982831,-3.4345808068957697],[-149.4028814909321,-6.672537737437516],[-144.9683236097968,-5.820413131280587],[-143.3961790952625,-1.706579969821454],[-138.95903110794228,-0.8353130739527114],[-137.3063271216714,3.372828505596593],[-132.96499017492758,4.158942627265325],[-131.26895225504,8.320295172124068],[-133.89520751564908,11.884131145297399],[-132.14080471892913,16.072271835802038],[-134.89965579269537,19.7532105149965],[-133.08381598345164,23.820431161854447],[-135.98689147817444,27.469138609544558],[-140.91889130500928,27.061192038819836],[-144.17342232410294,30.569950882968854],[-149.34707529879068,29.89183008460252],[-152.85043045733752,33.12732053866678],[-158.04649474959947,32.12156651323389],[-161.64707805135708,34.994006697107615],[-159.94762734735153,39.09941640444715],[-163.39292691687498,42.461841701752746],[-168.8876761772056,41.53861492567143],[-173.2513616288856,44.74985555511408],[-179.170112546831,43.33462463706695]]],"type":"Polygon"},"properties":{"fill":"#dc3545","fillOpacity":0.3,"stroke":"#dc3545","strokeWidth":2},"type":"Feature"}],"type":"FeatureCollection"};
+    const rawData = {"features":[{"geometry":{"coordinates":[[[-179.170112546831,43.33462463706695],[179.9534193241767,38.728779390762334],[174.49688633843544,36.85680682151307],[174.02804175387834,32.1119243692579],[169.07436240121478,29.9547386287809],[168.91929058653923,25.257056432213375],[164.45727251367725,23.004725058862295],[164.53519134064652,18.52280839538614],[160.52670878987635,16.340968799924067],[160.7733897026288,12.194726726168003],[164.67056230846524,10.175448079467838],[164.7007803629394,8.237083943199265],[164.93539603741021,6.119591258608642],[168.3352524578736,4.467031609784524],[172.03418236939353,6.172978893164637],[175.46041201203371,4.248592317017825],[179.2171608248945,5.88992175431389],[-178.02519665249852,2.9040374505798114],[-174.31673738369324,3.8210244943304374],[-171.37544324872502,0.649870565576401],[-167.31261713417402,1.5147974903819574],[-164.25615857265893,-1.7743965588128086],[-159.93112334382027,-0.9446533902388665],[-156.8531091350144,-4.259065522271725],[-152.3980821982831,-3.4345808068957697],[-149.4028814909321,-6.672537737437516],[-144.9683236097968,-5.820413131280587],[-143.3961790952625,-1.706579969821454],[-138.95903110794228,-0.8353130739527114],[-137.3063271216714,3.372828505596593],[-132.96499017492758,4.158942627265325],[-131.26895225504,8.320295172124068],[-133.89520751564908,11.884131145297399],[-132.14080471892913,16.072271835802038],[-134.89965579269537,19.7532105149965],[-133.08381598345164,23.820431161854447],[-135.98689147817444,27.469138609544558],[-140.91889130500928,27.061192038819836],[-144.17342232410294,30.569950882968854],[-149.34707529879068,29.89183008460252],[-152.85043045733752,33.12732053866678],[-158.04649474959947,32.12156651323389],[-161.64707805135708,34.994006697107615],[-159.94762734735153,39.09941640444715],[-163.39292691687498,42.461841701752746],[-168.8876761772056,41.53861492567143],[-173.2513616288856,44.74985555511408],[-179.170112546831,43.33462463706695]],[[-157.6068486027842,20.259691594705036],[-156.08998858841755,24.696711258039056],[-151.04796662686522,25.669243623986258],[-147.69594788211106,22.16693900740581],[-142.7188705783351,22.885971422359724],[-139.6214919325493,19.2239309458196],[-141.37151007296615,14.881959131410003],[-138.42043748614526,11.22287623237951],[-140.12125038010964,6.870649308036964],[-144.72979242136543,6.045591181415267],[-146.33638072286848,1.6772949381945044],[-150.91862197114955,0.7969950664894166],[-154.0294052002189,4.260374459536214],[-158.59967491814012,3.335734857517349],[-161.77338167921764,6.766536253596436],[-160.44607430026895,11.231115019630433],[-163.71455965998953,14.623074892227512],[-162.39694129463984,19.114485874069658],[-157.6068486027842,20.259691594705036]],[[-178.95063664056067,17.74333218723816],[-175.45827111402537,15.285730312483953],[-176.35806599111405,11.05195584369349],[-178.23815999124182,10.46324037683843],[179.77693144202632,9.615942399155198],[176.28993210653294,11.794175727566111],[172.29426677728955,9.978189493251357],[168.53745793093609,12.10200548276957],[168.65279280829242,16.286127926718756],[172.88878640797157,18.30669067889132],[173.23062212965775,22.777763428069576],[177.84694371159145,24.75690942135447],[-178.22376950605553,22.092681232201556],[-178.95063664056067,17.74333218723816]],[[-175.56432922504848,35.741206971176496],[-170.27191812997154,37.14623592274974],[-166.5289282511271,33.96535450751626],[-167.88337203384341,29.62550789823012],[-172.64626329548403,28.20896181794974],[-176.54267313535857,31.148162090824524],[-175.56432922504848,35.741206971176496]]],"type":"Polygon"},"properties":{"fill":"none","stroke":"#999999","strokeDasharray":"4 2","strokeWidth":1},"type":"Feature"},{"geometry":{"coordinates":[[[-178.95063664056067,17.74333218723816],[-175.45827111402537,15.285730312483953],[-176.35806599111405,11.05195584369349],[-178.23815999124182,10.46324037683843],[179.77693144202632,9.615942399155198],[176.28993210653294,11.794175727566111],[172.29426677728955,9.978189493251357],[168.53745793093609,12.10200548276957],[168.65279280829242,16.286127926718756],[172.88878640797157,18.30669067889132],[173.23062212965775,22.777763428069576],[177.84694371159145,24.75690942135447],[-178.22376950605553,22.092681232201556],[-178.95063664056067,17.74333218723816]]],"type":"Polygon"},"properties":{"fill":"#dc3545","fillOpacity":0.3,"stroke":"#dc3545","strokeWidth":2},"type":"Feature"}],"type":"FeatureCollection"};
 
     if (!rawData || !rawData.features) {
       console.error('globe_map: Invalid or missing data');
@@ -2723,24 +2358,762 @@ eyeball norm:</p><div style="display:grid;grid-template-columns:repeat(2,1fr);co
 
     render();
   })();
+</script><div class=globe-container id=globe-gm39 style="max-width:600px;width:100%;aspect-ratio:1;margin:2em auto"></div><script type=module>
+  import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
+  import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
+  import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
+
+  (async function() {
+    const rawData = {"features":[{"geometry":{"coordinates":[[[-179.170112546831,43.33462463706695],[179.9534193241767,38.728779390762334],[174.49688633843544,36.85680682151307],[174.02804175387834,32.1119243692579],[169.07436240121478,29.9547386287809],[168.91929058653923,25.257056432213375],[164.45727251367725,23.004725058862295],[164.53519134064652,18.52280839538614],[160.52670878987635,16.340968799924067],[160.7733897026288,12.194726726168003],[164.67056230846524,10.175448079467838],[164.7007803629394,8.237083943199265],[164.93539603741021,6.119591258608642],[168.3352524578736,4.467031609784524],[172.03418236939353,6.172978893164637],[175.46041201203371,4.248592317017825],[179.2171608248945,5.88992175431389],[-178.02519665249852,2.9040374505798114],[-174.31673738369324,3.8210244943304374],[-171.37544324872502,0.649870565576401],[-167.31261713417402,1.5147974903819574],[-164.25615857265893,-1.7743965588128086],[-159.93112334382027,-0.9446533902388665],[-156.8531091350144,-4.259065522271725],[-152.3980821982831,-3.4345808068957697],[-149.4028814909321,-6.672537737437516],[-144.9683236097968,-5.820413131280587],[-143.3961790952625,-1.706579969821454],[-138.95903110794228,-0.8353130739527114],[-137.3063271216714,3.372828505596593],[-132.96499017492758,4.158942627265325],[-131.26895225504,8.320295172124068],[-133.89520751564908,11.884131145297399],[-132.14080471892913,16.072271835802038],[-134.89965579269537,19.7532105149965],[-133.08381598345164,23.820431161854447],[-135.98689147817444,27.469138609544558],[-140.91889130500928,27.061192038819836],[-144.17342232410294,30.569950882968854],[-149.34707529879068,29.89183008460252],[-152.85043045733752,33.12732053866678],[-158.04649474959947,32.12156651323389],[-161.64707805135708,34.994006697107615],[-159.94762734735153,39.09941640444715],[-163.39292691687498,42.461841701752746],[-168.8876761772056,41.53861492567143],[-173.2513616288856,44.74985555511408],[-179.170112546831,43.33462463706695]],[[-157.6068486027842,20.259691594705036],[-156.08998858841755,24.696711258039056],[-151.04796662686522,25.669243623986258],[-147.69594788211106,22.16693900740581],[-142.7188705783351,22.885971422359724],[-139.6214919325493,19.2239309458196],[-141.37151007296615,14.881959131410003],[-138.42043748614526,11.22287623237951],[-140.12125038010964,6.870649308036964],[-144.72979242136543,6.045591181415267],[-146.33638072286848,1.6772949381945044],[-150.91862197114955,0.7969950664894166],[-154.0294052002189,4.260374459536214],[-158.59967491814012,3.335734857517349],[-161.77338167921764,6.766536253596436],[-160.44607430026895,11.231115019630433],[-163.71455965998953,14.623074892227512],[-162.39694129463984,19.114485874069658],[-157.6068486027842,20.259691594705036]],[[-178.95063664056067,17.74333218723816],[-175.45827111402537,15.285730312483953],[-176.35806599111405,11.05195584369349],[-178.23815999124182,10.46324037683843],[179.77693144202632,9.615942399155198],[176.28993210653294,11.794175727566111],[172.29426677728955,9.978189493251357],[168.53745793093609,12.10200548276957],[168.65279280829242,16.286127926718756],[172.88878640797157,18.30669067889132],[173.23062212965775,22.777763428069576],[177.84694371159145,24.75690942135447],[-178.22376950605553,22.092681232201556],[-178.95063664056067,17.74333218723816]],[[-175.56432922504848,35.741206971176496],[-170.27191812997154,37.14623592274974],[-166.5289282511271,33.96535450751626],[-167.88337203384341,29.62550789823012],[-172.64626329548403,28.20896181794974],[-176.54267313535857,31.148162090824524],[-175.56432922504848,35.741206971176496]]],"type":"Polygon"},"properties":{"fill":"none","stroke":"#999999","strokeDasharray":"4 2","strokeWidth":1},"type":"Feature"},{"geometry":{"coordinates":[[[-179.170112546831,43.33462463706695],[179.9534193241767,38.728779390762334],[174.49688633843544,36.85680682151307],[174.02804175387834,32.1119243692579],[169.07436240121478,29.9547386287809],[168.91929058653923,25.257056432213375],[164.45727251367725,23.004725058862295],[164.53519134064652,18.52280839538614],[160.52670878987635,16.340968799924067],[160.7733897026288,12.194726726168003],[164.67056230846524,10.175448079467838],[164.7007803629394,8.237083943199265],[164.93539603741021,6.119591258608642],[168.3352524578736,4.467031609784524],[172.03418236939353,6.172978893164637],[175.46041201203371,4.248592317017825],[179.2171608248945,5.88992175431389],[-178.02519665249852,2.9040374505798114],[-174.31673738369324,3.8210244943304374],[-171.37544324872502,0.649870565576401],[-167.31261713417402,1.5147974903819574],[-164.25615857265893,-1.7743965588128086],[-159.93112334382027,-0.9446533902388665],[-156.8531091350144,-4.259065522271725],[-152.3980821982831,-3.4345808068957697],[-149.4028814909321,-6.672537737437516],[-144.9683236097968,-5.820413131280587],[-143.3961790952625,-1.706579969821454],[-138.95903110794228,-0.8353130739527114],[-137.3063271216714,3.372828505596593],[-132.96499017492758,4.158942627265325],[-131.26895225504,8.320295172124068],[-133.89520751564908,11.884131145297399],[-132.14080471892913,16.072271835802038],[-134.89965579269537,19.7532105149965],[-133.08381598345164,23.820431161854447],[-135.98689147817444,27.469138609544558],[-140.91889130500928,27.061192038819836],[-144.17342232410294,30.569950882968854],[-149.34707529879068,29.89183008460252],[-152.85043045733752,33.12732053866678],[-158.04649474959947,32.12156651323389],[-161.64707805135708,34.994006697107615],[-159.94762734735153,39.09941640444715],[-163.39292691687498,42.461841701752746],[-168.8876761772056,41.53861492567143],[-173.2513616288856,44.74985555511408],[-179.170112546831,43.33462463706695]]],"type":"Polygon"},"properties":{"fill":"#dc3545","fillOpacity":0.3,"stroke":"#dc3545","strokeWidth":2},"type":"Feature"}],"type":"FeatureCollection"};
+
+    if (!rawData || !rawData.features) {
+      console.error('globe_map: Invalid or missing data');
+      return;
+    }
+
+    
+    const featureCollection = {
+      type: rawData.type,
+      features: rawData.features.map(f => {
+        if (f.geometry.type === 'Polygon') {
+          return {
+            ...f,
+            geometry: {
+              ...f.geometry,
+              coordinates: f.geometry.coordinates.map(ring => ring.slice().reverse())
+            }
+          };
+        } else if (f.geometry.type === 'MultiPolygon') {
+          return {
+            ...f,
+            geometry: {
+              ...f.geometry,
+              coordinates: f.geometry.coordinates.map(polygon =>
+                polygon.map(ring => ring.slice().reverse())
+              )
+            }
+          };
+        }
+        return f;
+      })
+    };
+
+    const projection = "orthographic";
+    const isGlobe = projection === "orthographic";
+    const maxWidth =  600 ;
+    const arrowStep =  3 ;
+    const shouldSync =  true ;
+
+    const container = document.getElementById('globe-gm39');
+    const getSize = () => {
+      const width = container.offsetWidth || container.clientWidth;
+      const w = width > 0 ? Math.min(maxWidth, width) : maxWidth;
+      return { width: w, height: isGlobe ? w : w / 2 };
+    };
+
+    
+    const inputRotate = null;
+    const allPoints = [];
+    rawData.features.forEach(f => {
+      if (f.geometry.type === 'Point') {
+        allPoints.push(f.geometry.coordinates);
+      } else if (f.geometry.type === 'LineString') {
+        allPoints.push(...f.geometry.coordinates);
+      } else if (f.geometry.type === 'Polygon') {
+        f.geometry.coordinates.forEach(ring => allPoints.push(...ring));
+      } else if (f.geometry.type === 'MultiPolygon') {
+        f.geometry.coordinates.forEach(polygon =>
+          polygon.forEach(ring => allPoints.push(...ring))
+        );
+      }
+    });
+    const centroid = allPoints.length > 0
+      ? d3.geoCentroid({ type: 'MultiPoint', coordinates: allPoints })
+      : [0, 0];
+    const centerRotate = inputRotate
+      ? [-inputRotate[0], -inputRotate[1], inputRotate[2] ?? 0]
+      : [-centroid[0], -centroid[1], 0];
+    const size = getSize();
+    const localState = { width: size.width, height: size.height };
+
+    
+    let sync;
+    if (shouldSync) {
+      
+      if (!window.globeMapSync) {
+        window.globeMapSync = {
+          rotate: centerRotate,
+          centerRotate: centerRotate,
+          renders: []
+        };
+      }
+      sync = window.globeMapSync;
+
+      
+      if (sync.renders.length === 0) {
+        sync.rotate = centerRotate;
+        sync.centerRotate = centerRotate;
+      }
+    } else {
+      
+      sync = {
+        rotate: centerRotate,
+        centerRotate: centerRotate,
+        renders: []
+      };
+    }
+
+    if (!window.globeLandData) {
+      const landTopo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
+      window.globeLandData = feature(landTopo, landTopo.objects.land);
+    }
+    const land = window.globeLandData;
+
+    function render() {
+      const size = getSize();
+      localState.width = size.width;
+      localState.height = size.height;
+
+      const marks = [
+        Plot.geo(land, { stroke: '#88b', fill: 'none', strokeWidth: 0.8, strokeOpacity: 0.8 }),
+        Plot.graticule({ strokeOpacity: 0.06 })
+      ];
+
+      if (isGlobe) {
+        marks.push(Plot.sphere({ strokeWidth: 2 }));
+      } else {
+        marks.push(Plot.frame({ strokeWidth: 1 }));
+      }
+
+      
+      const polygons = {
+        type: 'FeatureCollection',
+        features: featureCollection.features.filter(f =>
+          f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+        )
+      };
+      const lines = {
+        type: 'FeatureCollection',
+        features: featureCollection.features.filter(f => f.geometry.type === 'LineString')
+      };
+      const points = {
+        type: 'FeatureCollection',
+        features: featureCollection.features.filter(f => f.geometry.type === 'Point')
+      };
+
+      
+      const dashedPolygons = {
+        type: 'FeatureCollection',
+        features: polygons.features.filter(f => f.properties?.strokeDasharray)
+      };
+      const solidPolygons = {
+        type: 'FeatureCollection',
+        features: polygons.features.filter(f => !f.properties?.strokeDasharray)
+      };
+
+      
+      if (solidPolygons.features.length > 0) {
+        marks.push(Plot.geo(solidPolygons, {
+          fill: d => d.properties?.fill || 'red',
+          fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
+          stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
+          strokeWidth: d => d.properties?.strokeWidth ?? 1,
+          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
+        }));
+      }
+
+      
+      if (dashedPolygons.features.length > 0) {
+        marks.push(Plot.geo(dashedPolygons, {
+          fill: d => d.properties?.fill || 'red',
+          fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
+          stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
+          strokeWidth: d => d.properties?.strokeWidth ?? 1,
+          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
+        }));
+      }
+
+      
+      const dashedPolyInfo = dashedPolygons.features.map(f => ({
+        dasharray: f.properties?.strokeDasharray
+      }));
+
+        
+        if (arrowStep > 0) {
+          let edgeIndex = 0;
+          
+          rawData.features.forEach(f => {
+            if (f.geometry.type !== 'Polygon' && f.geometry.type !== 'MultiPolygon') return;
+            
+            if (f.properties?.strokeDasharray) return;
+            const stroke = f.properties?.stroke || f.properties?.fill || 'red';
+            const strokeWidth = f.properties?.strokeWidth ?? 1;
+            const rings = f.geometry.type === 'Polygon'
+              ? f.geometry.coordinates
+              : f.geometry.coordinates.flat();
+            rings.forEach(ring => {
+              for (let i = 0; i < ring.length - 1; i++) {
+                if (edgeIndex % arrowStep === 0) {
+                  const interpolate = d3.geoInterpolate(ring[i], ring[i + 1]);
+                  marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
+                    x: d => d[0],
+                    y: d => d[1],
+                    markerEnd: 'arrow',
+                    stroke: 'darkred',
+                    strokeWidth: 1.5
+                  }));
+                }
+                edgeIndex++;
+              }
+            });
+          });
+        }
+
+      
+      if (lines.features.length > 0) {
+        marks.push(Plot.geo(lines, {
+          stroke: d => d.properties?.stroke || 'red',
+          strokeWidth: d => d.properties?.strokeWidth ?? 2.5,
+          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.9
+        }));
+
+        
+        lines.features.forEach(f => {
+          const step = f.properties?.arrowStep ?? (f.properties?.arrow ? 1 : 0);
+          if (step > 0) {
+            const coords = f.geometry.coordinates;
+            for (let i = 0; i < coords.length - 1; i++) {
+              if (i % step === 0) {
+                const interpolate = d3.geoInterpolate(coords[i], coords[i + 1]);
+                marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
+                  x: d => d[0],
+                  y: d => d[1],
+                  markerEnd: 'arrow',
+                  stroke: f.properties?.stroke || 'darkred',
+                  strokeWidth: f.properties?.strokeWidth ?? 2
+                }));
+              }
+            }
+          }
+        });
+      }
+
+      
+      points.features.forEach(f => {
+        marks.push(Plot.geo(f, {
+          fill: f.properties?.fill || 'red',
+          stroke: f.properties?.stroke || 'darkred',
+          strokeWidth: f.properties?.strokeWidth ?? 1,
+          r: f.properties?.r ?? 5
+        }));
+      });
+
+      const projectionConfig = isGlobe
+        ? { type: projection, rotate: sync.rotate, inset: 1 }
+        : { type: projection };
+
+      const svg = Plot.plot({
+        width: localState.width,
+        height: localState.height,
+        projection: projectionConfig,
+        marks
+      });
+
+      container.innerHTML = '';
+      container.appendChild(svg);
+
+      
+      dashedPolyInfo.forEach(info => {
+        svg.querySelectorAll('path').forEach(path => {
+          if (path.getAttribute('fill') === 'none') {
+            path.setAttribute('stroke-dasharray', info.dasharray);
+          }
+        });
+      });
+
+      if (isGlobe) {
+        attachDrag(svg);
+      }
+    }
+
+    window.addEventListener('resize', render);
+
+    
+    const versor = {
+      cartesian: function(e) {
+        const l = e[0] * Math.PI / 180, p = e[1] * Math.PI / 180, cp = Math.cos(p);
+        return [cp * Math.cos(l), cp * Math.sin(l), Math.sin(p)];
+      },
+      rotation: function(q) {
+        return [
+          Math.atan2(2 * (q[0] * q[1] + q[2] * q[3]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])) * 180 / Math.PI,
+          Math.asin(Math.max(-1, Math.min(1, 2 * (q[0] * q[2] - q[3] * q[1])))) * 180 / Math.PI,
+          Math.atan2(2 * (q[0] * q[3] + q[1] * q[2]), 1 - 2 * (q[2] * q[2] + q[3] * q[3])) * 180 / Math.PI
+        ];
+      },
+      delta: function(v0, v1) {
+        const w = this.cross(v0, v1), l = Math.sqrt(this.dot(w, w));
+        if (!l) return [1, 0, 0, 0];
+        const t = Math.acos(Math.max(-1, Math.min(1, this.dot(v0, v1)))) / 2, s = Math.sin(t);
+        return [Math.cos(t), w[2] / l * s, -w[1] / l * s, w[0] / l * s];
+      },
+      multiply: function(a, b) {
+        return [
+          a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3],
+          a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2],
+          a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1],
+          a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0]
+        ];
+      },
+      from: function(r) {
+        const l = r[0] / 2 * Math.PI / 180, p = r[1] / 2 * Math.PI / 180, g = r[2] / 2 * Math.PI / 180;
+        const sl = Math.sin(l), cl = Math.cos(l);
+        const sp = Math.sin(p), cp = Math.cos(p);
+        const sg = Math.sin(g), cg = Math.cos(g);
+        return [
+          cl * cp * cg + sl * sp * sg,
+          sl * cp * cg - cl * sp * sg,
+          cl * sp * cg + sl * cp * sg,
+          cl * cp * sg - sl * sp * cg
+        ];
+      },
+      cross: function(a, b) { return [a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]]; },
+      dot: function(a, b) { return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; }
+    };
+
+    function attachDrag(svg) {
+      const projection = d3.geoOrthographic()
+        .rotate(sync.rotate)
+        .translate([localState.width / 2, localState.height / 2])
+        .scale(Math.min(localState.width, localState.height) / 2 - 1);
+
+      let v0, q0, r0;
+
+      const drag = d3.drag()
+        .on('start', (event) => {
+          projection.rotate(sync.rotate).translate([localState.width / 2, localState.height / 2]).scale(Math.min(localState.width, localState.height) / 2 - 1);
+          const inv = projection.invert([event.x, event.y]);
+          if (inv) {
+            v0 = versor.cartesian(inv);
+            r0 = sync.rotate;
+            q0 = versor.from(r0);
+          }
+        })
+        .on('drag', (event) => {
+          if (!v0) return;
+          projection.rotate(r0);
+          const inv = projection.invert([event.x, event.y]);
+          if (!inv) return;
+          const v1 = versor.cartesian(inv);
+          const delta = versor.delta(v0, v1);
+          const q1 = versor.multiply(q0, delta);
+          sync.rotate = versor.rotation(q1);
+          
+          sync.renders.forEach(r => r());
+        });
+
+      d3.select(svg).call(drag);
+      d3.select(svg).on('dblclick', () => {
+        sync.rotate = sync.centerRotate.slice();
+        sync.renders.forEach(r => r());
+      });
+    }
+
+    
+    sync.renders.push(render);
+
+    render();
+  })();
 </script></div><p class=caption>The loops (dark red), ordered by their enclosed area (light red).
-Full polygon (dashed grey) for reference. The orientations of the loops (arrows) cause the first three to enclose most of the globe; the smallest area corresponds to the "natural" outer loop.</p><p>We critically depend on the orientation of the loops here.</p><p>note that the area calculation depends on &ldquo;ideal&rdquo; spherical polgyons (note my post), and all the outputs here will respect that, in particular because no H3 edge is more than 180 degrees, so we can cross the antimeridian or have large loops without problems.</p><p>This approach is critically dependent on the area calculation, even for &ldquo;small&rdquo; polygons.</p><p>In reality, we need to ensure that we are computing the unsigned area.
-We might compute a signed area, but let&rsquo;s avoid. Details in this other post.</p><p>But also, note that it doesn&rsquo;t matter, technically.</p><p>Show a simple globe example</p><p>In a polygon, one loop is <em>special</em>. The outer loop. the rest are holes.
-Actually, not relaly that special. any loop can be the outer loop and still mathematical describe the same polygon, even if it is an unintuitive format.</p><p>Note, up to this point, everything has been <strong>discrete</strong>, discrete edges represented as H3 indexes which are integers, graphs and edges. (We&rsquo;ve just been doing graph theory, ignorant of the underlying geometry) This is
-the first time we need to realize our edges as being embedded in a <strong>continous</strong>
-space on the surface of the sphere. And this is where spherical polygons and
-a proper area computation come into play. This is what unlocks global polygons.</p><p>Ties? who cares! like we said, it doesn&rsquo;t matter which one.</p><h2 id=implementation-notes><a href=#implementation-notes class=anchor-link>##</a>Implementation notes</h2><p>In <a href=https://github.com/uber/h3/pull/1113>uber/h3 #1113</a>, the outer loop selection happens via sorting. After edge cancellation, we have a set of loops, each tagged with its connected component (the <code>root</code> from union-find) and its computed area. The key data structures are:</p><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#007020;font-weight:700>typedef</span> <span style=color:#007020;font-weight:700>struct</span> {
+Full polygon (dashed grey) for reference. The orientations of the loops (arrows) cause the first three to enclose most of the globe; the smallest area corresponds to the "natural" outer loop.</p><p>We see that the loop in last figure (lower right) corresponds to the smallest area when we account for loop orientation. We select that to be the outer loop
+for our polygon, which should match the intuition we&rsquo;d get from plotting this
+polygon on the plane instead of the sphere.</p><p>Note that the area calculation depends on <a href=/blog/sphere_poly_area/>&ldquo;ideal&rdquo; spherical polygons</a>. In particular, since every H3 edge spans less than 180 degrees on the sphere, our area calculations work for &ldquo;global&rdquo; polygons, even if they cross the antimeridian, are larger than a hemisphere, or cross the poles.</p><p>Note that the area calculation is the first time we&rsquo;ve needed to consider
+<strong>continuous</strong> quantities. Up to this point, everything has been <strong>discrete</strong>&mdash;we&rsquo;ve basically just been doing graph theory on loops of discrete directed edges.</p><p>What about ties? If two loops have the same area, which one do we pick? Like we
+said above, the choice is <em>technically</em> arbitrary because the region will be the same no matter the choice. We only use the rule above to make the &ldquo;natural&rdquo; choice when the polygons are small and easily imagined or plotted as planar. Whenever you have ties (or are close to having ties) between loops being considered for the outside of a polygon, the polygon is necessarily global, and we no longer need to placate planar polygon plotting powers.</p><p>For example, which of these four loops below should be the &ldquo;outside&rdquo;? It doesn&rsquo;t really matter&mdash;it&rsquo;s going to be tough to plot this on a plane no matter what:</p><p><div class=globe-container id=globe-gm3b style="max-width:600px;width:100%;aspect-ratio:1;margin:2em auto"></div><script type=module>
+  import * as Plot from 'https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm';
+  import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
+  import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm';
+
+  (async function() {
+    const rawData = {"features":[{"geometry":{"coordinates":[[[[-95.07033345637271,-4.3484866954754455],[-92.21612396381302,-0.6561288240742991],[-87.59400415255666,-1.1964275116101613],[-85.74830788668204,-5.520060963403992],[-80.99438115089971,-6.061929363987141],[-78.21816398026434,-2.2641433736476846],[-73.58831704620168,-2.7703025791670175],[-71.61986799886888,-7.003123550980988],[-67.11855039005962,-7.389406912237246],[-64.72810407520194,-3.684741680505737],[-63.32276713921543,-3.8221019268338665],[-60.50309415506542,-3.9486914533379958],[-58.163640147998116,-0.07918007660184663],[-53.68204442813005,-0.17017772412858903],[-51.51182762864842,-4.287152921751077],[-46.800487381563165,-4.422917404204754],[-44.322948507187284,-0.3562094817730327],[-39.563133079118444,-0.44748322046602834],[-37.243135362944614,-4.606028555705817],[-32.528267829318835,-4.649620438680767],[-30.203425049597982,-0.6173843220866737],[-25.721264011811797,-0.6931851479671439],[-23.52422244327238,-4.645743871293199],[-19.325125801816437,-4.604844470308616],[-17.373147196370113,-0.8227221314451982],[-13.559193205964707,-0.8762512952424143],[-11.66474754212644,-4.4670316097845],[-7.615506108749893,-3.845828260484011],[-6.384788496428217,-0.6563254594596887],[-3.844032271122753,-0.2777836124115565],[-2.785857559640984,0.3015866319855538],[-0.1336889125916577,-1.8554926185476641],[-0.7828391751055227,-5.889921754313915],[-4.805183856824203,-6.586859421326589],[-6.057176815534761,-10.194121685274],[-2.992177352218251,-13.210646854422853],[-4.255457128460979,-17.214910773697703],[-0.8944928371519195,-20.427514765045647],[-2.1530562884085485,-24.756909421354475],[-7.175238133455658,-25.769382636267903],[-8.870093365769497,-30.224678744640975],[-5.1064452283314585,-33.75764213456773],[-6.849807213223577,-38.30496354724654],[-2.6107760281438304,-41.70426599254369],[-4.3790031832176455,-46.180014657090155],[-11.029925556951396,-47.15173201826695],[-13.55059103563392,-51.32191270194406],[-8.7291680146373,-54.63456191069657],[-9.584191833038208,-55.956862850498176],[-11.22722997525273,-58.62952020387534],[-4.785398759359998,-61.82981680247969],[-7.138628601307926,-66.19292316051032],[-18.70438773465715,-66.94299147138761],[-25.001755365954338,-71.0720426766047],[-16.158956222032586,-75.08989276640648],[-26.191155035564694,-79.31717648987741],[-7.780834308185192,-83.14393672156828],[-34.441802308663334,-87.36469532319619],[-87.34455122467277,-84.24413301148068],[-124.07451529163777,-82.50396355374549],[-159.0907444817528,-82.87200197672584],[-164.32460615388686,-78.79915742230948],[-150.7925342912893,-75.65094362106626],[-155.80725235262844,-72.09707420590918],[-168.0098327233773,-71.26523337833439],[-168.8667199640939,-67.85995297513011],[-171.86973896781137,-67.46842788455002],[-176.6219248703129,-65.7243888731199],[-176.3000667397121,-64.52560842196837],[-173.84090406007633,-62.20500536598249],[-177.80178395942485,-59.383886486983954],[-174.47635345070967,-55.70676846515228],[-177.89868601605255,-52.51713397842229],[-176.36999136090046,-50.610463312569514],[-174.83648905843094,-48.943763955054905],[-177.97343103461537,-45.18424868970644],[-175.13166788498833,-41.58031489516635],[-177.98474535021083,-37.66435763083125],[-175.3779980678874,-33.802924798463245],[-177.99428002774027,-29.865766952798836],[-175.58667152884377,-25.876899790610707],[-178.00242433382851,-22.067175689495624],[-175.76570557732126,-18.098845255143683],[-178.00946172254558,-14.547282830266626],[-175.92099346918747,-10.734014957224218],[-178.01560350077588,-7.529293806652375],[-176.05696384421353,-3.968796976609587],[-172.34353547812253,-3.2930086626395747],[-170.89762858145173,-4.860811812073258],[-169.716819501222,-6.40267724803141],[-165.41674992858833,-5.762860491436919],[-164.25615857265893,-1.7743965588128086],[-159.93112334382027,-0.9446533902388665],[-156.8531091350144,-4.259065522271725],[-152.3980821982831,-3.4345808068957697],[-149.4028814909321,-6.672537737437516],[-144.9683236097968,-5.820413131280587],[-143.3961790952625,-1.706579969821454],[-138.95903110794228,-0.8353130739527114],[-136.27080761114607,-4.045894876233991],[-132.10150849305654,-3.156710274879981],[-129.7100658202636,-6.134248764846947],[-125.88346072177119,-5.21502760786271],[-124.29849277976768,-1.4476428602001996],[-120.24551240318443,-1.6912650463504653],[-118.12335777862991,-4.986310192743098],[-114.02904784459382,-5.242929409571677],[-111.84870286236902,-2.1675662435525274],[-109.71988821036106,-2.2812832631930045],[-107.80031250106053,-2.5640667726764135],[-106.47391434652876,-6.608494376194796],[-102.31681156298443,-7.3098511437293086],[-99.52316615028741,-3.7450437470058215],[-95.07033345637271,-4.3484866954754455]],[[74.82676115190374,-0.8701881901666618],[75.82322591156387,-4.902363341799053],[80.14091487099121,-6.2027935014485225],[81.18491296412186,-5.250784448542952],[83.16385904323403,-3.2418753100088593],[87.52859397085601,-4.455546808882523],[90.71723526584819,-1.3006030285245258],[95.22669343176798,-2.5046046873156858],[96.41687824651858,-6.827381161385126],[100.8349613071672,-7.941423794133487],[104.12723993254785,-4.8213435637194655],[108.41587913607124,-5.894708224614658],[111.64832534337992,-2.7687426994117614],[115.67172827000326,-3.8245323459249185],[118.80144676595566,-1.0908183695418654],[122.89284782634661,-2.7228891610396557],[126.31795557186994,0.17017772412858426],[130.66626203864965,-1.4869936465684854],[131.46580432259714,-6.071099094574541],[135.85958708181397,-7.725284543519058],[139.50821118876502,-4.8099164186777035],[143.89793445781356,-6.411812861671425],[147.5198718874505,-3.4549175353760195],[151.73819615689132,-5.002988319007183],[155.2010590098167,-2.0884757961035625],[159.11445596529225,-3.586179719894016],[162.3206084434784,-0.7857626165462426],[165.84925104057967,-2.2362517307541014],[166.291853296082,-6.270965136275794],[170.30471851499902,-7.173126163814265],[172.6216473977064,-4.648343501025622],[175.13738387330054,-5.210610931400808],[176.33760338440166,-5.048182136577354],[178.06043688175902,-8.00719366148785],[175.98600155652952,-11.545295975414763],[177.80629500559556,-14.869645297067576],[176.70743517031633,-16.718980405891966],[175.52711991035227,-18.297332900396515],[177.51613498805204,-22.197541386302387],[174.98441150036325,-25.646518175135377],[177.1417180269033,-29.709916100270615],[174.3327283772542,-33.405709481234645],[176.68865874692344,-37.499409186860944],[173.53581801576217,-41.30855957084678],[176.1293525033045,-45.28676629439397],[172.5394909199373,-49.05681780552429],[175.42161758601702,-52.79243904276302],[171.25910036945749,-56.38258811071852],[174.49766507469988,-59.79185517035779],[169.5550224552217,-63.095054077525454],[175.12130159942038,-66.4250610395259],[172.05743696166337,-70.17612110688735],[160.7671370798629,-70.30015374059282],[153.13247928231416,-73.85617864759341],[159.6908042933129,-77.80316131016781],[145.24158201971542,-81.27137179020501],[162.09183616506857,-84.94207431820972],[101.81683545801518,-87.80824356139658],[77.31582488044734,-83.57676487745285],[49.509760006773256,-80.92220862231946],[21.151786939540855,-80.72172286490245],[16.543131920990525,-76.14556732608257],[0.8335679005817301,-73.84381829918738],[2.2626284426897936,-69.21258919215596],[12.808669900673326,-67.0381940847398],[11.872490908645235,-62.65341059232735],[3.7941449033998462,-60.34269461019056],[4.251781231586496,-56.19652224584304],[11.153993205628135,-54.38852804531911],[11.961579249863,-50.162272394795856],[6.82999771802908,-47.67984833396268],[7.859781245317266,-43.217060122954415],[3.2761575769758524,-40.31599783007281],[4.43567077495152,-35.741206971176496],[0.32477422723328586,-32.56540793873001],[1.553430171580416,-28.03484063705462],[6.377204029655109,-26.71303973922542],[7.197179188234455,-22.373958345439732],[3.6452135373622165,-19.349758459489138],[4.541728885974603,-15.285730312483961],[1.2793001655038674,-12.343247039532924],[1.7618400087581727,-10.46324037683844],[2.0862033788879364,-8.35716171802338],[5.789350796390831,-6.624087908058834],[6.386373526666488,-2.3418038147608624],[10.189893676135952,-0.43188476755339716],[13.611699107391518,-2.8447525350379235],[17.669408104914115,-0.8469844525190816],[21.40032508185986,-3.335734857517352],[25.58678516686,-1.2704435740827693],[29.508441243966416,-3.781047572700436],[33.66361927713152,-1.6772949381945044],[37.62415943093452,-4.150912683092272],[41.58665495463515,-2.0439831300982623],[45.43387749209455,-4.428418751970285],[49.07628278330157,-2.3547343129537177],[52.68952639184418,-4.612860727482492],[54.342630992672014,-3.5933241882305116],[56.04076373667954,-2.3041178869669148],[59.88485456478613,-3.625405109717659],[63.3061222521409,-0.9781516831001118],[67.36290022706116,-2.2670217695307624],[70.68986972642183,0.38646139108642585],[74.82676115190374,-0.8701881901666618]],[[-51.70487751530809,84.93555635380528],[-34.75841798028471,81.27137179020501],[-10.416534576215849,79.62054525867497],[-11.18274950256939,77.68777876614904],[-10.985283977307283,75.5580182962511],[0.3256103519432096,73.31022368544397],[-1.666585504224179,69.27385919190813],[-10.558792289389459,67.1535478452051],[-10.444977544778341,63.095054077525454],[-2.2975260876218146,61.54550957788075],[-0.931587163510601,57.68949737459286],[-6.436337296790293,55.37739041554851],[-4.889760342933783,51.22372845966178],[-9.724736207832674,48.43009421958324],[-8.101589192291547,44.0506310521871],[-2.4177958307002183,42.54047996565121],[-1.4162342628377007,38.1159967227654],[-5.442348460730083,35.12442405176797],[-4.34176924715694,30.69897412778907],[-8.002013895306675,27.502908667188287],[-6.84616569288798,23.22581044564793],[-2.4838650119479393,22.197541386302376],[-1.7113099039779158,17.935404581817405],[-3.2925648296836485,16.718980405891937],[-4.866872026589571,15.219885219398503],[-4.013998443470464,11.545295975414753],[-6.957444601114238,8.664197475387969],[-6.064496108778538,5.362739776582626],[-7.899841472392981,3.559837831413195],[-8.412776379912247,2.467580053183621],[-11.830186971127075,2.638932741201293],[-13.708146703918002,6.270965136275773],[-17.487884167109748,6.558659438572163],[-19.42154916686706,2.985051052916481],[-23.577254165479836,3.152670815193172],[-25.750258419602837,7.086582997425367],[-30.182215330720936,7.309910883327083],[-32.48012811254947,3.4549175353760115],[-37.14019742640149,3.5803293669296306],[-39.43410523143184,7.635035982578252],[-44.14041291818604,7.725284543519059],[-46.5899429561277,3.76138350054279],[-51.252815863927914,3.813394894857517],[-53.40381944858905,7.7522909940025615],[-57.84643084054915,7.694210873901278],[-60.165868273993155,3.8426199422059493],[-64.32827172999673,3.8245323459248906],[-66.64455573288102,0.3760386871585963],[-71.0160747003525,0.901274271496053],[-72.93661775503374,4.9951927162657395],[-77.44069883550374,5.5631423675199665],[-80.13485884440162,1.9759215335086475],[-84.77330656823203,2.5046046873156858],[-86.58999355148684,6.605186625257111],[-91.12007106136942,7.059508613810285],[-93.91140202136133,3.4938029769751124],[-98.30082499679779,3.9382989654374976],[-101.04824320818962,0.3854149473714064],[-105.17323884809628,0.8701881901666886],[-107.10416387391813,4.548448008485299],[-111.60261207801032,4.785398917150398],[-113.91041930526723,1.3300762483231614],[-118.22978761288444,1.54661270011944],[-120.47268446128629,5.165048115302317],[-124.74319077977674,5.304322366655776],[-125.65736900732797,3.5933241882305222],[-126.47619542382564,1.6263637306496364],[-130.4608587551884,0.8436031110165414],[-132.96499017492758,4.158942627265325],[-137.3063271216714,3.372828505596593],[-140.12125038010964,6.870649308036964],[-144.72979242136543,6.045591181415267],[-146.33638072286848,1.6772949381945044],[-150.91862197114955,0.7969950664894166],[-154.0294052002189,4.260374459536214],[-158.59967491814012,3.335734857517349],[-161.77338167921764,6.766536253596436],[-166.16940101623453,5.767146686378417],[-167.31261713417402,1.5147974903819574],[-171.37544324872502,0.649870565576401],[-174.31673738369324,3.8210244943304374],[-173.38014762578527,7.9727938308414075],[-176.35806599111405,11.05195584369349],[-175.4582711140254,15.28573031248396],[-178.95063664056067,17.74333218723816],[-178.22376950605553,22.092681232201556],[-173.6703874763115,23.782822700979136],[-172.64626329548403,28.20896181794974],[-176.54267313535857,31.148162090824524],[-175.56432922504848,35.741206971176496],[179.9534193241767,38.728779390762334],[-179.170112546831,43.33462463706695],[-173.2513616288856,44.74985555511408],[-171.87311046039585,49.05085282910134],[-177.04785603399293,52.113519976620616],[-175.74821876841355,56.19652224584304],[-168.0262941563394,56.99746478128345],[-164.0655884448202,60.72912581441262],[-169.09171800224814,64.21420040783376],[-163.8729684603252,68.21921734529464],[-171.11065695414112,71.97154653078344],[-163.45686807900944,76.14556732608257],[-176.36726611745192,79.98369865816576],[-161.89171801085914,84.22628942426208],[-125.29445893479551,82.48154130920912],[-90.3810974748782,82.85349004122659],[-51.70487751530809,84.93555635380528]],[[20.59724429383507,70.05215151950884],[14.551845028116844,73.4874564977175],[23.46937321934182,76.53550099989292],[13.88006441861331,80.34595244233691],[33.23852823745463,83.59754993234792],[8.384360674741012,87.82361750161158],[145.5581976913369,87.36469532319619],[118.57660603902232,83.15405442466329],[136.93797037496347,79.32046590614668],[160.68630381362877,78.12011723529922],[161.9120756666221,73.36886176605667],[174.7489392452071,70.79472682488495],[172.86137139869209,66.19292316051032],[163.0408721046586,64.01659592046677],[163.34704729720406,59.5364130976333],[170.6673809942136,57.359097831564405],[170.41580816696182,55.956862850498176],[170.19881569013583,53.14363558473362],[176.3024402828945,50.63969712744497],[175.6209968167824,46.180014657090155],[169.66101739290986,44.17622039141847],[169.44151026908685,39.479372566043565],[174.49688633843544,36.85680682151307],[174.02804175387834,32.1119243692579],[178.4754053347224,29.376139351007172],[177.84694371159145,24.75690942135447],[173.23062212965775,22.777763428069576],[172.88878640797157,18.30669067889132],[176.7615924622716,15.921990549108143],[176.28993210653294,11.794175727566111],[179.77693144202632,9.615942399155198],[179.2171608248945,5.88992175431389],[175.46041201203371,4.248592317017825],[172.03418236939353,6.172978893164637],[168.33525245787357,4.467031609784497],[164.93539603741021,6.119591258608642],[161.81561480968847,3.5081042246681515],[158.00676432627483,5.1890555165121155],[154.59893532317398,2.3920322085174726],[150.44123001544202,4.084015752678349],[146.82860631815936,1.146470566433399],[142.43997538991445,2.835154500117894],[138.7479898447449,-0.1719692003569908],[134.29172795983905,1.5040036468682454],[133.49441060685513,6.197676527808861],[129.04492009156368,7.805398745803346],[125.50231533878872,4.763431183575369],[121.26764633911117,6.289184675341438],[117.99888533923311,3.3267128731190114],[116.67723286078457,3.8221019268338448],[113.98513214459506,4.6721309865719345],[110.72399425598124,1.5358657755021414],[106.41168295379833,2.7703025791670135],[103.0536445998174,-0.4689550165235656],[98.56085942567567,0.7417954439430008],[97.37304065193962,5.289412273297663],[92.75068396053875,6.523960823111651],[89.44185686196764,3.1743094571295885],[84.9296665436273,4.348486695475442],[81.85307387147245,1.084853908628409],[77.5983036432562,2.2233436292223394],[76.26408541439847,6.511600732441479],[72.19363429195394,7.473863638092713],[69.63381057288798,4.311473809758376],[65.97095215540618,5.242929409571677],[62.72776317867667,2.7916780404471604],[58.9668320668832,3.9090460692491074],[55.70150722023228,1.4476428602002083],[52.316592444657616,3.6927532541940127],[48.94706885744921,1.898270439192623],[45.30258805566046,4.232719683025157],[41.59000566215463,2.3586899160008272],[37.77676428812329,4.74095538189142],[33.814945033944454,2.8026599483934844],[29.961298273611618,5.1819226249528905],[25.886010570251138,3.202074339142956],[22.136132249356994,5.527020080114615],[18.09981644071494,3.5346227999232194],[14.583250071411674,5.762860491436915],[10.722777827285633,3.789624991750129],[9.102371418548282,4.860811812073258],[7.212914562720072,5.860392168376587],[6.801169317009782,9.899743070823428],[2.88810760150022,11.881770859938996],[2.302842809205857,16.098688642959495],[5.882262995803539,18.516052400096086],[5.3675737051231645,23.01114705036288],[0.9946771925498358,24.85833583444955],[0.2609468260311212,29.30037465923498],[4.204173995672652,32.11010693139568],[3.5435893569877903,36.59789814478598],[8.045142114241342,39.40213636897177],[7.50994848192889,43.78660935394502],[2.026568965384611,45.18424868970644],[1.188509553443467,49.47027919866874],[3.6300086390995316,50.610463312569514],[6.259687055981994,51.96477015603749],[5.52364654929031,55.70676846515228],[11.555977692900699,58.130531165851394],[11.080660058482366,61.5405146000252],[8.644221197607186,61.8908384753262],[4.012620898449968,63.3270613280184],[3.699933260287894,64.5256084219684],[5.239258880169461,67.01563262841769],[8.130261032188706,67.46842788455002],[14.81365872582757,67.35176867523612],[20.59724429383507,70.05215151950884]]]],"type":"MultiPolygon"},"properties":{"fill":"#dc3545","fillOpacity":0.3,"stroke":"#dc3545","strokeWidth":2},"type":"Feature"}],"type":"FeatureCollection"};
+
+    if (!rawData || !rawData.features) {
+      console.error('globe_map: Invalid or missing data');
+      return;
+    }
+
+    
+    const featureCollection = {
+      type: rawData.type,
+      features: rawData.features.map(f => {
+        if (f.geometry.type === 'Polygon') {
+          return {
+            ...f,
+            geometry: {
+              ...f.geometry,
+              coordinates: f.geometry.coordinates.map(ring => ring.slice().reverse())
+            }
+          };
+        } else if (f.geometry.type === 'MultiPolygon') {
+          return {
+            ...f,
+            geometry: {
+              ...f.geometry,
+              coordinates: f.geometry.coordinates.map(polygon =>
+                polygon.map(ring => ring.slice().reverse())
+              )
+            }
+          };
+        }
+        return f;
+      })
+    };
+
+    const projection = "orthographic";
+    const isGlobe = projection === "orthographic";
+    const maxWidth =  600 ;
+    const arrowStep =  3 ;
+    const shouldSync =  false ;
+
+    const container = document.getElementById('globe-gm3b');
+    const getSize = () => {
+      const width = container.offsetWidth || container.clientWidth;
+      const w = width > 0 ? Math.min(maxWidth, width) : maxWidth;
+      return { width: w, height: isGlobe ? w : w / 2 };
+    };
+
+    
+    const inputRotate = null;
+    const allPoints = [];
+    rawData.features.forEach(f => {
+      if (f.geometry.type === 'Point') {
+        allPoints.push(f.geometry.coordinates);
+      } else if (f.geometry.type === 'LineString') {
+        allPoints.push(...f.geometry.coordinates);
+      } else if (f.geometry.type === 'Polygon') {
+        f.geometry.coordinates.forEach(ring => allPoints.push(...ring));
+      } else if (f.geometry.type === 'MultiPolygon') {
+        f.geometry.coordinates.forEach(polygon =>
+          polygon.forEach(ring => allPoints.push(...ring))
+        );
+      }
+    });
+    const centroid = allPoints.length > 0
+      ? d3.geoCentroid({ type: 'MultiPoint', coordinates: allPoints })
+      : [0, 0];
+    const centerRotate = inputRotate
+      ? [-inputRotate[0], -inputRotate[1], inputRotate[2] ?? 0]
+      : [-centroid[0], -centroid[1], 0];
+    const size = getSize();
+    const localState = { width: size.width, height: size.height };
+
+    
+    let sync;
+    if (shouldSync) {
+      
+      if (!window.globeMapSync) {
+        window.globeMapSync = {
+          rotate: centerRotate,
+          centerRotate: centerRotate,
+          renders: []
+        };
+      }
+      sync = window.globeMapSync;
+
+      
+      if (sync.renders.length === 0) {
+        sync.rotate = centerRotate;
+        sync.centerRotate = centerRotate;
+      }
+    } else {
+      
+      sync = {
+        rotate: centerRotate,
+        centerRotate: centerRotate,
+        renders: []
+      };
+    }
+
+    if (!window.globeLandData) {
+      const landTopo = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')).json();
+      window.globeLandData = feature(landTopo, landTopo.objects.land);
+    }
+    const land = window.globeLandData;
+
+    function render() {
+      const size = getSize();
+      localState.width = size.width;
+      localState.height = size.height;
+
+      const marks = [
+        Plot.geo(land, { stroke: '#88b', fill: 'none', strokeWidth: 0.8, strokeOpacity: 0.8 }),
+        Plot.graticule({ strokeOpacity: 0.06 })
+      ];
+
+      if (isGlobe) {
+        marks.push(Plot.sphere({ strokeWidth: 2 }));
+      } else {
+        marks.push(Plot.frame({ strokeWidth: 1 }));
+      }
+
+      
+      const polygons = {
+        type: 'FeatureCollection',
+        features: featureCollection.features.filter(f =>
+          f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+        )
+      };
+      const lines = {
+        type: 'FeatureCollection',
+        features: featureCollection.features.filter(f => f.geometry.type === 'LineString')
+      };
+      const points = {
+        type: 'FeatureCollection',
+        features: featureCollection.features.filter(f => f.geometry.type === 'Point')
+      };
+
+      
+      const dashedPolygons = {
+        type: 'FeatureCollection',
+        features: polygons.features.filter(f => f.properties?.strokeDasharray)
+      };
+      const solidPolygons = {
+        type: 'FeatureCollection',
+        features: polygons.features.filter(f => !f.properties?.strokeDasharray)
+      };
+
+      
+      if (solidPolygons.features.length > 0) {
+        marks.push(Plot.geo(solidPolygons, {
+          fill: d => d.properties?.fill || 'red',
+          fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
+          stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
+          strokeWidth: d => d.properties?.strokeWidth ?? 1,
+          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
+        }));
+      }
+
+      
+      if (dashedPolygons.features.length > 0) {
+        marks.push(Plot.geo(dashedPolygons, {
+          fill: d => d.properties?.fill || 'red',
+          fillOpacity: d => d.properties?.fillOpacity ?? 0.45,
+          stroke: d => d.properties?.stroke || d.properties?.fill || 'red',
+          strokeWidth: d => d.properties?.strokeWidth ?? 1,
+          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.7
+        }));
+      }
+
+      
+      const dashedPolyInfo = dashedPolygons.features.map(f => ({
+        dasharray: f.properties?.strokeDasharray
+      }));
+
+        
+        if (arrowStep > 0) {
+          let edgeIndex = 0;
+          
+          rawData.features.forEach(f => {
+            if (f.geometry.type !== 'Polygon' && f.geometry.type !== 'MultiPolygon') return;
+            
+            if (f.properties?.strokeDasharray) return;
+            const stroke = f.properties?.stroke || f.properties?.fill || 'red';
+            const strokeWidth = f.properties?.strokeWidth ?? 1;
+            const rings = f.geometry.type === 'Polygon'
+              ? f.geometry.coordinates
+              : f.geometry.coordinates.flat();
+            rings.forEach(ring => {
+              for (let i = 0; i < ring.length - 1; i++) {
+                if (edgeIndex % arrowStep === 0) {
+                  const interpolate = d3.geoInterpolate(ring[i], ring[i + 1]);
+                  marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
+                    x: d => d[0],
+                    y: d => d[1],
+                    markerEnd: 'arrow',
+                    stroke: 'darkred',
+                    strokeWidth: 1.5
+                  }));
+                }
+                edgeIndex++;
+              }
+            });
+          });
+        }
+
+      
+      if (lines.features.length > 0) {
+        marks.push(Plot.geo(lines, {
+          stroke: d => d.properties?.stroke || 'red',
+          strokeWidth: d => d.properties?.strokeWidth ?? 2.5,
+          strokeOpacity: d => d.properties?.strokeOpacity ?? 0.9
+        }));
+
+        
+        lines.features.forEach(f => {
+          const step = f.properties?.arrowStep ?? (f.properties?.arrow ? 1 : 0);
+          if (step > 0) {
+            const coords = f.geometry.coordinates;
+            for (let i = 0; i < coords.length - 1; i++) {
+              if (i % step === 0) {
+                const interpolate = d3.geoInterpolate(coords[i], coords[i + 1]);
+                marks.push(Plot.line([interpolate(0.45), interpolate(0.55)], {
+                  x: d => d[0],
+                  y: d => d[1],
+                  markerEnd: 'arrow',
+                  stroke: f.properties?.stroke || 'darkred',
+                  strokeWidth: f.properties?.strokeWidth ?? 2
+                }));
+              }
+            }
+          }
+        });
+      }
+
+      
+      points.features.forEach(f => {
+        marks.push(Plot.geo(f, {
+          fill: f.properties?.fill || 'red',
+          stroke: f.properties?.stroke || 'darkred',
+          strokeWidth: f.properties?.strokeWidth ?? 1,
+          r: f.properties?.r ?? 5
+        }));
+      });
+
+      const projectionConfig = isGlobe
+        ? { type: projection, rotate: sync.rotate, inset: 1 }
+        : { type: projection };
+
+      const svg = Plot.plot({
+        width: localState.width,
+        height: localState.height,
+        projection: projectionConfig,
+        marks
+      });
+
+      container.innerHTML = '';
+      container.appendChild(svg);
+
+      
+      dashedPolyInfo.forEach(info => {
+        svg.querySelectorAll('path').forEach(path => {
+          if (path.getAttribute('fill') === 'none') {
+            path.setAttribute('stroke-dasharray', info.dasharray);
+          }
+        });
+      });
+
+      if (isGlobe) {
+        attachDrag(svg);
+      }
+    }
+
+    window.addEventListener('resize', render);
+
+    
+    const versor = {
+      cartesian: function(e) {
+        const l = e[0] * Math.PI / 180, p = e[1] * Math.PI / 180, cp = Math.cos(p);
+        return [cp * Math.cos(l), cp * Math.sin(l), Math.sin(p)];
+      },
+      rotation: function(q) {
+        return [
+          Math.atan2(2 * (q[0] * q[1] + q[2] * q[3]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])) * 180 / Math.PI,
+          Math.asin(Math.max(-1, Math.min(1, 2 * (q[0] * q[2] - q[3] * q[1])))) * 180 / Math.PI,
+          Math.atan2(2 * (q[0] * q[3] + q[1] * q[2]), 1 - 2 * (q[2] * q[2] + q[3] * q[3])) * 180 / Math.PI
+        ];
+      },
+      delta: function(v0, v1) {
+        const w = this.cross(v0, v1), l = Math.sqrt(this.dot(w, w));
+        if (!l) return [1, 0, 0, 0];
+        const t = Math.acos(Math.max(-1, Math.min(1, this.dot(v0, v1)))) / 2, s = Math.sin(t);
+        return [Math.cos(t), w[2] / l * s, -w[1] / l * s, w[0] / l * s];
+      },
+      multiply: function(a, b) {
+        return [
+          a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3],
+          a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2],
+          a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1],
+          a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0]
+        ];
+      },
+      from: function(r) {
+        const l = r[0] / 2 * Math.PI / 180, p = r[1] / 2 * Math.PI / 180, g = r[2] / 2 * Math.PI / 180;
+        const sl = Math.sin(l), cl = Math.cos(l);
+        const sp = Math.sin(p), cp = Math.cos(p);
+        const sg = Math.sin(g), cg = Math.cos(g);
+        return [
+          cl * cp * cg + sl * sp * sg,
+          sl * cp * cg - cl * sp * sg,
+          cl * sp * cg + sl * cp * sg,
+          cl * cp * sg - sl * sp * cg
+        ];
+      },
+      cross: function(a, b) { return [a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]]; },
+      dot: function(a, b) { return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; }
+    };
+
+    function attachDrag(svg) {
+      const projection = d3.geoOrthographic()
+        .rotate(sync.rotate)
+        .translate([localState.width / 2, localState.height / 2])
+        .scale(Math.min(localState.width, localState.height) / 2 - 1);
+
+      let v0, q0, r0;
+
+      const drag = d3.drag()
+        .on('start', (event) => {
+          projection.rotate(sync.rotate).translate([localState.width / 2, localState.height / 2]).scale(Math.min(localState.width, localState.height) / 2 - 1);
+          const inv = projection.invert([event.x, event.y]);
+          if (inv) {
+            v0 = versor.cartesian(inv);
+            r0 = sync.rotate;
+            q0 = versor.from(r0);
+          }
+        })
+        .on('drag', (event) => {
+          if (!v0) return;
+          projection.rotate(r0);
+          const inv = projection.invert([event.x, event.y]);
+          if (!inv) return;
+          const v1 = versor.cartesian(inv);
+          const delta = versor.delta(v0, v1);
+          const q1 = versor.multiply(q0, delta);
+          sync.rotate = versor.rotation(q1);
+          
+          sync.renders.forEach(r => r());
+        });
+
+      d3.select(svg).call(drag);
+      d3.select(svg).on('dblclick', () => {
+        sync.rotate = sync.centerRotate.slice();
+        sync.renders.forEach(r => r());
+      });
+    }
+
+    
+    sync.renders.push(render);
+
+    render();
+  })();
+</script><p class=caption>Example of a polygon with no "natural" outer loop. Any of the four loops makes a
+reasonable outer loop. Our algorithm will still pick the one with smallest numerical area.</p></p><h2 id=implementation-notes><a href=#implementation-notes class=anchor-link>##</a>Implementation notes</h2><p>In <a href=https://github.com/uber/h3/pull/1113>uber/h3 #1113</a>, we need to translate
+our discrete directed edges to continuous lat/lng pairs and then compute
+the areas of the loops. The functions <code>createSortableLoopSet()</code> and
+<code>createSortableLoop()</code> initialize the <code>SortableLoop</code> struct for
+each separate edge loop:</p><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#007020;font-weight:700>typedef</span> <span style=color:#007020;font-weight:700>struct</span> {
 </span></span><span style=display:flex><span>    H3Index root;   <span style=color:#60a0b0;font-style:italic>// connected component identifier
 </span></span></span><span style=display:flex><span>    <span style=color:#902000>double</span> area;    <span style=color:#60a0b0;font-style:italic>// area enclosed by loop (via right-hand rule)
 </span></span></span><span style=display:flex><span>    GeoLoop loop;
 </span></span><span style=display:flex><span>} SortableLoop;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#007020;font-weight:700>typedef</span> <span style=color:#007020;font-weight:700>struct</span> {
+</span></span></code></pre></div><p>We note the connected component (i.e., polygon) that each loop belongs to
+with <code>root</code>, compute and store each loop&rsquo;s area in <code>area</code>, and store the raw lat/lng points in <code>loop</code>, which will be used in the final polygon output we pass
+to the user.</p><p>Not knowing what else to do with a name like that, we sort the <code>SortableLoop</code>s
+that we&rsquo;ve created using <code>cmp_SortableLoop()</code>, which:</p><ol><li>First sorts by <code>root</code> (component ID), grouping loops of the same polygon together</li><li>Then sorts by <code>area</code> (ascending), so the <strong>smallest area comes first</strong>, which we can take to be the outer loop of the polygon.</li></ol><h1 id=polygons-to-multipolygons><a href=#polygons-to-multipolygons class=anchor-link>#</a>Polygons to MultiPolygons</h1><p>After sorting, loops from the same polygon are contiguous in memory, with the outer loop (smallest area) first, followed by holes. The <code>createMultiPolygon()</code> function walks through this sorted array, grouping consecutive loops with the same <code>root</code> into polygons, producing <code>SortablePoly</code> structs:</p><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#007020;font-weight:700>typedef</span> <span style=color:#007020;font-weight:700>struct</span> {
 </span></span><span style=display:flex><span>    <span style=color:#902000>double</span> outerArea;  <span style=color:#60a0b0;font-style:italic>// area of outer loop, for sorting polygons
 </span></span></span><span style=display:flex><span>    GeoPolygon poly;
 </span></span><span style=display:flex><span>} SortablePoly;
-</span></span></code></pre></div><p>The <code>createSortableLoop()</code> function computes each loop&rsquo;s area using <code>geoLoopAreaRads2()</code>, which returns the (positive, unsigned) area enclosed by following the loop&rsquo;s orientation.</p><p>The <code>createSortableLoopSet()</code> function collects all loops and sorts them using <code>cmp_SortableLoop</code>, which:</p><ol><li>First sorts by <code>root</code> (component ID), grouping loops of the same polygon together</li><li>Then sorts by <code>area</code> (ascending), so the <strong>smallest area comes first</strong></li></ol><p>After sorting, loops from the same polygon are contiguous in memory, with the outer loop (smallest area) first, followed by holes. The <code>createMultiPolygon()</code> function walks through this sorted array, grouping consecutive loops with the same <code>root</code> into polygons.</p><h1 id=overview-algorithm-and-code><a href=#overview-algorithm-and-code class=anchor-link>#</a>Overview: Algorithm and code</h1><p>In <a href=https://github.com/uber/h3/pull/1113>uber/h3 #1113</a>, the function <code>cellsToMultiPolygon()</code> proceeds through several stages:</p><ol><li><code>validateCellSet</code>: Check for duplicate cells, which would break edge cancellation logic.</li><li><code>createArcSet</code>: For each input cell, create <code>Arc</code> structs for its 5 or 6 edges. Initialize the hash table for fast edge lookups, create doubly-linked loops of edges, and set up the union-find for keeping track of connected components.</li><li><code>cancelArcPairs</code>: Loop through all arcs, find symmetric pairs via the hash table, and for each pair:<ul><li>Mark both arcs as removed</li><li>Perform loop surgery to maintain valid doubly-linked loops</li><li>Union the connected components of the two adjacent cells</li></ul></li><li><code>createSortableLoopSet</code>: Walk the remaining (non-removed) arcs to extract (what we now know to be) boundary loops and translate (discrete) edges to their (continuous) lat/lng coordinates. For each loop, compute its area with <code>geoLoopAreaRads2()</code> and record its connected component <code>root</code>. Sort all loops by <code>(component, area)</code> tuples, so loops of each polygon are contiguous, with smallest-area loop first.</li><li><code>createMultiPolygon</code>: Walk the sorted loops, grouping consecutive loops with the same root into polygons. The first loop becomes the outer; the rest become holes. Finally, sort polygons by outer loop area (descending) so the largest polygon comes first.</li></ol><h1 id=performance-and-improvements><a href=#performance-and-improvements class=anchor-link>#</a>Performance and improvements</h1><ul><li>On large cell sets with many internal edges, this new algorithm is <strong><a href=https://github.com/uber/h3/pull/1113#issuecomment-3712443984>roughly 4x faster</a></strong> than the existing implementation (with additional speedups expected after implementing the Gosper Curve optimization&mdash;see below).</li><li>The new algorithm <strong>fixes bugs</strong> that we were running into previously due to floating point comparison issues: <a href=https://github.com/uber/h3/issues/1048>#1048</a>, <a href=https://github.com/uber/h3/issues/1049>#1049</a>, <a href=https://github.com/uber/h3/issues/1051>#1051</a>.</li><li>This algorithm <strong>enables outputting &ldquo;global&rdquo; polygons</strong> that, for example, are larger than a hemisphere, cross the antimeridian, or encircle the poles.</li></ul><h1 id=next-up-the-gosper-island><a href=#next-up-the-gosper-island class=anchor-link>#</a>Next up: The Gosper Island</h1><p>Can we make this even faster?</p><p>The algorithm above processes every edge of every input cell. But what if
+</span></span></code></pre></div><p>We keep track of the <code>outerArea</code> so that we can sort these polygons and have the largest first. This isn&rsquo;t strictly necessary, but is often convenient in exploratory data analysis.</p><p>The <code>GeoPolygon poly</code> values will be collected into the <code>GeoMultiPolygon</code> we return to the user.</p><h1 id=overview-algorithm-and-code><a href=#overview-algorithm-and-code class=anchor-link>#</a>Overview: Algorithm and code</h1><p>In <a href=https://github.com/uber/h3/pull/1113>uber/h3 #1113</a>, the function <code>cellsToMultiPolygon()</code> proceeds through several stages:</p><ol><li><code>validateCellSet</code>: Check for duplicate cells, which would break edge cancellation logic.</li><li><code>createArcSet</code>: For each input cell, create <code>Arc</code> structs for its 5 or 6 edges. Initialize the hash table for fast edge lookups, create doubly-linked loops of edges, and set up the union-find for keeping track of connected components.</li><li><code>cancelArcPairs</code>: Loop through all arcs, find symmetric pairs via the hash table, and for each pair:<ul><li>Mark both arcs as removed</li><li>Perform loop surgery to maintain valid doubly-linked loops</li><li>Union the connected components of the two adjacent cells</li></ul></li><li><code>createSortableLoopSet</code>: Walk the remaining (non-removed) arcs to extract (what we now know to be) boundary loops and translate (discrete) edges to their (continuous) lat/lng coordinates. For each loop, compute its area with <code>geoLoopAreaRads2()</code> and record its connected component <code>root</code>. Sort all loops by <code>(component, area)</code> tuples, so loops of each polygon are contiguous, with smallest-area loop first.</li><li><code>createMultiPolygon</code>: Walk the sorted loops, grouping consecutive loops with the same root into polygons. The first loop becomes the outer; the rest become holes. Finally, sort polygons by outer loop area (descending) so the largest polygon comes first.</li></ol><h1 id=performance-and-improvements><a href=#performance-and-improvements class=anchor-link>#</a>Performance and improvements</h1><ul><li>On large cell sets with many internal edges, this new algorithm is <strong><a href=https://github.com/uber/h3/pull/1113#issuecomment-3712443984>roughly 4x faster</a></strong> than the existing implementation (with additional speedups expected after implementing the Gosper Curve optimization&mdash;see below).</li><li>The new algorithm <strong>fixes bugs</strong> that we were running into previously due to floating point comparison issues: <a href=https://github.com/uber/h3/issues/1048>#1048</a>, <a href=https://github.com/uber/h3/issues/1049>#1049</a>, <a href=https://github.com/uber/h3/issues/1051>#1051</a>.</li><li>This algorithm <strong>enables outputting &ldquo;global&rdquo; polygons</strong> that, for example, are larger than a hemisphere, cross the antimeridian, or encircle the poles.</li></ul><h1 id=next-up-the-gosper-island><a href=#next-up-the-gosper-island class=anchor-link>#</a>Next up: The Gosper Island</h1><p>Can we make this even faster?</p><p>The algorithm above processes every edge of every input cell. But what if
 there were scenarios where we could skip most of that processing?</p><p>If a group of cells can be <a href=https://h3geo.org/docs/highlights/indexing>compacted</a> into a single coarser cell, it is possible to get just the edges of that group
 of cells directly, without needing to cancel out the internal edges. This plugs
-directly into our existing logic, because, for each compacted cell, we just initialize with this new type of ring of edges.</p><p>The fractal shape traced by out by the uncompated children boundary
+directly into our existing logic, because, for each compacted cell, we just initialize with this new type of ring of edges.</p><p>The fractal shape traced out by the uncompacted children boundary
 is called a <a href=https://en.wikipedia.org/wiki/Gosper_curve>Gosper island</a> or &ldquo;flowsnake&rdquo; (as opposed to the <a href=https://en.wikipedia.org/wiki/Koch_snowflake>Koch snowflake</a>).</p><p>This optimization is planned for <a href=https://github.com/uber/h3/pull/1114>uber/h3 #1114</a> and should provide significant speedups for large, compactible cell sets.</p></content><p></p></main><footer>© 2025 AJ Friend · Made with <a href=https://github.com/janraasch/hugo-bearblog/>Hugo ʕ•ᴥ•ʔ Bear</a></footer></body></html>
