@@ -60,7 +60,7 @@ cells = [
 
 GeoJSON is just one format we can use for describing spherical polygons,
 but the algorithm we cover here is applicable
-to any similar format, and its easy to translate between them.
+to any similar format, and it's easy to translate between them.
 I wrote up my thoughts on ["ideal" spherical polygons in another post](/blog/sphere_poly/), but to summarize, we want to output spherical polygons such that:
 
 - polygons consist of ordered loops of points on a sphere (lon/lat points)
@@ -106,7 +106,7 @@ point of an edge is the first point of the following edge.
 
 {{< fig src="code/figs/single_cell_directed_edges.svg" >}}
 
-Note that this almost acheives our goal (at least for a single cell): we can recover a list of lat/lng points in counter-clockwise order denoting the outer
+Note that this almost achieves our goal (at least for a single cell): we can recover a list of lat/lng points in counter-clockwise order denoting the outer
 loop of a spherical polygon.
 
 However, the order of the edges is important. Note that
@@ -125,12 +125,12 @@ shrink the directed edges towards the center of their origin cell:
 {{< fig src="code/figs/two_cells_edges.svg" >}}
 {{< caption >}}Two cells (blue) with their associated directed edges (black/red) shrunk towards the centers to avoid overlaps. Note the symmetric pair of opposite edges (red).{{< /caption >}}
 
-We'll refer to an edge and its reversed edge a **symmetric pair**.
+We'll refer to an edge and its reversed edge as a **symmetric pair**.
 
 
 # Main idea: remove symmetric pairs
 
-That last image suggest an idea: for a set of cells $C$, if we get the set of all
+That last image suggests an idea: for a set of cells $C$, if we get the set of all
 of the directed edges with origins belonging to $C$, we can then remove all
 the symmetric pairs (i.e., remove all the "internal" edges), and what we end up with is the set of directed edges making up the boundary of the polygon we're looking for.
 
@@ -172,7 +172,7 @@ we need (beyond just the unordered set of edges) to describe the polygon.
 ### Python
 
 In Python, just getting the set of cells and canceling out the symmetric
-pairs is pretty trivial. I would look something like:
+pairs is pretty trivial. It would look something like:
 
 ```python
 import h3
@@ -247,7 +247,7 @@ After initializing the `ArcSet`, we can perform the edge cancellation with the C
     ```
 5. Note that we do some additional work around loops and connected components, but we'll cover that in the upcoming sections.
 
-The edges remaining afer cancellation (those with `isRemoved = false`) are the
+The edges remaining after cancellation (those with `isRemoved = false`) are the
 ones that make up the polygon boundaries.
 But note that this logic just amounts to keeping track of the **set** of
 boundary edges.  Next, we'll discuss the additional structure we need
@@ -313,7 +313,7 @@ which we can also see in the two cell diagram:
 {{< fig src="code/figs/two_cells_before_labels.svg" >}}
 {{< caption >}}Two loops and the relevant edges before surgery.{{< /caption >}}
 
-After removing edges `a` and `b`, we recconect their surrounding edges like
+After removing edges `a` and `b`, we reconnect their surrounding edges like
 the following, which merges the two loops into one counter-clockwise loop,
 updating the doubly-linked list appropriately.
 
@@ -408,7 +408,7 @@ another---they're just separate polygons.
 
 Thus, our goal is to keep track of these connected components, and note which loops are in which component. Note that loops that don't touch can be in the same component because they're connected by a path of cells.
 
-Algorithmically, we start with each cell being its own connected component. That is, all the edges of the cells initial loop start in the same component.
+Algorithmically, we start with each cell being its own connected component. That is, all the edges of a cell's initial loop start in the same component.
 When we identify and remove a symmetric pair of edges, we merge their connected components. We keep track of the connected components with a [union-find data structure](https://en.wikipedia.org/wiki/Disjoint-set_data_structure).
 
 Let's look at an example. Initially, each cell is its own component:
@@ -484,7 +484,7 @@ To recap up to this point, we've described how we:
 - maintain the orientations of the loops with doubly-linked lists, and
 - keep track of which loops belong to which polygon via connected components.
 
-But how do we determine which loop in a polygon is the outer and which are the holes? What might seem like an easy question on on the 2D plane is a litte more complicated on the sphere. Consider the largest polygon from the previous example:
+But how do we determine which loop in a polygon is the outer and which are the holes? What might seem like an easy question on the 2D plane is a little more complicated on the sphere. Consider the largest polygon from the previous example:
 
 {{< fig src="code/figs/conn_comp_largest.svg" width="800px" >}}
 {{< caption >}}
@@ -502,9 +502,9 @@ the connected components calculation, and the orientation of the loops indicates
 
 But which one is which?
 
-This is example is designed to make it hard to tell. And, honestly, the right answer is that there is no right answer! Selecting one loop or the other as the outer loop provides just as valid a spherical polygon. This is generally true for all spherical polygons: **you can select any of the loops as the outer with the others as interior, and you maintain a valid spherical polygon that describes exactly the same region**.
+This example is designed to make it hard to tell. And, honestly, the right answer is that there is no right answer! Selecting one loop or the other as the outer loop provides just as valid a spherical polygon. This is generally true for all spherical polygons: **you can select any of the loops as the outer with the others as interior, and you maintain a valid spherical polygon that describes exactly the same region**.
 
-However, there's still an obious "correct" answer for smaller polygons (less than a hemisphere), which comes from the interpretation of the polygon if you plotted
+However, there's still an obvious "correct" answer for smaller polygons (less than a hemisphere), which comes from the interpretation of the polygon if you plotted
 it on a flat 2D projection. So while, technically, we can choose any loop to be the outer, we still want to choose the loop that matches this intuition, and
 is more likely to work with planar plotting libraries.
 
@@ -518,10 +518,10 @@ For details on computing areas of spherical polygons, [see my notes here](/blog/
 
 - For a unit sphere, area is given in units of `rads^2` or [steradians](https://en.wikipedia.org/wiki/Steradian).
 - The area of any loop is between 0 (empty set) and $4 \pi$ (the entire sphere).
-- We follow the right-hand rule to indicate that when following the direciton of the loop, the inside is to the left. Note that we have a **critical dependence on the loop orientation**: small loops may enclose very little area or almost the entire sphere, depending on the orientation of the loop.
+- We follow the right-hand rule to indicate that when following the direction of the loop, the inside is to the left. Note that we have a **critical dependence on the loop orientation**: small loops may enclose very little area or almost the entire sphere, depending on the orientation of the loop.
 
 Let's apply the selection rule to the example from above, and see if we get the right answer. **We have four loops for which we need to compute the area**.
-Note that for this example, the math details are unecessary---you can just eyeball it:
+Note that for this example, the math details are unnecessary---you can just eyeball it:
 
 <div style="display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 1rem; row-gap: 0; max-width: 800px; margin: 0 auto;">
 {{< globe_map data="data/holes_3.json" arrowStep="3" >}}
@@ -536,13 +536,13 @@ We see that the loop in last figure (lower right) corresponds to the smallest ar
 for our polygon, which should match the intuition we'd get from plotting this
 polygon on the plane instead of the sphere.
 
-Note that the area calculation depends on ["ideal" spherical polgyons]((/blog/sphere_poly_area/)). In particular, since every H3 edge spans less than 180 degress on the sphere, our area calculations work for "global" polygons, even if they cross the antimeridian, are larger than a hemisphere, or cross the poles.
+Note that the area calculation depends on ["ideal" spherical polygons](/blog/sphere_poly_area/). In particular, since every H3 edge spans less than 180 degrees on the sphere, our area calculations work for "global" polygons, even if they cross the antimeridian, are larger than a hemisphere, or cross the poles.
 
 Note that the area calculation is the first time we've needed to consider
 **continuous** quantities. Up to this point, everything has been **discrete**---we've basically just been doing graph theory on loops of discrete directed edges.
 
 What about ties? If two loops have the same area, which one do we pick? Like we
-said above, the choice is *technically* arbitrary because the region will be the same no matter the choice. We only use the rule above to make the "natural" choice when the polygons are small and easily imagined or plotted as planar. Whenever you have ties (or are close to having ties) between loops being considered for the outside of a polygon, the polgyon is necessarily global, and we no longer need to placate planar polygon plotting powers.
+said above, the choice is *technically* arbitrary because the region will be the same no matter the choice. We only use the rule above to make the "natural" choice when the polygons are small and easily imagined or plotted as planar. Whenever you have ties (or are close to having ties) between loops being considered for the outside of a polygon, the polygon is necessarily global, and we no longer need to placate planar polygon plotting powers.
 
 For example, which of these four loops below should be the "outside"? It doesn't really matter---it's going to be tough to plot this on a plane no matter what:
 
@@ -557,7 +557,7 @@ reasonable outer loop. Our algorithm will still pick the one with smallest numer
 ## Implementation notes
 
 In [uber/h3 #1113](https://github.com/uber/h3/pull/1113), we need to translate
-our discrete directed edges to continous lat/lng pairs and then compute
+our discrete directed edges to continuous lat/lng pairs and then compute
 the areas of the loops. The functions `createSortableLoopSet()` and
 `createSortableLoop()` initialize the `SortableLoop` struct for
 each separate edge loop:
@@ -592,7 +592,7 @@ typedef struct {
 } SortablePoly;
 ```
 
-We keep track of the `outerArea` so that we can sort these polygons and have the largest first. This isn't strictly necessary, but is often convient in exploratory data analysis.
+We keep track of the `outerArea` so that we can sort these polygons and have the largest first. This isn't strictly necessary, but is often convenient in exploratory data analysis.
 
 The `GeoPolygon poly` values will be collected into the `GeoMultiPolygon` we return to the user.
 
@@ -626,7 +626,7 @@ If a group of cells can be [compacted](https://h3geo.org/docs/highlights/indexin
 of cells directly, without needing to cancel out the internal edges. This plugs
 directly into our existing logic, because, for each compacted cell, we just initialize with this new type of ring of edges.
 
-The fractal shape traced by out by the uncompated children boundary
+The fractal shape traced out by the uncompacted children boundary
 is called a [Gosper island](https://en.wikipedia.org/wiki/Gosper_curve) or "flowsnake" (as opposed to the [Koch snowflake](https://en.wikipedia.org/wiki/Koch_snowflake)).
 
 This optimization is planned for [uber/h3 #1114](https://github.com/uber/h3/pull/1114) and should provide significant speedups for large, compactible cell sets.
