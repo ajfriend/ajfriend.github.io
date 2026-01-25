@@ -155,7 +155,7 @@ their edges:
 {{< fig src="code/figs/ring_0.svg" >}}
 {{< caption >}}Initial set of edges from six cells, with a central cell missing. Loops initially all counter-clockwise.{{< /caption >}}
 
-Eliminating all symmetric pairs but one leaves us with a single loop in
+Eliminating all symmetric pairs except for one leaves us with a single loop in
 counter-clockwise order. (This figure doesn't represent the actual locations of the edge endpoints since we've shrunk them, so it's true that this loop is degenerate in the sense that the symmetric pair of edges exactly overlap one another, but we're OK with that for this intermediate state, since they're about to be removed anyway.)
 {{< fig src="code/figs/ring_1.svg" >}}
 {{< caption >}}A (geometrically) degenerate, but intermediate counter-clockwise loop. {{< /caption >}}
@@ -264,7 +264,7 @@ Recall from ["Directed edge preliminaries"](#directed-edge-preliminaries) that w
 
 {{< fig src="code/figs/single_cell.svg" >}}
 
-To keep track of this ordering each `Arc` maintains `prev` and `next` pointers,
+To keep track of this ordering, each `Arc` maintains `prev` and `next` pointers,
 which we use to construct doubly-linked lists of `Arc`s:
 ```c
 typedef struct Arc {
@@ -337,9 +337,13 @@ b->next->prev = a->prev;
 b->prev->next = a->next;
 ```
 
+Luckily, the loop surgery logic above works in all possible cases and in any order. Consider the examples below. You can check that the linked-loop updating
+logic either 1) works in these cases, or 2) doesn't matter, because the pair is
+about to be removed anyway.
+
 ### Example: four cells
 
-Luckily, the loop surgery logic above works in all possible cases and in any order. Consider the following sequence of symmetric pair removals. Since we've already seen it, we start with two pairs of cells with the common edges removed:
+For the first example, we'll consider four cells. Since we've already seen it, we start with two pairs of cells with the common edges removed, and then remove the three remaining pairs one by one:
 
 {{< fig src="code/figs/four_cells_0.svg" >}}
 {{< fig src="code/figs/four_cells_1.svg" >}}
@@ -364,13 +368,13 @@ ring (with 6 degenerate pairs left to be removed):
 
 ### Example: hole
 
-Note that canceling edges might split up rings:
+Note that canceling edges might split loops up into separate loops:
 
 {{< fig src="code/figs/ring_0.svg" >}}
 {{< fig src="code/figs/ring_1.svg" >}}
 {{< fig src="code/figs/ring_2.svg" >}}
 
-Also note that the inner hole of this polygon has the desired clockwise orientation.
+Also note that the inner hole of this polygon has the desired clockwise orientation, with the outer loop being counter-clockwise.
 
 ## Implementation notes: doubly-linked loops
 
@@ -378,8 +382,7 @@ In [uber/h3 #1113](https://github.com/uber/h3/pull/1113), we initialize the edge
 and the `cellToEdgeArcs()` function puts the edges in the proper
 order for each cell and connects them in the doubly-linked loop.
 
-In `cancelArcPairs()`, we perform the linked-loop surgery operation
-for each symmetric pair that we find.
+In `cancelArcPairs()`, we iterate through the collection of Arcs, find the symmetric pairs with the hash table, remove them, and perform the linked-loop surgery operation.
 
 # Connected components partition loops into polygons
 
@@ -387,7 +390,7 @@ So far we have the outer boundary of our polygons, along with the holes,
 and we have the loops of edges in the proper order.
 
 But how do we keep track of which loops (outer and holes) belong to which polygon? Recall the example with three polygons from the top of the page. It has
-six loops total, across three polygons, but can we determine the grouping?
+six loops total, across three polygons. But how can we determine the grouping?
 
 {{< fig src="code/figs/conn_comp_white.svg" width="800px" >}}
 {{< caption >}}Six loops, each belonging to one of three polygons. Which loops group together into a polygon?{{< /caption >}}
