@@ -474,7 +474,7 @@ Two functions handle the core operations:
 - `unionArcs(Arc *a, Arc *b)` merges two components, using `rank` to keep the tree balanced
 
 When we cancel a symmetric pair of edges in `cancelArcPairs()`, we call `unionArcs()` to merge the components of the pair of edges.
-After all cancellations, edges/Arcs sharing the same "root" belong to the same polygon.
+After all cancellations, edges/Arcs sharing the same `root` belong to the same polygon.
 
 # Which loop is "outside"?
 
@@ -484,7 +484,7 @@ To recap up to this point, we've described how we:
 - maintain the orientations of the loops with doubly-linked lists, and
 - keep track of which loops belong to which polygon via connected components.
 
-But how do we determine which loop in a polygon is the outer and which are the holes? What might seem like an easy question is a litte more complicated. Consider the largest polygon from the previous example:
+But how do we determine which loop in a polygon is the outer and which are the holes? What might seem like an easy question on on the 2D plane is a litte more complicated on the sphere. Consider the largest polygon from the previous example:
 
 {{< fig src="code/figs/conn_comp_largest.svg" width="800px" >}}
 
@@ -495,23 +495,30 @@ which one we think *should* be the outer loop---but how do we determine that alg
 {{< caption >}}It can be unclear which loop of a polygon is the "correct" outer loop. In this case, the choice is basically arbitrary: we get exactly the same spherical polygon with either choice.{{< /caption >}}
 
 We can assume that we know these two loops are part of the same polygon based on
-the connected components calculation, and the orientation of the loops indicates that the interior of the polygon includes the equator (if you're on the surface of the globe, walking along a loop in the direction of the arrows, the interior is to your left---the right-hand rule), so we know that this object is a polygon with one outer loop and one hole. But which one is which?
+the connected components calculation, and the orientation of the loops indicates that the interior of the polygon includes the equator (if you're on the surface of the globe, walking along a loop in the direction of the arrows, the interior is to your left---the right-hand rule), so we know that this object is a polygon with one outer loop and one hole.
 
-This is example is designed to make it harder to tell. And, honestly, the right answer is that there is no right answer! Selecting one loop or the other as the outer loop provides just as valid a spherical polygon. This is generally true for all spherical polygons: **you can select any of the loops as the outer with the others as interior, and you maintain a valid spherical polygon that describes exactly the same region**.
+But which one is which?
+
+This is example is designed to make it hard to tell. And, honestly, the right answer is that there is no right answer! Selecting one loop or the other as the outer loop provides just as valid a spherical polygon. This is generally true for all spherical polygons: **you can select any of the loops as the outer with the others as interior, and you maintain a valid spherical polygon that describes exactly the same region**.
 
 However, there's still an obious "correct" answer for smaller polygons (less than a hemisphere), which comes from the interpretation of the polygon if you plotted
 it on a flat 2D projection. So while, technically, we can choose any loop to be the outer, we still want to choose the loop that matches this intuition, and
 is more likely to work with planar plotting libraries.
 
-Luckily, there's a single rule that picks the "correct" answer for small polygons, and picks a reasonable option for the pathological "global" polygons like the equator example here.
+Luckily, there's a single rule that picks the "correct" answer for small polygons, and picks a reasonable option for the pathological "global" polygons like the equator example above:
 
 {{< admonition type="note" title="Rule for selecting the outer loop of a polygon" >}}
 For each loop in the polygon, compute the (positive, unsigned) area enclosed by the loop, where "enclosed" is defined by the orientation of the loop and the right-hand rule. The outer loop is the one with smallest area; the rest are holes.
 {{< /admonition >}}
 
-Let's apply it to the example from above, and see if we get the right answer. We have four loops to compute the area for. Area will be computed in units of
-eyeball norm:
+For details on computing areas of spherical polygons, [see my notes here](/blog/sphere_poly_area/). For this post, we can reduce our concern to computing the area enclosed by a simple **loop** and that:
 
+- For a unit sphere, area is given in units of `rads^2` or [steradians](https://en.wikipedia.org/wiki/Steradian).
+- The area of any loop is between 0 (empty set) and $4 \pi$ (the entire sphere).
+- We follow the right-hand rule to indicate that when following the direciton of the loop, the inside is to the left. Note that we have a **critical dependence on the loop orientation**: small loops may enclose very little area or almost the entire sphere, depending on the orientation of the loop.
+
+Let's apply the selection rule to the example from above, and see if we get the right answer. **We have four loops for which we need to compute the area**.
+Note that for this example, the math details are unecessary---you can just eyeball it:
 
 <div style="display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 1rem; row-gap: 0; max-width: 800px; margin: 0 auto;">
 {{< globe_map data="data/holes_3.json" arrowStep="3" >}}
@@ -522,30 +529,21 @@ eyeball norm:
 {{< caption >}}The loops (dark red), ordered by their enclosed area (light red).
 Full polygon (dashed grey) for reference. The orientations of the loops (arrows) cause the first three to enclose most of the globe; the smallest area corresponds to the "natural" outer loop.{{< /caption >}}
 
-We critically depend on the orientation of the loops here.
+We see that the loop in last figure (lower right) corresponds to the smallest area when we account for loop orientation. We select that to be the outer loop
+for our polygon, which should match the intuition we'd get from plotting this
+polygon on the plane instead of the sphere.
 
-note that the area calculation depends on "ideal" spherical polgyons (note my post), and all the outputs here will respect that, in particular because no H3 edge is more than 180 degrees, so we can cross the antimeridian or have large loops without problems.
+Note that the area calculation depends on ["ideal" spherical polgyons]((/blog/sphere_poly_area/)). In particular, since every H3 edge spans less than 180 degress on the sphere, our area calculations work for "global" polygons, even if they cross the antimeridian, are larger than a hemisphere, or cross the poles.
 
-This approach is critically dependent on the area calculation, even for "small" polygons.
+Note that the area calculation is the first time we've needed to consider
+**continuous** quantities. Up to this point, everything has been **discrete**---we've basically just been doing graph theory on loops of discrete directed edges.
 
-In reality, we need to ensure that we are computing the unsigned area.
-We might compute a signed area, but let's avoid. Details in this other post.
+What about ties? If two loops have the same area, which one do we pick? Like we
+said above, the choice is *technically* arbitrary because the region will be the same no matter the choice. We only use the rule above to make the "natural" choice when the polygons are small and easily imagined or plotted as planar. Whenever you have ties (or are close to having ties) between loops being considered for the outside of a polygon, the polgyon is necessarily global, and we no longer need to placate planar plotting powers. For example, which of these four loops below should be the "outside"? It doesn't really matter.
 
-
-But also, note that it doesn't matter, technically.
-
-Show a simple globe example
-
-In a polygon, one loop is *special*. The outer loop. the rest are holes.
-Actually, not relaly that special. any loop can be the outer loop and still mathematical describe the same polygon, even if it is an unintuitive format.
+TODO: translate the equator_meridian.json example and insert a corresponding globe_map shortcode here.
 
 
-Note, up to this point, everything has been **discrete**, discrete edges represented as H3 indexes which are integers, graphs and edges. (We've just been doing graph theory, ignorant of the underlying geometry) This is
-the first time we need to realize our edges as being embedded in a **continous**
-space on the surface of the sphere. And this is where spherical polygons and
-a proper area computation come into play. This is what unlocks global polygons.
-
-Ties? who cares! like we said, it doesn't matter which one.
 
 ## Implementation notes
 
