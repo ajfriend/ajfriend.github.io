@@ -539,7 +539,9 @@ Note that the area calculation is the first time we've needed to consider
 **continuous** quantities. Up to this point, everything has been **discrete**---we've basically just been doing graph theory on loops of discrete directed edges.
 
 What about ties? If two loops have the same area, which one do we pick? Like we
-said above, the choice is *technically* arbitrary because the region will be the same no matter the choice. We only use the rule above to make the "natural" choice when the polygons are small and easily imagined or plotted as planar. Whenever you have ties (or are close to having ties) between loops being considered for the outside of a polygon, the polgyon is necessarily global, and we no longer need to placate planar plotting powers. For example, which of these four loops below should be the "outside"? It doesn't really matter.
+said above, the choice is *technically* arbitrary because the region will be the same no matter the choice. We only use the rule above to make the "natural" choice when the polygons are small and easily imagined or plotted as planar. Whenever you have ties (or are close to having ties) between loops being considered for the outside of a polygon, the polgyon is necessarily global, and we no longer need to placate planar polygon plotting powers.
+
+For example, which of these four loops below should be the "outside"? It doesn't really matter---it's going to be tough to plot this on a plane no matter what:
 
 TODO: translate the equator_meridian.json example and insert a corresponding globe_map shortcode here.
 
