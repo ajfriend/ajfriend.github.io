@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Home on AJ Friend</title><link>https://ajfriend.com/</link><description>Recent content in Home on AJ Friend</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Sat, 24 Jan 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://ajfriend.com/index.xml" rel="self" type="application/rss+xml"/><item><title>[WIP] Making H3's cells-to-polygon faster</title><link>https://ajfriend.com/blog/cells_to_poly/</link><pubDate>Sat, 24 Jan 2026 00:00:00 +0000</pubDate><guid>https://ajfriend.com/blog/cells_to_poly/</guid><description>&lt;p&gt;&lt;strong&gt;Note&lt;/strong&gt;: This post is currently a quick-and-dirty attempt at explaining the algorithm
-behind &lt;a href="https://github.com/uber/h3/pull/1113"&gt;cellsToMultiPolygon core algorithm #1113 · uber/h3&lt;/a&gt;. My plan is to grow this into a
+behind the PR &lt;a href="https://github.com/uber/h3/pull/1113"&gt;uber/h3 #1113&lt;/a&gt;. My plan is to grow this into a
 proper blog post with more context, background, etc.&lt;/p&gt;
 &lt;p&gt;I also have a Python version of this algorithm shared at &lt;a href="https://github.com/ajfriend/h3c2p"&gt;https://github.com/ajfriend/h3c2p&lt;/a&gt;&lt;/p&gt;
 &lt;h1 id="goal-h3-cells-to-spherical-polygons"&gt;
  &lt;a href="#goal-h3-cells-to-spherical-polygons" class="anchor-link"&gt;#&lt;/a&gt;Goal: H3 cells to spherical polygons&lt;/h1&gt;
 &lt;p&gt;A collection of &lt;a href="https://h3geo.org/"&gt;H3 cells&lt;/a&gt; describes a subset of the globe,
-and a common operation is to translate that set of cells into spherical polygons
-(e.g., a &lt;a href="https://geojson.org/"&gt;GeoJSON&lt;/a&gt; &lt;code&gt;MultiPolygon&lt;/code&gt;) outlining the same region.&lt;/p&gt;</description></item><item><title>[WIP] Computing Spherical Polygon Areas</title><link>https://ajfriend.com/blog/sphere_poly_area/</link><pubDate>Sat, 03 Jan 2026 00:00:00 +0000</pubDate><guid>https://ajfriend.com/blog/sphere_poly_area/</guid><description>&lt;script src="https://cdn.jsdelivr.net/npm/d3@7"&gt;&lt;/script&gt;
+and an operation we often want to do is to translate that set into an alternative representation of that region as a collection of spherical polygons
+(e.g., a &lt;a href="https://geojson.org/"&gt;GeoJSON&lt;/a&gt; &lt;code&gt;MultiPolygon&lt;/code&gt;).&lt;/p&gt;</description></item><item><title>[WIP] Computing Spherical Polygon Areas</title><link>https://ajfriend.com/blog/sphere_poly_area/</link><pubDate>Sat, 03 Jan 2026 00:00:00 +0000</pubDate><guid>https://ajfriend.com/blog/sphere_poly_area/</guid><description>&lt;script src="https://cdn.jsdelivr.net/npm/d3@7"&gt;&lt;/script&gt;
 &lt;p&gt;The &lt;a href="https://github.com/uber/h3/"&gt;H3&lt;/a&gt; library provides a hexagonal
 geospatial grid system, and being a geospatial library, one of the things
 we want to be able to do is to compute the surface areas of polygons on
