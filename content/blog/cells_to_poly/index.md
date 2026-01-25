@@ -487,6 +487,9 @@ To recap up to this point, we've described how we:
 But how do we determine which loop in a polygon is the outer and which are the holes? What might seem like an easy question on on the 2D plane is a litte more complicated on the sphere. Consider the largest polygon from the previous example:
 
 {{< fig src="code/figs/conn_comp_largest.svg" width="800px" >}}
+{{< caption >}}
+Which of the four loops of this polygon connected component should be the "outside" loop?
+{{< /caption >}}
 
 There are four loops of edges here. Eyeballing, it is easy for us to pick out
 which one we think *should* be the outer loop---but how do we determine that algorithmically? Let's look at a more extreme example of two loops close to the equator, encircling the entire globe:
@@ -543,7 +546,8 @@ said above, the choice is *technically* arbitrary because the region will be the
 
 For example, which of these four loops below should be the "outside"? It doesn't really matter---it's going to be tough to plot this on a plane no matter what:
 
-TODO: translate the equator_meridian.json example and insert a corresponding globe_map shortcode here.
+TODO: don't link this plots rotation with any other plot
+{{< globe_map data="data/cross.json" arrowStep="3" >}}
 
 
 
