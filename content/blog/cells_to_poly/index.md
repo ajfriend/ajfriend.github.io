@@ -337,6 +337,9 @@ b->next->prev = a->prev;
 b->prev->next = a->next;
 ```
 
+The need to access both the previous and next edges in each loop is the reason
+we need a doubly-linked list, as opposed to just a single-linked list.
+
 Luckily, the loop surgery logic above works in all possible cases and in any order. Consider the examples below. You can check that the linked-loop updating
 logic either 1) works in these cases, or 2) doesn't matter, because the pair is
 about to be removed anyway.
@@ -395,45 +398,65 @@ six loops total, across three polygons. But how can we determine the grouping?
 {{< fig src="code/figs/conn_comp_white.svg" width="800px" >}}
 {{< caption >}}Six loops, each belonging to one of three polygons. Which loops group together into a polygon?{{< /caption >}}
 
-TODO: polygons are just connected components of cells. so rings that are connected by cells are in the same polygon, even if they're disjoint/separate rings. (even though the rings themselves don't touch)
+The main insight is that each separate polygon we are constructing is a [connected component](https://en.wikipedia.org/wiki/Component_(graph_theory))
+of H3 cells, where cells are the nodes of an undirected graph, and there's an "edge" connecting them if they share a symmetric pair of H3 directed edges.
+And this should match our intuition: consider the three polygons in the example
+at the start of the post.
 
-also note that there is no notion of one polygon being "inside" or "outside" of
-another; they're just separate polygons.
+Also note that there is no notion of one polygon being "inside" or "outside" of
+another---they're just separate polygons.
 
-The key insight is that **removing a symmetric pair of edges joins their cells' connected components**. We track this with a [union-find data structure](https://en.wikipedia.org/wiki/Disjoint-set_data_structure): when we cancel an edge pair, we union the components of the two adjacent cells.
+Thus, our goal is to keep track of these connected components, and note which loops are in which component. Note that loops that don't touch can be in the same component because they're connected by a path of cells.
 
-Initially, each cell is its own component:
+Algorithmically, we start with each cell being its own connected component. That is, all the edges of the cells initial loop start in the same component.
+When we identify and remove a symmetric pair of edges, we merge their connected components. We keep track of the connected components with a [union-find data structure](https://en.wikipedia.org/wiki/Disjoint-set_data_structure).
+
+Let's look at an example. Initially, each cell is its own component:
 
 {{< fig src="code/figs/conn_comp_colors_0.svg" width="800px" >}}
+{{< caption >}}
+Each cell starts with its own, separate connected component consisting of its edges. We color the cells so that neighboring cells in separate components (at this stage of the algorithm) have different colors.
+{{< /caption >}}
 
-As we remove symmetric pairs, components merge:
+As we remove symmetric pairs, components start to merge:
 
 {{< fig src="code/figs/conn_comp_colors_1.svg" width="800px" >}}
+{{< caption >}}
+Small multi-cell connected components start to appear.
+{{< /caption >}}
+
 {{< fig src="code/figs/conn_comp_colors_2.svg" width="800px" >}}
+{{< caption >}}
+Larger connected components appear. Note that there are many degenerate pairs
+which won't further affect the connected components, but will need to be removed
+before forming the boundary.
+{{< /caption >}}
+
 {{< fig src="code/figs/conn_comp_colors_3.svg" width="800px" >}}
+{{< caption >}}
+Larger regions get dominated by a few connected components.
+{{< /caption >}}
+
 {{< fig src="code/figs/conn_comp_colors_4.svg" width="800px" >}}
+{{< caption >}}
+Just a few stragglers left before we arrive at the final set of connected components and have all symmetric pairs removed.
+{{< /caption >}}
 
 After all symmetric pairs are removed, the remaining components correspond exactly to the polygons we want to output. Loops belonging to the same polygon (both outer and holes) share the same connected component:
 
 {{< fig src="code/figs/conn_comp_colors_5.svg" width="800px" >}}
-{{< caption >}}Three connected components, each corresponding to a polygon. The loops within each component form one polygon's outer boundary and holes.{{< /caption >}}
+{{< caption >}}After eliminating all symmetric pairs, three connected components remain, each corresponding to a polygon. The loops within each component form one polygon's outer boundary and holes.{{< /caption >}}
 
 Note that at this stage we know *which* loops belong together, but we don't yet know which loop is the outer boundary versus which are holes. We'll address that in the next section.
 
 ## Implementation notes: union-find
 
-In [uber/h3 #1113](https://github.com/uber/h3/pull/1113), each `Arc` stores the union-find state directly:
+In [uber/h3 #1113](https://github.com/uber/h3/pull/1113), each `Arc` stores the relevant data:
 
 ```c
 typedef struct Arc {
     H3Index id;
-
-    bool isVisited;
-    bool isRemoved;
-
-    // For doubly-linked list of edges in loop
-    struct Arc *next;
-    struct Arc *prev;
+    /// ...
 
     // For union-find data structure
     struct Arc *parent;
@@ -441,20 +464,25 @@ typedef struct Arc {
 } Arc;
 ```
 
-The `parent` and `rank` fields implement the [union-find data structure](https://en.wikipedia.org/wiki/Disjoint-set_data_structure). Two functions handle the core operations:
+The `parent` and `rank` fields implement the [union-find data structure](https://en.wikipedia.org/wiki/Disjoint-set_data_structure). The `parent` points to
+the parent Arc in a tree data structure, where each "root" corresponds to a
+separate connected component. The `rank` is used when merging connected components to keep the tree balanced, making the operations fast.
 
-- `getRoot(Arc *arc)` finds the root of an `Arc`'s connected component, using path compression for efficiency
-- `unionArcs(Arc *a, Arc *b)` merges two components using union-by-rank
+Two functions handle the core operations:
 
-We identify each connected component by one arbitrary edge ID—specifically, the `id` field of the root `Arc`. When we cancel a symmetric pair of edges in `cancelArcPairs()`, we call `unionArcs()` to merge the components of the two adjacent cells. After all cancellations, loops sharing the same root belong to the same polygon.
+- `getRoot(Arc *arc)` finds the "root" of an `Arc`'s connected component
+- `unionArcs(Arc *a, Arc *b)` merges two components, using `rank` to keep the tree balanced
+
+When we cancel a symmetric pair of edges in `cancelArcPairs()`, we call `unionArcs()` to merge the components of the pair of edges.
+After all cancellations, edges/Arcs sharing the same "root" belong to the same polygon.
 
 # Which loop is "outside"?
 
-(where `parent` is a pointer in a linked list and finds the root. and `rank` is a quantity that is used to keep the tree balanced)
+To recap up to this point, we've described how we:
 
-To recap up to this point, we've described how we can eliminate internal edges
-to get the polygon boundaries, how we can maintain the orientation of the loops,
-and how we keep traack of which loops belong to which polygon.
+- eliminate internal edges to get the polygon boundaries,
+- maintain the orientations of the loops with doubly-linked lists, and
+- keep track of which loops belong to which polygon via connected components.
 
 But how do we determine which loop in a polygon is the outer and which are the holes? What might seem like an easy question is a litte more complicated. Consider the largest polygon from the previous example:
 
