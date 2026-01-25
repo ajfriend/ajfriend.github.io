@@ -546,14 +546,21 @@ said above, the choice is *technically* arbitrary because the region will be the
 
 For example, which of these four loops below should be the "outside"? It doesn't really matter---it's going to be tough to plot this on a plane no matter what:
 
-TODO: don't link this plots rotation with any other plot
-{{< globe_map data="data/cross.json" arrowStep="3" >}}
+{{< globe_map data="data/cross.json" arrowStep="3" sync="false" >}}
+{{< caption >}}
+Example of a polygon with no "natural" outer loop. Any of the four loops makes a
+reasonable outer loop. Our algorithm will still pick the one with smallest numerical area.
+{{< /caption >}}
 
 
 
 ## Implementation notes
 
-In [uber/h3 #1113](https://github.com/uber/h3/pull/1113), the outer loop selection happens via sorting. After edge cancellation, we have a set of loops, each tagged with its connected component (the `root` from union-find) and its computed area. The key data structures are:
+In [uber/h3 #1113](https://github.com/uber/h3/pull/1113), we need to translate
+our discrete directed edges to continous lat/lng pairs and then compute
+the areas of the loops. The functions `createSortableLoopSet()` and
+`createSortableLoop()` initialize the `SortableLoop` struct for
+each separate edge loop:
 
 ```c
 typedef struct {
@@ -561,20 +568,33 @@ typedef struct {
     double area;    // area enclosed by loop (via right-hand rule)
     GeoLoop loop;
 } SortableLoop;
+```
 
+We note the connected component (i.e., polygon) that each loop belongs to
+with `root`, compute and store each loop's area in `area`, and store the raw lat/lng points in `loop`, which will be used in the final polygon output we pass
+to the user.
+
+Not knowing what else to do with a name like that, we sort the `SortableLoop`s
+that we've created using `cmp_SortableLoop()`, which:
+
+1. First sorts by `root` (component ID), grouping loops of the same polygon together
+2. Then sorts by `area` (ascending), so the **smallest area comes first**, which we can take to be the outer loop of the polygon.
+
+
+# Polygons to MultiPolygons
+
+After sorting, loops from the same polygon are contiguous in memory, with the outer loop (smallest area) first, followed by holes. The `createMultiPolygon()` function walks through this sorted array, grouping consecutive loops with the same `root` into polygons, producing `SortablePoly` structs:
+
+```c
 typedef struct {
     double outerArea;  // area of outer loop, for sorting polygons
     GeoPolygon poly;
 } SortablePoly;
 ```
 
-The `createSortableLoop()` function computes each loop's area using `geoLoopAreaRads2()`, which returns the (positive, unsigned) area enclosed by following the loop's orientation.
+We keep track of the `outerArea` so that we can sort these polygons and have the largest first. This isn't strictly necessary, but is often convient in exploratory data analysis.
 
-The `createSortableLoopSet()` function collects all loops and sorts them using `cmp_SortableLoop`, which:
-1. First sorts by `root` (component ID), grouping loops of the same polygon together
-2. Then sorts by `area` (ascending), so the **smallest area comes first**
-
-After sorting, loops from the same polygon are contiguous in memory, with the outer loop (smallest area) first, followed by holes. The `createMultiPolygon()` function walks through this sorted array, grouping consecutive loops with the same `root` into polygons.
+The `GeoPolygon poly` values will be collected into the `GeoMultiPolygon` we return to the user.
 
 # Overview: Algorithm and code
 
