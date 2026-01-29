@@ -25,7 +25,7 @@ systems do something different, it is probably because they are constrained by s
 2d-native, non-geodesic lines)&lt;/p&gt;</description></item><item><title>Notes on justfiles</title><link>https://ajfriend.com/blog/using_just/</link><pubDate>Thu, 01 Jan 2026 00:00:00 +0000</pubDate><guid>https://ajfriend.com/blog/using_just/</guid><description>&lt;p&gt;Some notes&amp;mdash;mostly for myself&amp;mdash;around how I use &lt;a href="https://github.com/casey/just"&gt;&lt;code&gt;just&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
 &lt;h1 id="clean-recipe"&gt;
  &lt;a href="#clean-recipe" class="anchor-link"&gt;#&lt;/a&gt;Clean recipe&lt;/h1&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-justfile" data-lang="justfile"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#06287e"&gt;clean&lt;/span&gt;&lt;span style="color:#666"&gt;:&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-justfile" data-lang="justfile"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#06287e"&gt;clean&lt;/span&gt;&lt;span style="color:#666"&gt;:&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; just _rm env
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; just _rm .venv
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; just _rm &lt;span style="color:#4070a0"&gt;&amp;#39;*.pytest_cache&amp;#39;&lt;/span&gt; &lt;span style="color:#60a0b0;font-style:italic"&gt;# put wildcards in quotes&lt;/span&gt;
