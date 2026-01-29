@@ -233,7 +233,7 @@ H3_EXPORT(reverseDirectedEdge)(a->id, &reversedEdge);
 Arc *b = findArc(arcset, reversedEdge);
 ```
 
-We use a simple linear probing scheme with `numBuckets = 10 * numArcs` to keep collisions low. In the future, an improved algorithm could use less memory without sacrificing lookup speed. (Suggestions welcome!)
+We use a simple [linear probing](https://en.wikipedia.org/wiki/Linear_probing) scheme with `numBuckets = 10 * numArcs` to keep collisions low. In the future, an improved algorithm could use less memory without sacrificing lookup speed. (Suggestions welcome!)
 
 After initializing the `ArcSet`, we can perform the edge cancellation with the C function `cancelArcPairs()`, which roughly follows the pseudocode:
 
