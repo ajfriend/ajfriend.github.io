@@ -1,0 +1,15 @@
+[project]
+name = "util"
+version = "0.0.1"
+requires-python = ">=3.14"
+dependencies = [
+    "jupyterlab",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "h3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
