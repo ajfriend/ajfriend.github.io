@@ -104,19 +104,22 @@ We use three pointers:
 We track the **sequent cell** — the one that would continue or complete the
 current sibling set. We only need to look at the top of pending to compute this.
 
-For each cell at `k`:
+For each cell at `k`, we first check if the stack is empty:
 
-1. **Resolution 0**: Immediately move to done (no parent to compact into).
+**Empty stack**: If the cell is a "first child" (res ≥ 1 and digit 0 at its
+resolution), it could start a compactable set — add to pending. Otherwise
+(res 0, or digit ≠ 0), it can't compact — move straight to done.
 
-2. **Matches sequent**:
-   - If it's the last sibling (digit 6, or 5 for pentagons): compact the set,
-     put parent at `k`, don't increment `k`.
-   - Otherwise: add to pending.
+**Non-empty stack**: Compute the sequent from the top of pending, then:
 
-3. **Descendant of sequent**: Add to pending. The descendant will be processed
-   first, and might compact up to the level we're waiting for.
+1. **Matches sequent**: Add to stack. If it's the last sibling (digit 6),
+   compact the set, put parent at `k`, and reprocess without incrementing `k`.
 
-4. **Unrelated**: Move pending to done, start fresh with this cell.
+2. **First descendant of sequent**: Add to stack. It might compact up to
+   the level we're waiting for.
+
+3. **Unrelated**: Flush pending to done. Don't increment `k` — reconsider
+   this cell with an empty stack on the next iteration.
 
 ```c
 // Get the resolution digit (0-6) at the given resolution
@@ -129,13 +132,33 @@ H3Index setResDigit(H3Index h, int res, int digit);
 H3Index sequent(H3Index cell) {
     int res = getResolution(cell);
     int digit = getResDigit(cell, res);
-    return setResDigit(cell, res, digit + 1);
+    int next_digit = digit + 1;
+
+    // Pentagon cells skip digit 1
+    if (next_digit == 1 && isPentagon(cellToParent(cell, res - 1))) {
+        next_digit = 2;
+    }
+
+    return setResDigit(cell, res, next_digit);
 }
 
 // Returns true if cell has res >= 1 and its res digit is 0.
 bool is_first_child(H3Index cell) {
     int res = getResolution(cell);
     return res >= 1 && getResDigit(cell, res) == 0;
+}
+
+// Returns true if all resolution digits between seq's res and cur's res are 0.
+bool is_first_descendant_of(H3Index cur, H3Index seq) {
+    int seq_res = getResolution(seq);
+    int cur_res = getResolution(cur);
+
+    for (int r = seq_res + 1; r <= cur_res; r++) {
+        if (getResDigit(cur, r) != 0) {
+            return false;
+        }
+    }
+    return true;
 }
 
 int64_t compact_single_pass(H3Index *cells, int64_t n) {
@@ -151,41 +174,49 @@ int64_t compact_single_pass(H3Index *cells, int64_t n) {
 
         H3Index cur = cells[k];
 
-        // Check if cur matches sequent and completes a set
-        if (j > i) {
-            H3Index seq = sequent(cells[j - 1]);
-
-            if (cur == seq) {
-                int res = getResolution(cur);
-                int digit = getResDigit(cur, res);
-                int last_digit = isPentagon(cellToParent(cur, res - 1)) ? 5 : 6;
-                if (digit == last_digit) {
-                    // Completes the set — compact
-                    H3Index parent = cellToParent(cur, res - 1);
-                    j -= last_digit;
-                    cells[k] = parent;
-                    continue;  // Process parent next
-                }
-                // Otherwise falls through to add to pending
-            } else if (cmp_canon(cur, seq) != -1) {
-                // Unrelated — pending becomes done
-                i = j;
+        // Empty stack: cur either starts a new pending set or goes to done
+        if (i == j) {
+            cells[j] = cur;
+            j++;
+            if (!is_first_child(cur)) {
+                i = j;  // Can't compact, move to done
             }
-            // If descendant of sequent, falls through
+            k++;
+            continue;
         }
 
-        // At this point, cur is one of:
-        // - First cell in a potentially new set (pending was empty)
-        // - Sequent that continues but doesn't complete the set
-        // - Descendant of the sequent
-        // - Unrelated to sequent (pending already moved to done above)
-        // Add cur; if not a first child, can't compact so move to done
-        cells[j] = cur;
-        j++;
-        if (!is_first_child(cur)) {
-            i = j;
+        // Non-empty stack: check if cur continues or completes the set
+        H3Index seq = sequent(cells[j - 1]);
+
+        if (cur == seq) {
+            // Continues or completes the set — add to stack
+            cells[j] = cur;
+            j++;
+
+            int res = getResolution(cur);
+            int digit = getResDigit(cur, res);
+            H3Index parent = cellToParent(cur, res - 1);
+            if (digit == 6) {
+                // Completes the set — compact
+                int num_children = isPentagon(parent) ? 6 : 7;
+                j -= num_children;
+                cells[k] = parent;
+                continue;  // Process parent next
+            }
+            k++;
+            continue;
         }
-        k++;
+
+        if (cmp_canon(cur, seq) == -1 && is_first_descendant_of(cur, seq)) {
+            // First descendant of sequent — add to stack
+            cells[j] = cur;
+            j++;
+            k++;
+            continue;
+        }
+
+        // Unrelated (or non-first descendant) — flush stack, reconsider cur
+        i = j;
     }
 
     return j;  // Compacted cells are at positions 0 to j-1
@@ -198,15 +229,15 @@ The lower 52 bit ordering guarantees that siblings are contiguous and children
 come before parents. We only need to look at the top of pending to know exactly
 which cell would continue or complete the current set.
 
-When a descendant of the sequent arrives, we add it to pending. It will
+When a first descendant of the sequent arrives, we add it to pending. It will
 compact first, potentially producing the cell we were waiting for.
 
 When we compact, the parent goes to `k` and gets processed immediately. If it
 completes another set at a coarser resolution, we compact again. Cascading
 happens naturally through the main loop.
 
-Resolution 0 cells have no parent, so they skip pending entirely and go
-straight to done.
+Cells that can't start a compactable set — resolution 0 (no parent) or
+digit ≠ 0 (missing earlier siblings) — go straight to done via `is_first_child`.
 
 ## Complete algorithm
 
