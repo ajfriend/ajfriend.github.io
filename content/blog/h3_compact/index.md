@@ -106,21 +106,7 @@ We use three pointers to work in-place in the array:
 We compute the **next sibling** — the cell that would continue or complete the
 current sibling set. We only need to look at the top of the pending stack to compute this. We compare the next sibling with the next cell to process at `cells[k]`.
 
-For each `cells[k]`, we first check if pending is non-empty. If so, compute
-the next sibling from the top of pending, then:
-
-1. **Matches next sibling**: Add to pending. If it's the last sibling (digit 6),
-   compact the set, put parent at `k`, and reprocess without incrementing `k`.
-
-2. **First descendant of next sibling**: Add to pending. It might compact up to
-   the level we're waiting for.
-
-3. **Unrelated**: Flush pending to done. Fall through to handle `cur` with
-   empty pending.
-
-**Empty pending**: If the cell is a "first child" (res ≥ 1 and digit 0 at its
-resolution), it could start a compactable set — add to pending. Otherwise
-(res 0, or digit ≠ 0), it can't compact — flush immediately to done.
+Before we get into the main compaction logic, let's define some helper functions:
 
 ```c
 // Helper: get immediate parent (one resolution coarser)
@@ -170,7 +156,22 @@ bool is_first_descendant_of(H3Index cur, H3Index target) {
 }
 ```
 
-With these helpers, the main loop is straightforward:
+With the helpers defined, the main loop is the following.
+For each `cells[k]`, we first check if pending is non-empty. If so, compute
+the next sibling from the top of pending, then:
+
+1. **Matches next sibling**: Add to pending. If it's the last sibling (digit 6),
+   compact the set, put parent back at `cells[k]`, and reprocess without incrementing `k`.
+
+2. **First descendant of next sibling**: Add to pending. It might compact up to
+   the level we're waiting for.
+
+3. **Unrelated**: Flush pending to done. Fall through to handle `cur` with
+   empty pending.
+
+**Empty pending**: If the cell is a "first child" (res ≥ 1 and digit 0 at its
+resolution), it could start a compactable set — add to pending. Otherwise
+(res 0, or digit ≠ 0), it can't compact — flush immediately to done.
 
 ```c
 int64_t compact_single_pass(H3Index *cells, int64_t n) {
