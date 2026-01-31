@@ -142,48 +142,48 @@ int64_t compact_single_pass(H3Index *cells, int64_t n) {
             continue;
         }
 
-        H3Index cell = cells[k];
-        int res = getResolution(cell);
+        H3Index cur = cells[k];
+        int res = getResolution(cur);
 
         // Resolution 0 cells can't compact — move any pending cells to done
         if (res == 0) {
-            cells[j] = cell;
+            cells[j] = cur;
             j++;
             i = j;
             k++;
             continue;
         }
 
-        // Check if cell matches sequent and completes a set
+        // Check if cur matches sequent and completes a set
         if (j > i) {
             H3Index seq = sequent(cells[j - 1]);
 
-            if (cell == seq) {
-                int digit = getResDigit(cell, res);
-                int last_digit = isPentagon(cellToParent(cell, res - 1)) ? 5 : 6;
+            if (cur == seq) {
+                int digit = getResDigit(cur, res);
+                int last_digit = isPentagon(cellToParent(cur, res - 1)) ? 5 : 6;
                 if (digit == last_digit) {
                     // Completes the set — compact
-                    H3Index parent = cellToParent(cell, res - 1);
+                    H3Index parent = cellToParent(cur, res - 1);
                     j -= last_digit;
                     cells[k] = parent;
                     continue;  // Process parent next
                 }
                 // Otherwise falls through to add to pending
-            } else if (cmp_canon(cell, seq) != -1) {
+            } else if (cmp_canon(cur, seq) != -1) {
                 // Unrelated — pending becomes done
                 i = j;
             }
             // If descendant of sequent, falls through
         }
 
-        // At this point, cell is one of:
+        // At this point, cur is one of:
         // - First cell in a potentially new set (pending was empty)
-        // - Sequent cell that continues but doesn't complete the set
+        // - Sequent that continues but doesn't complete the set
         // - Descendant of the sequent
         // - Unrelated to sequent (pending already moved to done above)
-        // Add cell; if digit != 0, can't compact so move to done
-        int digit = getResDigit(cell, res);
-        cells[j] = cell;
+        // Add cur; if digit != 0, can't compact so move to done
+        int digit = getResDigit(cur, res);
+        cells[j] = cur;
         j++;
         if (digit != 0) {
             i = j;
