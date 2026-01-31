@@ -132,6 +132,12 @@ H3Index sequent(H3Index cell) {
     return setResDigit(cell, res, digit + 1);
 }
 
+// Returns true if cell has res >= 1 and its res digit is 0.
+bool is_first_child(H3Index cell) {
+    int res = getResolution(cell);
+    return res >= 1 && getResDigit(cell, res) == 0;
+}
+
 int64_t compact_single_pass(H3Index *cells, int64_t n) {
     int64_t i = 0;  // done pointer
     int64_t j = 0;  // pending pointer (end of pending region)
@@ -144,22 +150,13 @@ int64_t compact_single_pass(H3Index *cells, int64_t n) {
         }
 
         H3Index cur = cells[k];
-        int res = getResolution(cur);
-
-        // Resolution 0 cells can't compact — move any pending cells to done
-        if (res == 0) {
-            cells[j] = cur;
-            j++;
-            i = j;
-            k++;
-            continue;
-        }
 
         // Check if cur matches sequent and completes a set
         if (j > i) {
             H3Index seq = sequent(cells[j - 1]);
 
             if (cur == seq) {
+                int res = getResolution(cur);
                 int digit = getResDigit(cur, res);
                 int last_digit = isPentagon(cellToParent(cur, res - 1)) ? 5 : 6;
                 if (digit == last_digit) {
@@ -182,11 +179,10 @@ int64_t compact_single_pass(H3Index *cells, int64_t n) {
         // - Sequent that continues but doesn't complete the set
         // - Descendant of the sequent
         // - Unrelated to sequent (pending already moved to done above)
-        // Add cur; if digit != 0, can't compact so move to done
-        int digit = getResDigit(cur, res);
+        // Add cur; if not a first child, can't compact so move to done
         cells[j] = cur;
         j++;
-        if (digit != 0) {
+        if (!is_first_child(cur)) {
             i = j;
         }
         k++;
