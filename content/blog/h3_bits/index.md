@@ -1,26 +1,24 @@
 ---
-title: "H3 Cell Bit Structure"
+title: "H3 Bit Layout"
 date: 2026-01-30
 ---
 
-H3 cell indexes are 64-bit integers. Here's a visualization of the bit structure.
+H3 cells are stored as 64-bit integers, with bit groups representing the components
+of the cell. Below, we have a diagram of the bit layout for the cell which can be written in a few different variations:
 
-## PNG
+- `'84754a9ffffffff'` (Python string)
+- `0x84754a9ffffffff` (hexadecimal literal)
+- `0x084754a9ffffffff` (hex literal with leading `0` to bring it to 16 hex digits)
+- TODO: `` decimal literal
 
-<div class="wide-image">
-  <img src="figs/84754a9ffffffff.png" alt="H3 cell bits">
-</div>
+Note that H3 cells always have a leading `0` in the 16-digit hex representation,
+which is usually omitted to bring it down to 15 digits.
 
-<div class="wide-image">
-  <img src="figs/89283082803ffff.png" alt="H3 cell bits">
-</div>
+In the 15-digit form,
+the first digit is always `8` and the second digit is always the cell resolution.
+Can you see why that is from the bit layout diagram?
 
-## SVG
 
-<div class="wide-image">
-  <img src="figs/84754a9ffffffff.svg" alt="H3 cell bits">
-</div>
+{{< wide-image src="figs/84754a9ffffffff.png" alt="H3 cell bits" >}}
 
-<div class="wide-image">
-  <img src="figs/89283082803ffff.svg" alt="H3 cell bits">
-</div>
+

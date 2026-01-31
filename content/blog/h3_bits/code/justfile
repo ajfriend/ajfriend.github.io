@@ -16,7 +16,7 @@ purge:
 	just _rm '*.ipynb_checkpoints'
 	just _rm '*.lock'
 	just _rm build
-	just _rm .claude
+	# just _rm .claude
 	rm -rf ../figs/*
 
 _rm pattern:

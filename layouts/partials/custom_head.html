@@ -125,14 +125,21 @@
     text-decoration: underline;
   }
 
-  /* Wide images with horizontal scroll */
-  .wide-image {
-    overflow-x: scroll;
-    margin: 1rem 0;
+  /* Wide images - break out of container */
+  .wide-image-container {
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 1.5rem 0;
   }
-  .wide-image img {
-    max-width: none;
-    height: auto;
+  .wide-image-scroll {
+    max-width: 2600px;
+    margin: 0 auto;
+    overflow-x: auto;
+  }
+  .wide-image-scroll img {
     display: block;
+    height: auto;
   }
 </style>

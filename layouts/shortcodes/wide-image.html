@@ -1,0 +1,12 @@
+{{- $src := .Get "src" -}}
+{{- $alt := .Get "alt" | default "" -}}
+{{- $caption := .Get "caption" | default "" -}}
+{{- $maxWidth := .Get "max-width" | default "1400px" -}}
+<div class="wide-image-container">
+  <div class="wide-image-scroll">
+    <img src="{{ $src }}" alt="{{ $alt }}">
+  </div>
+  {{- if $caption }}
+  <p class="caption">{{ $caption }}</p>
+  {{- end }}
+</div>
