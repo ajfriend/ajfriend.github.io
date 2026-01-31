@@ -1,4 +1,14 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Home on AJ Friend</title><link>https://ajfriend.com/</link><description>Recent content in Home on AJ Friend</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Sat, 24 Jan 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://ajfriend.com/index.xml" rel="self" type="application/rss+xml"/><item><title>[WIP] Making H3's cells-to-polygon faster</title><link>https://ajfriend.com/blog/cells_to_poly/</link><pubDate>Sat, 24 Jan 2026 00:00:00 +0000</pubDate><guid>https://ajfriend.com/blog/cells_to_poly/</guid><description>&lt;p&gt;&lt;strong&gt;Note&lt;/strong&gt;: This post is currently a quick-and-dirty attempt at explaining the algorithm
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Home on AJ Friend</title><link>https://ajfriend.com/</link><description>Recent content in Home on AJ Friend</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Fri, 30 Jan 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://ajfriend.com/index.xml" rel="self" type="application/rss+xml"/><item><title>H3 Bit Layout</title><link>https://ajfriend.com/blog/h3_bits/</link><pubDate>Fri, 30 Jan 2026 00:00:00 +0000</pubDate><guid>https://ajfriend.com/blog/h3_bits/</guid><description>&lt;p&gt;H3 cells are stored as 64-bit integers, with &lt;a href="https://h3geo.org/docs/library/index/cell/"&gt;bit fields&lt;/a&gt; encoding the cell&amp;rsquo;s
+mode, resolution, base cell, and hierarchical path.
+Below is a diagram of the bit layout for a cell, which can be written in a few ways:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;'84754a9ffffffff'&lt;/code&gt; (15-digit Python string)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;0x84754a9ffffffff&lt;/code&gt; (15-digit hex literal)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;0x084754a9ffffffff&lt;/code&gt; (16-digit hex literal with leading &lt;code&gt;0&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;596538564771053567&lt;/code&gt; (decimal literal)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Note that H3 cells always have a leading &lt;code&gt;0&lt;/code&gt; in the 16-digit hex representation,
+which is usually omitted to bring it down to 15 digits.&lt;/p&gt;</description></item><item><title>[WIP] Making H3's cells-to-polygon faster</title><link>https://ajfriend.com/blog/cells_to_poly/</link><pubDate>Sat, 24 Jan 2026 00:00:00 +0000</pubDate><guid>https://ajfriend.com/blog/cells_to_poly/</guid><description>&lt;p&gt;&lt;strong&gt;Note&lt;/strong&gt;: This post is currently a quick-and-dirty attempt at explaining the algorithm
 behind the PR &lt;a href="https://github.com/uber/h3/pull/1113"&gt;uber/h3 #1113&lt;/a&gt;. My plan is to grow this into a
 proper blog post with more context, background, etc.&lt;/p&gt;
 &lt;p&gt;I also have a Python version of this algorithm shared at &lt;a href="https://github.com/ajfriend/h3c2p"&gt;https://github.com/ajfriend/h3c2p&lt;/a&gt;&lt;/p&gt;
