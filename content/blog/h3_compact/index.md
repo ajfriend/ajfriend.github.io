@@ -91,13 +91,14 @@ pass** without re-sorting, by carefully managing which cells are "done" versus
 
 We use three pointers:
 
-- `i`: Everything left of `i` is **done** — fully compacted, no future cell can complete a set with them
+- `i`: Everything before `i` is **done** — fully compacted, no future cell can complete a set with them
 - `j`: Cells between `i` and `j` are **pending** — they might be part of a set that gets completed (can span multiple resolutions)
-- `k`: The next cell to **process** — between `j` and `k` is junk memory we can ignore
+- `k`: The cell at `k` is next to **process** — between `j` and `k` is "junk memory" we can ignore and overwrite
 
-```
-[ done ][ pending ][ junk ][ to process... ]
-        i         j       k
+```md
+| done... | pending... |  junk  | to process... |
+          ^            ^        ^
+          i            j        k
 ```
 
 We track the **sequent cell** — the one that would continue or complete the
@@ -107,12 +108,12 @@ For each cell at `k`:
 
 1. **Resolution 0**: Immediately move to done (no parent to compact into).
 
-2. **Matches next completer**:
+2. **Matches sequent**:
    - If it's the last sibling (digit 6, or 5 for pentagons): compact the set,
      put parent at `k`, don't increment `k`.
-   - Otherwise: add to pending, update next completer to expect the next digit.
+   - Otherwise: add to pending.
 
-3. **Child of next completer**: Add to pending. The child will be processed
+3. **Descendant of sequent**: Add to pending. The descendant will be processed
    first, and might compact up to the level we're waiting for.
 
 4. **Unrelated**: Move pending to done, start fresh with this cell.
@@ -201,7 +202,7 @@ The lower 52 bit ordering guarantees that siblings are contiguous and children
 come before parents. We only need to look at the top of pending to know exactly
 which cell would continue or complete the current set.
 
-When a child of the next completer arrives, we add it to pending. It will
+When a descendant of the sequent arrives, we add it to pending. It will
 compact first, potentially producing the cell we were waiting for.
 
 When we compact, the parent goes to `k` and gets processed immediately. If it
