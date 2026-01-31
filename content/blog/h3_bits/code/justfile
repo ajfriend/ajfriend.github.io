@@ -8,7 +8,7 @@ lab:
 	uv run jupyter lab
 
 plot:
-	uv run plot_h3_bits.py
+	uv run scripts/make_figures.py
 
 purge:
 	just _rm .venv
@@ -17,7 +17,7 @@ purge:
 	just _rm '*.lock'
 	just _rm build
 	just _rm .claude
-	rm -rf figs/*
+	rm -rf ../figs/*
 
 _rm pattern:
     -@find . -name "{{pattern}}" -prune -exec rm -rf {} +

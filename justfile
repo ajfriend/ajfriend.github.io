@@ -5,8 +5,8 @@ build:
 	hugo
 
 view:
-	# hugo server --openBrowser
-	open "http://localhost:1313/blog/cells_to_poly/" & hugo server --port 1313
+	hugo server --openBrowser
+	# open "http://localhost:1313/blog/cells_to_poly/" & hugo server --port 1313
 
 clean:
 	just _rm public
