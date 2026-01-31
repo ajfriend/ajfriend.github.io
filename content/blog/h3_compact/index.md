@@ -148,15 +148,16 @@ bool is_first_child(H3Index cell) {
     return res >= 1 && getResDigit(cell, res) == 0;
 }
 
-// Returns true if all resolution digits between seq's res and cur's res are 0.
+// Returns true if cur is a first descendant of seq:
+// - cur is a proper descendant of seq (finer resolution, same ancestor path)
+// - all digits between seq's res and cur's res are 0
 bool is_first_descendant_of(H3Index cur, H3Index seq) {
+    if (cmp_canon(cur, seq) != -1) return false;
+
     int seq_res = getResolution(seq);
     int cur_res = getResolution(cur);
-
     for (int r = seq_res + 1; r <= cur_res; r++) {
-        if (getResDigit(cur, r) != 0) {
-            return false;
-        }
+        if (getResDigit(cur, r) != 0) return false;
     }
     return true;
 }
@@ -166,6 +167,12 @@ int64_t compact_single_pass(H3Index *cells, int64_t n) {
     int64_t j = 0;  // pending pointer (end of pending region)
     int64_t k = 0;  // process pointer
 
+    // Invariants:
+    // - 0 <= i <= j <= k <= n
+    // - cells[0..i) are done (fully compacted)
+    // - cells[i..j) are pending (might compact with future cells)
+    // - cells[j..k) are junk (can be overwritten)
+    // - cells[k..n) are yet to be processed
     while (k < n) {
         if (cells[k] == 0) {
             k++;
@@ -207,7 +214,7 @@ int64_t compact_single_pass(H3Index *cells, int64_t n) {
             continue;
         }
 
-        if (cmp_canon(cur, seq) == -1 && is_first_descendant_of(cur, seq)) {
+        if (is_first_descendant_of(cur, seq)) {
             // First descendant of sequent — add to stack
             cells[j] = cur;
             j++;
