@@ -53,3 +53,37 @@ The lower 52 bit ordering has useful properties:
 - **Hierarchical**: Children always sort before their parents
 - **H3_NULL sorts first**: The invalid cell `H3_NULL` (which is `0`) sorts before all valid cells
 
+## Rich comparison
+
+A richer comparison function can also tell us whether two cells are
+related by the hierarchy (ancestor/descendant) or unrelated:
+
+```c
+int cmp_canon(H3Index a, H3Index b) {
+    if (a == b) return 0;
+
+    int res_a = H3_GET_RESOLUTION(a);
+    int res_b = H3_GET_RESOLUTION(b);
+    int min_res = (res_a < res_b) ? res_a : res_b;
+
+    H3Index a_parent = cellToParent(a, min_res);
+    H3Index b_parent = cellToParent(b, min_res);
+
+    if (a_parent == b_parent) {
+        // Cells are related: one is an ancestor of the other
+        return (res_a > res_b) ? -1 : +1;
+    }
+
+    // Cells are unrelated
+    a <<= 12;
+    b <<= 12;
+    return (a < b) ? -2 : +2;
+}
+```
+
+Return values:
+- `0`: Same cell
+- `-1`: `a` is a descendant of `b`
+- `+1`: `b` is a descendant of `a`
+- `-2`: `a` sorts before `b`, but they are unrelated
+- `+2`: `b` sorts before `a`, but they are unrelated
