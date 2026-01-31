@@ -156,22 +156,19 @@ bool is_first_descendant_of(H3Index cur, H3Index target) {
 }
 ```
 
-With the helpers defined, the main loop is the following.
-For each `cells[k]`, we first check if pending is non-empty. If so, compute
-the next sibling from the top of pending, then:
+With the helpers defined, the main loop handles each cell (skipping nulls)
+with two branches:
 
-1. **Matches next sibling**: Add to pending. If it's the last sibling (digit 6),
-   compact the set, put parent back at `cells[k]`, and reprocess without incrementing `k`.
+**If pending is non-empty**, compute the next sibling `sib` from the top of pending (`cells[j-1]`)
+and compare with `cur = cells[k]` (the next incoming cell to process):
+- **`cur` matches `sib`**: Add to pending. If it's the last sibling (digit 6), compact the
+  set, put parent back at `cells[k]`, and reprocess without incrementing `k`.
+- **`cur` is a "first descendant" of `sib`**: Add to pending. It might compact up to the `sib` we're waiting for.
+- **Otherwise**: Flush pending cells to done, since they can't be compacted further. Fall through to empty case below to see if `cur` can start a new sibling set.
 
-2. **First descendant of next sibling**: Add to pending. It might compact up to
-   the level we're waiting for.
-
-3. **Unrelated**: Flush pending to done. Fall through to handle `cur` with
-   empty pending.
-
-**Empty pending**: If the cell is a "first child" (res ≥ 1 and digit 0 at its
-resolution), it could start a compactable set — add to pending. Otherwise
-(res 0, or digit ≠ 0), it can't compact — flush immediately to done.
+**If pending is empty** (or we just flushed), the cell either starts a new
+potential sibling set or goes straight to done. If it's a "first child"
+(res ≥ 1 and digit 0), add to pending. Otherwise, flush immediately.
 
 ```c
 int64_t compact_single_pass(H3Index *cells, int64_t n) {
