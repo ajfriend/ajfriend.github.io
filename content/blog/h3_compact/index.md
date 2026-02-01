@@ -1,13 +1,14 @@
 ---
 title: "A Failed Attempt at Improving H3 Compaction"
-date: 2026-01-30
-draft: true
+date: 2026-01-31
 toc: true
 ---
 
 # Introduction
 
 This is a failed attempt of mine to speed up the H3 `compactCells` algorithm.
+
+The prototype code (admittedly LLM-heavy) is at: https://github.com/ajfriend/h3/pull/1
 
 The motivating idea was that, once we sort a (possibly resolution-heterogeneous) array of H3 cells
 using the [lower 52 bit ordering](/blog/h3_bits/#sorting-h3-cells), we can
@@ -342,3 +343,4 @@ in H3 may provide sorted outputs---so the sorted scenario won't be uncommon.**
 - [H3 Bit Layout](/blog/h3_bits/) --- "Lower 52 bit" ordering for H3 cells
 - [PR #552](https://github.com/uber/h3/pull/552) --- An older PR of mine around
 ordering/canonicalizing sets of H3 cells.
+- Prototype code: https://github.com/ajfriend/h3/pull/1
