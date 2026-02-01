@@ -1,4 +1,14 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Blog on AJ Friend</title><link>https://ajfriend.com/blog/</link><description>Recent content in Blog on AJ Friend</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Fri, 30 Jan 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://ajfriend.com/blog/index.xml" rel="self" type="application/rss+xml"/><item><title>H3 Bit Layout</title><link>https://ajfriend.com/blog/h3_bits/</link><pubDate>Fri, 30 Jan 2026 00:00:00 +0000</pubDate><guid>https://ajfriend.com/blog/h3_bits/</guid><description>&lt;p&gt;H3 cells are stored as 64-bit integers, with &lt;a href="https://h3geo.org/docs/library/index/cell/"&gt;bit fields&lt;/a&gt; encoding the cell&amp;rsquo;s
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Blog on AJ Friend</title><link>https://ajfriend.com/blog/</link><description>Recent content in Blog on AJ Friend</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Sat, 31 Jan 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://ajfriend.com/blog/index.xml" rel="self" type="application/rss+xml"/><item><title>A Failed Attempt at Improving H3 Compaction</title><link>https://ajfriend.com/blog/h3_compact/</link><pubDate>Sat, 31 Jan 2026 00:00:00 +0000</pubDate><guid>https://ajfriend.com/blog/h3_compact/</guid><description>&lt;h1 id="introduction"&gt;
+ &lt;a href="#introduction" class="anchor-link"&gt;#&lt;/a&gt;Introduction&lt;/h1&gt;
+&lt;p&gt;This is a failed attempt of mine to speed up the H3 &lt;code&gt;compactCells&lt;/code&gt; algorithm.&lt;/p&gt;
+&lt;p&gt;The prototype code (admittedly LLM-heavy) is at: &lt;a href="https://github.com/ajfriend/h3/pull/1"&gt;https://github.com/ajfriend/h3/pull/1&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The motivating idea was that, once we sort a (possibly resolution-heterogeneous) array of H3 cells
+using the &lt;a href="https://ajfriend.com/blog/h3_bits/#sorting-h3-cells"&gt;lower 52 bit ordering&lt;/a&gt;, we can
+compact the cells by modifying them in-place in a single pass over the array.&lt;/p&gt;
+&lt;p&gt;So, while this is true, and the single-pass logic is interesting and maybe
+still useful in other contexts, the algorithm&amp;rsquo;s &lt;strong&gt;runtime is
+dominated by the sort, and we couldn&amp;rsquo;t get it faster than the existing
+hashtable-based implementation&lt;/strong&gt;.&lt;/p&gt;</description></item><item><title>H3 Bit Layout</title><link>https://ajfriend.com/blog/h3_bits/</link><pubDate>Fri, 30 Jan 2026 00:00:00 +0000</pubDate><guid>https://ajfriend.com/blog/h3_bits/</guid><description>&lt;p&gt;H3 cells are stored as 64-bit integers, with &lt;a href="https://h3geo.org/docs/library/index/cell/"&gt;bit fields&lt;/a&gt; encoding the cell&amp;rsquo;s
 mode, resolution, base cell, and hierarchical path.
 Below is a diagram of the bit layout for a cell, which can be written in a few ways:&lt;/p&gt;
 &lt;ul&gt;
