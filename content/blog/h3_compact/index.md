@@ -22,7 +22,7 @@ That said, this approach isn't a total failure. It does provide a little more st
 
 - **Canonical output**: cells end up in a consistent sorted order, useful for
   comparisons and other operations
-- **Handles multiple-resolutions, duplicates, and ancestors**: the algorithm gracefully removes redundant cells
+- **Handles multiple-resolutions, duplicates, and ancestors**: the algorithm gracefully removes redundant cells or partially compacted inputs
 - **In-place**: operates directly on the input array with O(1) additional memory
   (beyond the sort)
 - **Idempotent**: running it twice produces the same result
@@ -128,9 +128,9 @@ The `i,j,k` all start at `0`. At the end, `k == n` (all cells processed) and `i 
 Here's a diagram of the working set:
 
 ```md
-| done... | pending... |  junk  | to process... |
-          ^            ^        ^
-          i            j        k
+| done | pending |  junk  | to process |
+^      ^         ^        ^            ^
+0      i         j        k            n
 ```
 
 During the algorithm, we compute the **next sibling** of the pending set: the cell that would continue or complete the
@@ -321,7 +321,7 @@ We tried several sorting strategies:
 
 ## Benchmarks
 
-Benchmarks on an Apple M3 laptop. Take with a grain of salt (they're LLM generated), but they illustrate the tradeoffs:
+Benchmarks on an Apple M3 laptop, using the adaptive sort implementation. Take with a grain of salt (they're LLM generated), but they illustrate the tradeoffs:
 
 | Test Case | `compactCells` (hash) | `compactCellsInPlace` (sort) | Winner |
 |-----------|----------------------|------------------------------|--------|
