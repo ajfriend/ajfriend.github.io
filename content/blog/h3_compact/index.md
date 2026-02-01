@@ -1,17 +1,36 @@
 ---
-title: "In-Place H3 Cell Compaction"
+title: "A Failed Attempt at Improving H3 Compaction"
 date: 2026-01-30
 draft: true
+toc: true
 ---
 
-The standard H3 `compactCells` function requires allocating a separate output array.
-This post describes an **in-place compaction algorithm** that operates directly on
-the input array, requiring only O(1) additional memory beyond the sort.
+# Introduction
 
-The algorithm exploits the [lower 52 bit ordering](/blog/h3_bits/#sorting-h3-cells)
-to efficiently identify cells that can be compacted.
+This is a failed experiment to improve the H3 `compactCells` algorithm in C.
 
-## Overview
+The idea: once we sort a (possibly resolution-heterogeneous) set of H3 cells
+using the [lower 52 bit ordering](/blog/h3_bits/#sorting-h3-cells), we can
+compact them in a single pass. While this is true, the algorithm's runtime is
+dominated by the sort, and we couldn't get it faster than the existing
+hash-table-based implementation.
+
+That said, this approach isn't a total failure. It does more than the existing
+algorithm:
+
+- **Canonical output**: cells end up in a consistent sorted order, useful for
+  comparisons and other operations
+- **Handles duplicates and ancestors**: the algorithm gracefully removes
+  redundant cells
+- **In-place**: operates directly on the input array with O(1) additional memory
+  (beyond the sort)
+- **Idempotent**: running it twice produces the same result
+- **Fast for sorted input**: if your cells are already sorted (common in many
+  workflows), this approach *is* faster
+
+We document the algorithm here for potential future revisiting.
+
+# Algorithm
 
 The algorithm has three phases:
 
@@ -266,7 +285,7 @@ array (positions `0` to `j-1`). No separate finalization pass is needed.
 - All other operations use O(1) additional memory
 - No separate output array needed
 
-## Further reading
+# Further reading
 
 - [H3 Bit Layout](/blog/h3_bits/) - Understanding the lower 52 bit ordering
 - [PR #552](https://github.com/uber/h3/pull/552) - Canonicalization for H3 cell sets
