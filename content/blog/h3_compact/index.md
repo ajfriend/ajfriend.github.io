@@ -4,11 +4,16 @@ date: 2026-01-31
 toc: true
 ---
 
-# Introduction
+I tried to make the H3 `compactCells` function faster. I failed. But I think
+the approach is interesting, and it may still prove useful in the future, so
+here's a writeup.
 
-This is a failed attempt of mine to speed up the H3 `compactCells` algorithm.
+The prototype code is at: https://github.com/ajfriend/h3/pull/1. I used Claude
+Code quite a bit for benchmarks, tests, and trying out different sorting algorithms---it did all that much faster than I could have. I still needed
+to supply the algorithm, but it did help with cleaning up and combining some
+of the logical branches.
 
-The prototype code (admittedly LLM-heavy) is at: https://github.com/ajfriend/h3/pull/1
+# Idea
 
 The motivating idea was that, once we sort a (possibly resolution-heterogeneous) array of H3 cells
 using the [lower 52 bit ordering](/blog/h3_bits/#sorting-h3-cells), we can
