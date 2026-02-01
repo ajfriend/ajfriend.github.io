@@ -271,13 +271,13 @@ int64_t compact_inplace(H3Index *cells, int64_t n) {
     remove_descendants(cells, n);
 
     // Phase 3: Compact (single pass)
-    // Returns j — the compacted cells are at positions 0 to j-1
+    // Returns j. The compacted cells are at positions 0 to j-1
     return compact_single_pass(cells, n);
 }
 ```
 
-When processing finishes, the compacted cells are already at the front of the
-array (positions `0` to `j-1`). No separate finalization pass is needed.
+When processing finishes, the compacted cells are at the front of the
+array (positions `0` to `j-1`).
 
 ## Memory usage
 
@@ -287,9 +287,19 @@ array (positions `0` to `j-1`). No separate finalization pass is needed.
 
 # Performance
 
-Profiling showed that **95% of runtime is spent sorting** in the slowest cases (large, unsorted inputs).
-Since sorting is O(n log n) and the existing hash-table approach is O(n), we
-can't beat it for general data — but we tried several sorting strategies:
+## Why it's slower
+
+Profiling showed that **95% of runtime is spent sorting** for large unsorted inputs
+like polygon fills. The actual compaction logic is fast, but we can't beat the
+existing hash-table approach because:
+
+- Hash tables are O(n) average case
+- Sorting is O(n log n)
+- Even a highly optimized custom quicksort couldn't close the gap
+
+## Sorting strategies
+
+We tried several sorting strategies:
 
 | Approach | Result |
 |----------|--------|
