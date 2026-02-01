@@ -7,28 +7,34 @@ toc: true
 
 # Introduction
 
-This is a failed experiment to improve the H3 `compactCells` algorithm in C.
+This is a failed attempt of mine to speed up the H3 `compactCells` algorithm.
 
-The idea: once we sort a (possibly resolution-heterogeneous) set of H3 cells
+The motivating idea was that, once we sort a (possibly resolution-heterogeneous) array of H3 cells
 using the [lower 52 bit ordering](/blog/h3_bits/#sorting-h3-cells), we can
-compact them in a single pass. While this is true, the algorithm's runtime is
-dominated by the sort, and we couldn't get it faster than the existing
-hash-table-based implementation.
+compact the cells by modifying them in-place in a single pass over the array.
 
-That said, this approach isn't a total failure. It does more than the existing
-algorithm:
+So, while this is true, and the single-pass logic is interesting and maybe
+still usefull in other contexts, the algorithm's **runtime is
+dominated by the sort, and we couldn't get it faster than the existing
+hashtable-based implementation**.
+
+That said, this approach isn't a total failure. It does provide a little more structure and functionality than the existing algorithm:
 
 - **Canonical output**: cells end up in a consistent sorted order, useful for
   comparisons and other operations
-- **Handles duplicates and ancestors**: the algorithm gracefully removes
-  redundant cells
+- **Handles multiple-resolutions, duplicates, and ancestors**: the algorithm gracefully removes redundant cells
 - **In-place**: operates directly on the input array with O(1) additional memory
   (beyond the sort)
 - **Idempotent**: running it twice produces the same result
-- **Fast for sorted input**: if your cells are already sorted (common in many
+- **Fast for sorted input**: if cells are already sorted (common in many
   workflows), this approach *is* faster
 
-We document the algorithm here for potential future revisiting.
+The concepts here may still be useful in the future, especially if we are in a situation where our H3 cell sets are often already sorted or mostly sorted.
+And, as I mention in [PR #552](https://github.com/uber/h3/pull/552), the
+"canonical" ordering we end up with is useful for fast operations on
+sets of cells: union, intersection, testing for cell membership, and more.
+
+We document the algorithm here for future consideration.
 
 # Algorithm
 
@@ -59,12 +65,17 @@ This ordering has a key property: **children always sort before their parents**.
 This is because children share the same prefix bits as their parent but have
 additional non-`7` digits in the lower bits.
 
-Zero values (`H3_NULL`) sort first, which we'll use to our advantage later.
+Note that zero values (`H3_NULL`) sort first, which we'll handle later.
 
 ## Phase 2: Canonicalize
 
-After sorting, we remove duplicates and any cells whose ancestors are also
-in the array. We walk **right to left**, tracking the current "parent":
+After sorting, remove duplicates and any cells whose ancestors are also
+in the array.
+
+In the lower 52 bit ordering, parents sort *after* their children.
+Walking backwards in the array, we encounter parents first.
+
+The algorithm walks **right to left**, keeping track the current parent cell, and gobbling up any descendents in their shadow:
 
 ```c
 void remove_descendants(H3Index *cells, int64_t n) {
@@ -86,11 +97,7 @@ void remove_descendants(H3Index *cells, int64_t n) {
 }
 ```
 
-Why right to left? In the lower 52 bit ordering, parents sort *after* their children.
-Walking backwards, we encounter parents first. Any children we then encounter
-can be safely removed since their parent represents the same area.
-
-The `is_descendant` check uses the [rich comparison](/blog/h3_bits/#rich-comparison):
+The `is_descendant` check can be implemented with a [rich comparison](/blog/h3_bits/#rich-comparison) operator:
 
 ```c
 bool is_descendant(H3Index child, H3Index parent) {
@@ -112,9 +119,13 @@ H3 hierarchy, all within the same pass.
 
 We use three pointers to work in-place in the array:
 
-- `i`: Everything before `i` is **done** — fully compacted, no future cell can complete a set with them
-- `j`: Cells between `i` and `j` are **pending** — they might be part of a set that gets completed (can span multiple resolutions)
-- `k`: The cell at `k` is next to **process** — between `j` and `k` is "junk memory" we can ignore and overwrite
+- `i`: Everything before `i` is **done** --- fully compacted, no future cell can complete a set with them
+- `j`: Cells between `i` and `j` are **pending** --- these are cells that still have a chance to be compacted, depending on what cells are processed next
+- `k`: The cell at `k` is next **to be processed** --- between `j` and `k` is "junk memory" we can ignore and overwrite
+
+The `i,j,k` all start at `0`. At the end of the algorithm `j == n` (all cells processed), and `i == j`, with the compacted set being the cells `0` to `j-1`.
+
+Here's a diagram of the working set:
 
 ```md
 | done... | pending... |  junk  | to process... |
@@ -122,7 +133,7 @@ We use three pointers to work in-place in the array:
           i            j        k
 ```
 
-We compute the **next sibling** — the cell that would continue or complete the
+During the algorithm, we compute the **next sibling** of the pending set: the cell that would continue or complete the
 current sibling set. We only need to look at the top of the pending stack to compute this. We compare the next sibling with the next cell to process at `cells[k]`.
 
 Before we get into the main compaction logic, let's define some helper functions:
@@ -251,12 +262,12 @@ which cell would continue or complete the current set.
 When a first descendant of the next sibling arrives, we add it to pending. It will
 compact first, potentially producing the cell we were waiting for.
 
-When we compact, the parent goes to `k` and gets processed immediately. If it
+When we compact, the parent goes to `k` and gets reprocessed immediately. If it
 completes another set at a coarser resolution, we compact again. Cascading
 happens naturally through the main loop.
 
-Cells that can't start a compactable set — resolution 0 (no parent) or
-digit ≠ 0 (missing earlier siblings) — go straight to done via `is_first_child`.
+Cells that can't start a compactable set---resolution 0 (no parent) or
+digit ≠ 0 (missing earlier siblings)---go straight to done via `is_first_child`.
 
 ## Complete algorithm
 
@@ -277,7 +288,7 @@ int64_t compact_inplace(H3Index *cells, int64_t n) {
 ```
 
 When processing finishes, the compacted cells are at the front of the
-array (positions `0` to `j-1`).
+array in positions `0` to `j-1`.
 
 ## Memory usage
 
@@ -289,13 +300,13 @@ array (positions `0` to `j-1`).
 
 ## Why it's slower
 
-Profiling showed that **95% of runtime is spent sorting** for large unsorted inputs
+Profiling showed that up to **95% of the runtime is spent in sorting** for large, unsorted inputs
 like polygon fills. The actual compaction logic is fast, but we can't beat the
 existing hash-table approach because:
 
 - Hash tables are O(n) average case
 - Sorting is O(n log n)
-- Even a highly optimized custom quicksort couldn't close the gap
+- Even a highly optimized custom sorts couldn't close the gap
 
 ## Sorting strategies
 
