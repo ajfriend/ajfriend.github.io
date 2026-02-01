@@ -14,7 +14,7 @@ using the [lower 52 bit ordering](/blog/h3_bits/#sorting-h3-cells), we can
 compact the cells by modifying them in-place in a single pass over the array.
 
 So, while this is true, and the single-pass logic is interesting and maybe
-still usefull in other contexts, the algorithm's **runtime is
+still useful in other contexts, the algorithm's **runtime is
 dominated by the sort, and we couldn't get it faster than the existing
 hashtable-based implementation**.
 
@@ -75,7 +75,7 @@ in the array.
 In the lower 52 bit ordering, parents sort *after* their children.
 Walking backwards in the array, we encounter parents first.
 
-The algorithm walks **right to left**, keeping track the current parent cell, and gobbling up any descendents in their shadow:
+The algorithm walks **right to left**, keeping track of the current parent cell, and gobbling up any descendants in its shadow:
 
 ```c
 void remove_descendants(H3Index *cells, int64_t n) {
@@ -123,7 +123,7 @@ We use three pointers to work in-place in the array:
 - `j`: Cells between `i` and `j` are **pending** --- these are cells that still have a chance to be compacted, depending on what cells are processed next
 - `k`: The cell at `k` is next **to be processed** --- between `j` and `k` is "junk memory" we can ignore and overwrite
 
-The `i,j,k` all start at `0`. At the end of the algorithm `j == n` (all cells processed), and `i == j`, with the compacted set being the cells `0` to `j-1`.
+The `i,j,k` all start at `0`. At the end, `k == n` (all cells processed) and `i == j`, with the compacted cells in positions `0` to `j-1`.
 
 Here's a diagram of the working set:
 
@@ -306,7 +306,7 @@ existing hash-table approach because:
 
 - Hash tables are O(n) average case
 - Sorting is O(n log n)
-- Even a highly optimized custom sorts couldn't close the gap
+- Even a highly optimized custom sort couldn't close the gap
 
 ## Sorting strategies
 
