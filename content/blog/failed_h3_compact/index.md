@@ -28,7 +28,7 @@ That said, this approach isn't a total failure. It does provide a little more st
 
 - **Canonical output**: cells end up in a consistent sorted order, useful for
   comparisons and other operations
-- **Handles multiple-resolutions, duplicates, and ancestors**: the algorithm gracefully removes redundant cells or partially compacted inputs
+- **Handles duplicates, ancestors, and multiple resolutions**: the algorithm gracefully removes redundant cells or partially compacted inputs
 - **In-place**: operates directly on the input array with O(1) additional memory
   (beyond the sort)
 - **Idempotent**: running it twice produces the same result
@@ -199,7 +199,7 @@ with two branches:
 and compare with `cur = cells[k]` (the next incoming cell to process):
 - **`cur` matches `sib`**: Add to pending. If it's the last sibling (digit 6), compact the
   set, put parent back at `cells[k]`, and reprocess without incrementing `k`.
-- **`cur` is a "first descendant" of `sib`**: Add to pending. It might compact up to the `sib` we're waiting for.
+- **`cur` is a "first descendant" of `sib`**: Add to pending. It may still eventually compact up to the `sib` we're waiting for.
 - **Otherwise**: Flush pending cells to done, since they can't be compacted further. Fall through to empty case below to see if `cur` can start a new sibling set.
 
 **If pending is empty** (or we just flushed), the cell either starts a new
