@@ -285,7 +285,39 @@ array (positions `0` to `j-1`). No separate finalization pass is needed.
 - All other operations use O(1) additional memory
 - No separate output array needed
 
+# Performance
+
+Profiling showed that **95% of runtime is spent sorting** in the slowest cases (large, unsorted inputs).
+Since sorting is O(n log n) and the existing hash-table approach is O(n), we
+can't beat it for general data — but we tried several sorting strategies:
+
+| Approach | Result |
+|----------|--------|
+| `qsort()` (libc) | Baseline, function pointer overhead |
+| Custom quicksort | ~32% faster than qsort (inlined comparison) |
+| Timsort | Rejected — exploits sorted "runs", but real data had avg run length of 2.4 (no structure to exploit) |
+| Adaptive sort | Best compromise — checks sortedness first, uses insertion sort if ≤1% inversions |
+
+## Benchmarks
+
+Benchmarks on an Apple M3 laptop. Take with a grain of salt (they're LLM generated), but they illustrate the tradeoffs:
+
+| Test Case | `compactCells` (hash) | `compactCellsInPlace` (sort) | Winner |
+|-----------|----------------------|------------------------------|--------|
+| Small disk (37 cells) | 0.32 µs | 0.22 µs | **In-place** |
+| Medium disk (271 cells) | 1.81 µs | 2.24 µs | Hash |
+| Large disk (1261 cells) | 8.47 µs | 11.95 µs | Hash |
+| Base cell children (2401 cells) | 14.11 µs | 11.99 µs | **In-place** |
+| Sparse cells (100 cells) | 0.79 µs | 0.70 µs | **In-place** |
+| Pentagon children (286 cells) | 1.93 µs | 1.49 µs | **In-place** |
+| Colorado polygon (47823 cells) | 378 µs | 2053 µs | Hash |
+
+In-place wins when the data is already sorted (e.g., from `cellToChildren`)
+or very small. It loses on large unsorted inputs like polygon fills (~5x slower on Colorado). **Note, however, that future versions of the polygon-to-cells functions
+in H3 may provide sorted outputs---so the sorted scenario won't be uncommon.**
+
 # Further reading
 
-- [H3 Bit Layout](/blog/h3_bits/) - Understanding the lower 52 bit ordering
-- [PR #552](https://github.com/uber/h3/pull/552) - Canonicalization for H3 cell sets
+- [H3 Bit Layout](/blog/h3_bits/) --- "Lower 52 bit" ordering for H3 cells
+- [PR #552](https://github.com/uber/h3/pull/552) --- An older PR of mine around
+ordering/canonicalizing sets of H3 cells.
