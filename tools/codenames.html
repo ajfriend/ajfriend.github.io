@@ -41,7 +41,6 @@
     max-width: min(95vw, 160vh);
     flex: 1;
     max-height: calc(100% - 40px);
-    font-size: clamp(0.9rem, 3.4vmin, 1.8rem);
   }
   .card {
     border-radius: 8px;
@@ -54,7 +53,7 @@
     -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
     font-weight: 700;
-    font-size: inherit;
+    font-size: clamp(0.9rem, 3.4vmin, 1.8rem);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     text-align: center;
@@ -146,36 +145,6 @@
     text-transform: uppercase;
   }
   .menu-dropdown button:hover { background: rgba(255,255,255,0.08); }
-  .font-size-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 8px 24px;
-  }
-  .font-size-row span {
-    color: #e0d6c8;
-    font-size: 0.85rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-  .font-size-row button {
-    width: 32px;
-    height: 32px;
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 4px;
-    background: none;
-    color: #e0d6c8;
-    font-size: 1.2rem;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-  }
-  .font-size-row button:hover { background: rgba(255,255,255,0.08); }
 
   @media (max-width: 500px) {
     .card { border-radius: 5px; }
@@ -186,11 +155,6 @@
 <div class="menu-wrap">
   <button class="hamburger" id="menuBtn"><span></span><span></span><span></span></button>
   <div class="menu-dropdown" id="menuDropdown">
-    <div class="font-size-row">
-      <span>Font</span>
-      <button id="fontDown">&minus;</button>
-      <button id="fontUp">+</button>
-    </div>
     <button id="fullscreen">Fullscreen</button>
     <button id="newGame">New Game</button>
   </div>
@@ -291,23 +255,30 @@ menuBtn.addEventListener("click", (e) => {
   menuDropdown.classList.toggle("open");
 });
 
-document.addEventListener("click", () => menuDropdown.classList.remove("open"));
-
-let fontScale = 3.4;
-function applyFontScale() {
-  grid.style.fontSize = `clamp(0.9rem, ${fontScale}vmin, 1.8rem)`;
-}
-
-document.getElementById("fontUp").addEventListener("click", (e) => {
-  e.stopPropagation();
-  fontScale = Math.min(6, fontScale + 0.4);
-  applyFontScale();
+document.addEventListener("click", () => {
+  menuDropdown.classList.remove("open");
+  newGameBtn.textContent = "New Game";
+  newGameBtn.dataset.confirm = "";
 });
 
-document.getElementById("fontDown").addEventListener("click", (e) => {
-  e.stopPropagation();
-  fontScale = Math.max(1.5, fontScale - 0.4);
-  applyFontScale();
+let wakeLock = null;
+async function requestWakeLock() {
+  if ("wakeLock" in navigator) {
+    try { wakeLock = await navigator.wakeLock.request("screen"); } catch {}
+  }
+}
+function releaseWakeLock() {
+  if (wakeLock) { wakeLock.release(); wakeLock = null; }
+}
+
+document.addEventListener("fullscreenchange", () => {
+  if (document.fullscreenElement) { requestWakeLock(); }
+  else { releaseWakeLock(); }
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && document.fullscreenElement) {
+    requestWakeLock();
+  }
 });
 
 document.getElementById("fullscreen").addEventListener("click", () => {
@@ -319,10 +290,20 @@ document.getElementById("fullscreen").addEventListener("click", () => {
   menuDropdown.classList.remove("open");
 });
 
-document.getElementById("newGame").addEventListener("click", () => {
-  newGame();
-  menuDropdown.classList.remove("open");
+const newGameBtn = document.getElementById("newGame");
+newGameBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  if (newGameBtn.dataset.confirm === "true") {
+    newGame();
+    newGameBtn.textContent = "New Game";
+    newGameBtn.dataset.confirm = "";
+    menuDropdown.classList.remove("open");
+  } else {
+    newGameBtn.textContent = "Are you sure?";
+    newGameBtn.dataset.confirm = "true";
+  }
 });
+
 
 newGame();
 </script>
