@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Codenames</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    padding: 12px;
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+  h1 {
+    color: #e0d6c8;
+    font-size: 1.4rem;
+    margin-bottom: 8px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: clamp(4px, 1vmin, 10px);
+    width: 100%;
+    max-width: min(95vw, 160vh);
+    flex: 1;
+    max-height: calc(100% - 40px);
+    font-size: clamp(0.9rem, 3.4vmin, 1.8rem);
+  }
+  .card {
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    font-weight: 700;
+    font-size: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: center;
+    padding: 8px 4px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    border: 2px solid rgba(0,0,0,0.15);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    word-break: break-word;
+    overflow-wrap: break-word;
+    min-height: 0;
+  }
+  .card .word-top, .card .word-bottom {
+    line-height: 1.1;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card .word-bottom {
+    transform: rotate(180deg);
+    opacity: 0.4;
+  }
+  .card:active { transform: scale(0.96); }
+
+  .card[data-state="word"] {
+    background: #c8a96e;
+    color: #2c1e0f;
+  }
+  .card[data-state="grey"] {
+    background: #8a8578;
+    color: #50493e;
+  }
+  .card[data-state="red"] {
+    background: #c0392b;
+    color: transparent;
+  }
+  .card[data-state="blue"] {
+    background: #2471a3;
+    color: transparent;
+  }
+
+  .menu-wrap {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+  }
+  .hamburger {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.1);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+  .hamburger span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: #e0d6c8;
+    border-radius: 1px;
+  }
+  .menu-dropdown {
+    display: none;
+    position: absolute;
+    top: 48px;
+    right: 0;
+    background: #2a2a4a;
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+  .menu-dropdown.open { display: block; }
+  .menu-dropdown button {
+    padding: 12px 24px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: none;
+    background: none;
+    color: #e0d6c8;
+    cursor: pointer;
+    white-space: nowrap;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .menu-dropdown button:hover { background: rgba(255,255,255,0.08); }
+  .font-size-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 24px;
+  }
+  .font-size-row span {
+    color: #e0d6c8;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .font-size-row button {
+    width: 32px;
+    height: 32px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    background: none;
+    color: #e0d6c8;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+  .font-size-row button:hover { background: rgba(255,255,255,0.08); }
+
+  @media (max-width: 500px) {
+    .card { border-radius: 5px; }
+  }
+</style>
+</head>
+<body>
+<div class="menu-wrap">
+  <button class="hamburger" id="menuBtn"><span></span><span></span><span></span></button>
+  <div class="menu-dropdown" id="menuDropdown">
+    <div class="font-size-row">
+      <span>Font</span>
+      <button id="fontDown">&minus;</button>
+      <button id="fontUp">+</button>
+    </div>
+    <button id="fullscreen">Fullscreen</button>
+    <button id="newGame">New Game</button>
+  </div>
+</div>
+<h1>Codenames</h1>
+<div class="grid" id="grid"></div>
+<script>
+const WORDS = [
+  "africa","agent","air","alien","alps","amazon","ambulance","america","angel",
+  "antarctica","apple","arm","atlantis","australia","aztec","back","ball","band",
+  "bank","bar","bark","bat","battery","beach","bear","beat","bed","beijing",
+  "bell","belt","berlin","berry","bill","block","board","bolt","bomb","bond",
+  "boom","boot","bottle","bow","box","bridge","brush","buck","buffalo","bug",
+  "bugle","button","calf","canada","cap","capital","car","card","carrot","casino",
+  "cast","cat","cell","center","chair","change","charge","check","chest","chick",
+  "china","chocolate","church","circle","cliff","cloak","club","code","cold",
+  "comic","compound","concert","conductor","contract","cook","copper","cotton",
+  "court","cover","crane","crash","cricket","cross","crown","cycle","czech",
+  "dance","date","day","death","deck","degree","diamond","dice","dinosaur",
+  "disease","doctor","dog","draft","dragon","dress","drill","drop","duck","dwarf",
+  "eagle","egypt","embassy","engine","england","europe","eye","face","fair","fall",
+  "fan","fence","field","fighter","figure","file","film","fire","fish","fly",
+  "foot","force","forest","fork","france","game","gas","genius","germany","ghost",
+  "giant","glass","glove","gold","grace","grass","greece","green","ground","ham",
+  "hand","hawk","head","heart","helicopter","hero","hole","hollywood","honey",
+  "hood","hook","horn","horse","hospital","hotel","ice","india","iron","ivory",
+  "jack","jam","jet","jupiter","kangaroo","ketchup","key","kid","king","kiwi",
+  "knife","knight","lab","lap","laser","lawyer","lead","lemon","leprechaun",
+  "life","light","limousine","line","link","lion","loch","lock","log","london",
+  "luck","mail","mammoth","maple","marble","march","mass","match","mercury",
+  "mexico","microscope","millionaire","mine","mint","missile","model","mole",
+  "moon","moscow","mount","mouse","mouth","mug","nail","needle","net","new york",
+  "night","ninja","note","novel","nurse","nut","octopus","oil","olive","olympus",
+  "opera","orange","organ","palm","pan","pants","paper","parachute","park",
+  "part","pass","paste","penguin","phoenix","piano","pie","pilot","pin","pipe",
+  "pirate","pistol","pit","pitch","plane","plastic","plate","play","plot","point",
+  "poison","pole","police","pool","port","post","pound","press","princess",
+  "pumpkin","pupil","pyramid","queen","rabbit","race","ray","revolution","ring",
+  "robin","robot","rock","rome","root","rose","roulette","round","row","ruler",
+  "russia","sail","saturn","scale","school","scientist","scorpion","screen",
+  "scuba","seal","server","shadow","shakespeare","shark","ship","shoe","shop",
+  "shot","side","silk","sink","skull","slide","slip","slug","smuggler","snow",
+  "snowman","sock","soldier","soul","sound","space","spell","spider","spike",
+  "spot","spring","spy","square","stadium","staff","star","state","stick",
+  "stock","storm","straw","stream","strike","string","sub","suit","super",
+  "swing","switch","table","tail","tap","teacher","telescope","temple","theater",
+  "thief","thumb","tick","tie","time","tokyo","tooth","torch","tower","track",
+  "train","triangle","trip","trunk","tube","turkey","undertaker","unicorn",
+  "vacuum","van","vet","violet","virus","volcano","wall","war","wash",
+  "washington","watch","water","wave","web","well","whale","whip","wind",
+  "witch","worm","yard","zero","zoo"
+];
+
+const STATES = ["word", "grey", "red", "blue"];
+const grid = document.getElementById("grid");
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function setCardContent(card, state) {
+  const word = card.dataset.word;
+  const show = (state === "word" || state === "grey");
+  card.innerHTML = show
+    ? `<span class="word-top">${word}</span><span class="word-bottom">${word}</span>`
+    : "";
+}
+
+function newGame() {
+  grid.innerHTML = "";
+  const picked = shuffle(WORDS).slice(0, 25);
+  picked.forEach(word => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.dataset.state = "word";
+    card.dataset.word = word;
+    setCardContent(card, "word");
+    card.addEventListener("click", () => {
+      const idx = STATES.indexOf(card.dataset.state);
+      const next = STATES[(idx + 1) % STATES.length];
+      card.dataset.state = next;
+      setCardContent(card, next);
+    });
+    grid.appendChild(card);
+  });
+}
+
+const menuBtn = document.getElementById("menuBtn");
+const menuDropdown = document.getElementById("menuDropdown");
+
+menuBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  menuDropdown.classList.toggle("open");
+});
+
+document.addEventListener("click", () => menuDropdown.classList.remove("open"));
+
+let fontScale = 3.4;
+function applyFontScale() {
+  grid.style.fontSize = `clamp(0.9rem, ${fontScale}vmin, 1.8rem)`;
+}
+
+document.getElementById("fontUp").addEventListener("click", (e) => {
+  e.stopPropagation();
+  fontScale = Math.min(6, fontScale + 0.4);
+  applyFontScale();
+});
+
+document.getElementById("fontDown").addEventListener("click", (e) => {
+  e.stopPropagation();
+  fontScale = Math.max(1.5, fontScale - 0.4);
+  applyFontScale();
+});
+
+document.getElementById("fullscreen").addEventListener("click", () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen();
+  }
+  menuDropdown.classList.remove("open");
+});
+
+document.getElementById("newGame").addEventListener("click", () => {
+  newGame();
+  menuDropdown.classList.remove("open");
+});
+
+newGame();
+</script>
+</body>
+</html>
