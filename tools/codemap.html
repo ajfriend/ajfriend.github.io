@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Codenames Map</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    padding: 12px;
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+  .board-border {
+    border-radius: 14px;
+    padding: clamp(6px, 1.5vmin, 14px);
+    width: 100%;
+    max-width: min(95vw, 130vh);
+    flex: 1;
+    max-height: 100%;
+    display: flex;
+  }
+  .board-border.first-red { background: #c0392b; }
+  .board-border.first-blue { background: #2471a3; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: clamp(4px, 1vmin, 10px);
+    width: 100%;
+    flex: 1;
+    background: #1a1a2e;
+    border-radius: 8px;
+    padding: clamp(4px, 1vmin, 10px);
+  }
+  .cell {
+    border-radius: 6px;
+    min-height: 0;
+  }
+  .cell.red { background: #c0392b; }
+  .cell.blue { background: #2471a3; }
+  .cell.tan { background: #c8a96e; }
+  .cell.black { background: #1c1c1c; }
+
+  .menu-wrap {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+  }
+  .hamburger {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.1);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+  .hamburger span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: #e0d6c8;
+    border-radius: 1px;
+  }
+  .menu-dropdown {
+    display: none;
+    position: absolute;
+    top: 48px;
+    right: 0;
+    background: #2a2a4a;
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+  .menu-dropdown.open { display: block; }
+  .menu-dropdown button {
+    display: block;
+    width: 100%;
+    padding: 12px 24px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: none;
+    background: none;
+    color: #e0d6c8;
+    cursor: pointer;
+    white-space: nowrap;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: left;
+  }
+  .menu-dropdown button:hover { background: rgba(255,255,255,0.08); }
+</style>
+</head>
+<body>
+<div class="menu-wrap">
+  <button class="hamburger" id="menuBtn"><span></span><span></span><span></span></button>
+  <div class="menu-dropdown" id="menuDropdown">
+    <button id="fullscreen">Fullscreen</button>
+    <button id="newMap">New Map</button>
+  </div>
+</div>
+<div class="board-border" id="boardBorder">
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const grid = document.getElementById("grid");
+const boardBorder = document.getElementById("boardBorder");
+
+function newMap() {
+  const firstTeam = Math.random() < 0.5 ? "red" : "blue";
+  const secondTeam = firstTeam === "red" ? "blue" : "red";
+
+  boardBorder.className = "board-border first-" + firstTeam;
+
+  const colors = [];
+  for (let i = 0; i < 9; i++) colors.push(firstTeam);
+  for (let i = 0; i < 8; i++) colors.push(secondTeam);
+  for (let i = 0; i < 7; i++) colors.push("tan");
+  colors.push("black");
+
+  const shuffled = shuffle(colors);
+
+  grid.innerHTML = "";
+  shuffled.forEach(color => {
+    const cell = document.createElement("div");
+    cell.className = "cell " + color;
+    grid.appendChild(cell);
+  });
+}
+
+const menuBtn = document.getElementById("menuBtn");
+const menuDropdown = document.getElementById("menuDropdown");
+
+menuBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  menuDropdown.classList.toggle("open");
+});
+
+const newMapBtn = document.getElementById("newMap");
+
+document.addEventListener("click", () => {
+  menuDropdown.classList.remove("open");
+  newMapBtn.textContent = "New Map";
+  newMapBtn.dataset.confirm = "";
+});
+
+let wakeLock = null;
+async function requestWakeLock() {
+  if ("wakeLock" in navigator) {
+    try { wakeLock = await navigator.wakeLock.request("screen"); } catch {}
+  }
+}
+function releaseWakeLock() {
+  if (wakeLock) { wakeLock.release(); wakeLock = null; }
+}
+
+document.addEventListener("fullscreenchange", () => {
+  if (document.fullscreenElement) { requestWakeLock(); }
+  else { releaseWakeLock(); }
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && document.fullscreenElement) {
+    requestWakeLock();
+  }
+});
+
+document.getElementById("fullscreen").addEventListener("click", () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen();
+  }
+  menuDropdown.classList.remove("open");
+});
+
+newMapBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  if (newMapBtn.dataset.confirm === "true") {
+    newMap();
+    newMapBtn.textContent = "New Map";
+    newMapBtn.dataset.confirm = "";
+    menuDropdown.classList.remove("open");
+  } else {
+    newMapBtn.textContent = "Are you sure?";
+    newMapBtn.dataset.confirm = "true";
+  }
+});
+
+newMap();
+</script>
+</body>
+</html>
