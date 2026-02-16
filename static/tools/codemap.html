@@ -25,13 +25,26 @@
     padding-left: max(12px, env(safe-area-inset-left));
     padding-right: max(12px, env(safe-area-inset-right));
   }
+  .board-wrap {
+    width: min(95vw, calc(2 * (95vh - 40px)));
+    aspect-ratio: 2;
+    display: flex;
+    flex-direction: column;
+  }
+  .board-title {
+    color: rgba(255,255,255,0.5);
+    font-size: clamp(0.7rem, 1.5vmin, 1rem);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 6px;
+    flex-shrink: 0;
+  }
   .board-border {
     border-radius: 14px;
     padding: clamp(6px, 1.5vmin, 14px);
     width: 100%;
-    max-width: min(95vw, 130vh);
     flex: 1;
-    max-height: 100%;
     display: flex;
   }
   .board-border.first-red { background: #c0392b; }
@@ -118,8 +131,11 @@
     <button id="newMap">New Map</button>
   </div>
 </div>
-<div class="board-border" id="boardBorder">
-  <div class="grid" id="grid"></div>
+<div class="board-wrap">
+  <div class="board-title">Codenames</div>
+  <div class="board-border" id="boardBorder">
+    <div class="grid" id="grid"></div>
+  </div>
 </div>
 <script>
 function shuffle(arr) {
