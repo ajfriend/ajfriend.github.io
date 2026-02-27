@@ -32,20 +32,42 @@
     --slider-track: rgba(240,246,252,0.08);
     --slider-fill: var(--accent);
   }
+  .mid {
+    --bg: #1c1520;
+    --sidebar: #261e2b;
+    --input-bg: #1c1520;
+    --text: #e8ddd0;
+    --text-dim: rgba(232, 221, 208, 0.6);
+    --text-dimmer: rgba(232, 221, 208, 0.35);
+    --border: rgba(232, 180, 120, 0.1);
+    --border-focus: rgba(232, 180, 120, 0.3);
+    --btn-bg: rgba(232, 180, 120, 0.06);
+    --btn-hover: rgba(232, 180, 120, 0.14);
+    --btn-active: rgba(232, 180, 120, 0.2);
+    --accent: #e8a44a;
+    --accent-glow: rgba(232, 164, 74, 0.18);
+    --land-stroke: #8a7568;
+    --grid-stroke: #e8ddd0;
+    --grid-opacity: 0.04;
+    --sphere-stroke: #4a3d4f;
+    --cell-fill: #e89050;
+    --slider-track: rgba(232, 180, 120, 0.1);
+    --slider-fill: var(--accent);
+  }
   .light {
-    --bg: #f6f8fa;
+    --bg: #eef0f3;
     --sidebar: #ffffff;
-    --input-bg: #f6f8fa;
-    --text: #1f2328;
-    --text-dim: rgba(31, 35, 40, 0.5);
-    --text-dimmer: rgba(31, 35, 40, 0.3);
-    --border: rgba(31,35,40,0.12);
-    --border-focus: rgba(31,35,40,0.3);
-    --btn-bg: rgba(31,35,40,0.04);
-    --btn-hover: rgba(31,35,40,0.08);
-    --btn-active: rgba(31,35,40,0.14);
+    --input-bg: #ffffff;
+    --text: #1a1d21;
+    --text-dim: rgba(26, 29, 33, 0.6);
+    --text-dimmer: rgba(26, 29, 33, 0.4);
+    --border: rgba(0,0,0,0.18);
+    --border-focus: rgba(0,0,0,0.4);
+    --btn-bg: rgba(0,0,0,0.07);
+    --btn-hover: rgba(0,0,0,0.13);
+    --btn-active: rgba(0,0,0,0.2);
     --accent: #2563eb;
-    --accent-glow: rgba(37, 99, 235, 0.1);
+    --accent-glow: rgba(37, 99, 235, 0.15);
     --land-stroke: #656d76;
     --grid-stroke: #1f2328;
     --grid-opacity: 0.06;
@@ -123,6 +145,50 @@
   }
   .theme-toggle:hover { color: var(--text); }
   .theme-toggle svg { width: 16px; height: 16px; }
+  .header-buttons {
+    display: flex;
+    gap: 4px;
+  }
+
+  /* Help popover */
+  .help-popover {
+    display: none;
+    background: var(--sidebar);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 0.7rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  }
+  .help-popover.open { display: block; }
+  .help-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .help-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 2px 0;
+    color: var(--text);
+    font-size: 0.7rem;
+  }
+  .help-row kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    background: var(--btn-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+    min-width: 20px;
+    text-align: center;
+  }
 
   /* Resolution control */
   .res-control {
@@ -236,6 +302,30 @@
   .clear-btn:hover { color: var(--accent); }
 
   /* Textarea */
+  .textarea-wrap {
+    position: relative;
+    flex: 1;
+    display: flex;
+    min-height: 0;
+  }
+  .copy-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: var(--btn-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s, background 0.15s;
+    z-index: 1;
+  }
+  .copy-btn:hover { color: var(--text); background: var(--btn-hover); }
+  .copy-btn.copied { color: #22c55e; }
   .input-bar textarea {
     width: 100%;
     background: var(--input-bg);
@@ -282,8 +372,11 @@
       padding: 16px;
       gap: 14px;
     }
-    .input-bar textarea {
+    .textarea-wrap {
       flex: 1;
+    }
+    .input-bar textarea {
+      height: 100%;
       resize: none;
     }
   }
@@ -294,11 +387,39 @@
 <div class="input-bar">
   <div class="sidebar-header">
     <span class="sidebar-title">H3 Cell Viz</span>
+    <div class="header-buttons">
+    <button class="theme-toggle" id="copyImageBtn" title="Copy globe as image">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+      </svg>
+    </button>
+    <button class="theme-toggle" id="downloadImageBtn" title="Download globe as PNG">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    </button>
+    <button class="theme-toggle" id="helpToggle" title="Keyboard shortcuts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    </button>
     <button class="theme-toggle" id="themeToggle" title="Toggle theme">
       <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
       </svg>
     </button>
+    </div>
+  </div>
+  <div class="help-popover" id="helpPopover">
+    <div class="help-title">Keyboard</div>
+    <div class="help-row"><kbd>W</kbd> <kbd>S</kbd> <span>Tilt up/down</span></div>
+    <div class="help-row"><kbd>A</kbd> <kbd>D</kbd> <span>Roll left/right</span></div>
+    <div class="help-row"><kbd>Q</kbd> <kbd>E</kbd> <span>Spin on screen</span></div>
+    <div class="help-row"><kbd>&uarr;&darr;&larr;&rarr;</kbd> <span>Tilt / spin</span></div>
+    <div class="help-row"><kbd>Shift</kbd> <span>Larger steps</span></div>
+    <div class="help-title" style="margin-top:8px">Mouse</div>
+    <div class="help-row"><span>Drag</span> <span>Rotate globe</span></div>
+    <div class="help-row"><span>Click</span> <span>Toggle cell</span></div>
   </div>
   <div class="divider"></div>
   <div class="res-control">
@@ -315,9 +436,17 @@
   <div class="divider"></div>
   <div class="status-row">
     <div class="status" id="status"></div>
+    <button class="clear-btn" id="sortCells">Sort</button>
     <button class="clear-btn" id="clearCells">Clear</button>
   </div>
-  <textarea id="cellInput" rows="2" placeholder="Paste or type H3 cell IDs..." spellcheck="false"></textarea>
+  <div class="textarea-wrap">
+    <textarea id="cellInput" rows="2" placeholder="Paste or type H3 cell IDs..." spellcheck="false"></textarea>
+    <button class="copy-btn" id="copyBtn" title="Copy to clipboard">
+      <svg id="copyIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+      </svg>
+    </button>
+  </div>
 </div>
 
 <script type="module">
@@ -521,7 +650,7 @@ function handleGlobeClick(lat, lng) {
 }
 
 function syncTextFromCells() {
-  cellInput.value = [...cells].join('\n');
+  cellInput.value = [...cells].sort().join('\n');
 }
 
 function parseTokens(text) {
@@ -608,16 +737,22 @@ window.addEventListener('resize', resize);
 document.addEventListener('keydown', (event) => {
   if (event.target === cellInput) return;
   const step = event.shiftKey ? 30 : 10;
-  if (event.key === 'ArrowLeft') {
+  const key = event.key;
+
+  // Q/E and Left/Right: rotate on screen (gamma)
+  if (key === 'ArrowLeft' || key === 'q' || key === 'Q') {
     rotate = [rotate[0], rotate[1], (rotate[2] || 0) + step];
     redraw();
     event.preventDefault();
-  } else if (event.key === 'ArrowRight') {
+  } else if (key === 'ArrowRight' || key === 'e' || key === 'E') {
     rotate = [rotate[0], rotate[1], (rotate[2] || 0) - step];
     redraw();
     event.preventDefault();
-  } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-    const sign = event.key === 'ArrowUp' ? 1 : -1;
+  }
+  // W/S and Up/Down: tilt forward/back (screen-relative y-axis)
+  else if (key === 'ArrowUp' || key === 'w' || key === 'W'
+        || key === 'ArrowDown' || key === 's' || key === 'S') {
+    const sign = (key === 'ArrowUp' || key === 'w' || key === 'W') ? 1 : -1;
     const ha = sign * step / 2 * Math.PI / 180;
     const q = versor.from(rotate);
     const qRot = [Math.cos(ha), 0, Math.sin(ha), 0];
@@ -625,6 +760,35 @@ document.addEventListener('keydown', (event) => {
     redraw();
     event.preventDefault();
   }
+  // A/D: roll left/right (screen-relative x-axis)
+  else if (key === 'a' || key === 'A' || key === 'd' || key === 'D') {
+    const sign = (key === 'a' || key === 'A') ? -1 : 1;
+    const ha = sign * step / 2 * Math.PI / 180;
+    const q = versor.from(rotate);
+    const qRot = [Math.cos(ha), Math.sin(ha), 0, 0];
+    rotate = versor.rotation(versor.multiply(qRot, q));
+    redraw();
+    event.preventDefault();
+  }
+});
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+  const text = cellInput.value.trim();
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.classList.add('copied');
+    document.getElementById('copyIcon').innerHTML = '<polyline points="20 6 9 17 4 12"/>';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      document.getElementById('copyIcon').innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>';
+    }, 1500);
+  });
+});
+
+document.getElementById('sortCells').addEventListener('click', () => {
+  syncCellsFromText();
+  syncTextFromCells();
 });
 
 document.getElementById('clearCells').addEventListener('click', () => {
@@ -637,10 +801,86 @@ document.getElementById('clearCells').addEventListener('click', () => {
 const sunIcon = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
 const moonIcon = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
 
+function svgToCanvas() {
+  return new Promise((resolve) => {
+    const svgEl = container.querySelector('svg');
+    const size = parseInt(svgEl.getAttribute('width'));
+    const pad = 24;
+    const total = size + pad * 2;
+    const scale = 2; // retina
+    const canvas = document.createElement('canvas');
+    canvas.width = total * scale;
+    canvas.height = total * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(scale, scale);
+
+    // Fill background
+    const bg = getComputedStyle(document.body).getPropertyValue('--bg').trim();
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, total, total);
+
+    const svgData = new XMLSerializer().serializeToString(svgEl);
+    const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      ctx.drawImage(img, pad, pad, size, size);
+      URL.revokeObjectURL(url);
+      resolve(canvas);
+    };
+    img.src = url;
+  });
+}
+
+document.getElementById('copyImageBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('copyImageBtn');
+  const canvas = await svgToCanvas();
+  canvas.toBlob(async (blob) => {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      btn.style.color = '#22c55e';
+      setTimeout(() => btn.style.color = '', 1500);
+    } catch {
+      // Fallback: download instead
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'h3-cells.png';
+      a.click();
+    }
+  }, 'image/png');
+});
+
+document.getElementById('downloadImageBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('downloadImageBtn');
+  const canvas = await svgToCanvas();
+  canvas.toBlob((blob) => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'h3-cells.png';
+    a.click();
+    btn.style.color = '#22c55e';
+    setTimeout(() => btn.style.color = '', 1500);
+  }, 'image/png');
+});
+
+document.getElementById('helpToggle').addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('helpPopover').classList.toggle('open');
+});
+document.addEventListener('click', () => {
+  document.getElementById('helpPopover').classList.remove('open');
+});
+
+const halfIcon = '<line x1="3" y1="15" x2="21" y2="15"/><path d="M6.5 15a5.5 5.5 0 0 1 11 0"/><line x1="12" y1="4" x2="12" y2="6.5"/><line x1="6.8" y1="7.8" x2="8.2" y2="9.2"/><line x1="17.2" y1="7.8" x2="15.8" y2="9.2"/>';
+const themes = ['', 'mid', 'light'];
+const themeIcons = [sunIcon, halfIcon, moonIcon];
+let themeIndex = 0;
+
 document.getElementById('themeToggle').addEventListener('click', () => {
-  document.body.classList.toggle('light');
-  const light = document.body.classList.contains('light');
-  document.getElementById('themeIcon').innerHTML = light ? moonIcon : sunIcon;
+  if (themes[themeIndex]) document.body.classList.remove(themes[themeIndex]);
+  themeIndex = (themeIndex + 1) % themes.length;
+  if (themes[themeIndex]) document.body.classList.add(themes[themeIndex]);
+  document.getElementById('themeIcon').innerHTML = themeIcons[themeIndex];
   redraw();
 });
 
