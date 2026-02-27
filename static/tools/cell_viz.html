@@ -195,11 +195,11 @@
       <span id="resValue"></span>
     </div>
   </div>
-  <textarea id="cellInput" rows="2" placeholder="Enter H3 cell IDs, comma-separated&#10;&#10;e.g., 8928308280fffff" spellcheck="false"></textarea>
   <div class="status-row">
     <div class="status" id="status"></div>
     <button class="theme-btn" id="clearCells">Clear</button>
   </div>
+  <textarea id="cellInput" rows="2" placeholder="Enter H3 cell IDs&#10;&#10;e.g., 8928308280fffff" spellcheck="false"></textarea>
 </div>
 
 <script type="module">
@@ -403,12 +403,16 @@ function handleGlobeClick(lat, lng) {
 }
 
 function syncTextFromCells() {
-  cellInput.value = [...cells].join(', ');
+  cellInput.value = [...cells].join('\n');
+}
+
+function parseTokens(text) {
+  // Strip quotes, brackets, parens; split on any combo of whitespace, commas, semicolons
+  return text.replace(/['"`\[\](){}]/g, '').split(/[\s,;]+/).filter(Boolean);
 }
 
 function syncCellsFromText() {
-  const text = cellInput.value;
-  const tokens = text.split(/[\s,]+/).map(s => s.trim()).filter(Boolean);
+  const tokens = parseTokens(cellInput.value);
 
   const newCells = new Set();
   let detectedRes = null;
@@ -478,6 +482,9 @@ document.getElementById('resPlus').addEventListener('click', () => {
 });
 
 cellInput.addEventListener('input', syncCellsFromText);
+cellInput.addEventListener('blur', () => {
+  if (cells.size > 0) syncTextFromCells();
+});
 window.addEventListener('resize', resize);
 
 document.addEventListener('keydown', (event) => {
